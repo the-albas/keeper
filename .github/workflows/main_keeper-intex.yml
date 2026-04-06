@@ -1,0 +1,72 @@
+name: Build and deploy ASP.Net Core app to Azure Web App - keeper-intex
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "api/**"
+      - ".github/workflows/main_keeper-intex.yml"
+  workflow_dispatch:
+
+env:
+  PROJECT_PATH: api/api/api.csproj
+  PUBLISH_DIR: ./publish
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up .NET Core
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.x"
+
+      - name: Restore
+        run: dotnet restore "${{ env.PROJECT_PATH }}"
+
+      - name: Build with dotnet
+        run: dotnet build "${{ env.PROJECT_PATH }}" --configuration Release --no-restore
+
+      - name: dotnet publish
+        run: dotnet publish "${{ env.PROJECT_PATH }}" --configuration Release --output "${{ env.PUBLISH_DIR }}" --no-build
+
+      - name: Upload artifact for deployment job
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-app
+          path: ${{ env.PUBLISH_DIR }}
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Download artifact from build job
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-app
+          path: ${{ env.PUBLISH_DIR }}
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_A83BCDF4DBA246C7AF3B929CC5C22E9D }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_DFCA86AA005E4749814781BE98475722 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_0AA8AA859F48410ABE27882480FC78CE }}
+
+      - name: Deploy to Azure Web App
+        id: deploy-to-webapp
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: keeper-intex
+          slot-name: Production
+          package: ${{ env.PUBLISH_DIR }}
