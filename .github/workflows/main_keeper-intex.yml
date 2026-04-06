@@ -69,5 +69,6 @@ jobs:
         with:
           app-name: 'keeper-intex'
           slot-name: 'Production'
-          package: .
+          # Deploy published output from download-artifact (not repo root)
+          package: ${{ env.PUBLISH_DIR }}
           

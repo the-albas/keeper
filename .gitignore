@@ -62,3 +62,23 @@ nunit-*.xml
 lighthouse_csv_v7/
 # ENV stuff
 .env
+.env.*
+!.env.example
+
+# IDE/editor
+.vs/
+.vscode/
+*.user
+*.suo
+
+# Frontend
+node_modules/
+dist/
+.vite/
+
+# Python / notebooks
+.ipynb_checkpoints/
+
+# Scan/report artifacts
+lighthouse/
+lighthouse_csv_v7/
