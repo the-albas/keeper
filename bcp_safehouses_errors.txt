@@ -1,0 +1,8 @@
+#@ Row 1, Column 1: Invalid character value for cast specification @#
+safehouse_id	safehouse_code	name	region	city	province	country	open_date	status	capacity_girls	capacity_staff	current_occupancy	notes
+1,SH01,Lighthouse Safehouse 1,Luzon,Quezon City,Metro Manila,Philippines,2022-01-01,Active,8,4,8,
+2,SH02,Lighthouse Safehouse 2,Visayas,Cebu City,Cebu,Philippines,2022-02-15,Active,10,5,8,
+3,SH03,Lighthouse Safehouse 3,Mindanao,Davao City,Davao del Sur,Philippines,2022-04-01,Active,9,4,9,
+4,SH04,Lighthouse Safehouse 4,Visayas,Iloilo City,Iloilo,Philippines,2022-05-16,Active,12,4,12,
+5,SH05,Lighthouse Safehouse 5,Luzon,Baguio City,Benguet,Philippines,2022-06-30,Active,11,4,9,
+6,SH06,Lighthouse Safeho
