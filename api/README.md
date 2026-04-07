@@ -84,12 +84,21 @@ Planned environment variables:
 Current:
 
 - `GET /health` -> service health response
+- `POST /api/auth/signup` (or `/api/auth/register`) -> create account (public)
+- `POST /api/auth/login` -> sign in with ASP.NET Identity cookie (public)
+- `POST /api/auth/logout` -> clear auth cookie (protected)
+- `GET /api/auth/me` -> current authenticated user (protected)
 
 Near-term placeholders to implement:
 
 - `POST /api/ml/predict` -> backend forwards request to Python service and returns prediction
 - `GET /api/dashboard/impact` -> aggregate metrics for impact dashboard
-- `POST /api/auth/login` -> authentication endpoint
+
+Auth notes:
+
+- Authentication is cookie-based via ASP.NET Identity (`keeper.auth` cookie).
+- Frontend requests must include credentials (for example `fetch(..., { credentials: "include" })`).
+- Login/signup endpoints are intentionally anonymous; protected routes require `[Authorize]`.
 
 ## Security Baseline (IS 414 aligned)
 
@@ -199,4 +208,3 @@ Recommended immediate sequence:
 2. Add Azure SQL connectivity and first migration.
 3. Create auth skeleton (login + protected endpoint).
 4. Create ML integration contract and a first pass-through endpoint.
-

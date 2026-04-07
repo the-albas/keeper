@@ -3,23 +3,15 @@
 ## Dev setup
 
 ```bash
-# Optional: Postgres (other tooling / ML — not used by the .NET API)
-docker compose up -d
+# One-time setup
+cp .env.example .env
 
-# Frontend setup
-cd web
-bun i
-bun dev
-
-# Backend (Azure SQL via EF Core — connection string must not be committed)
-
-cd api/src
-
-# One-time: store the Azure SQL connection string in user secrets (recommended)
-dotnet user-secrets set ConnectionStrings:DefaultConnection "Server=tcp:YOUR_SERVER.database.windows.net,1433;Database=YOUR_DB;User ID=YOUR_USER;Password=YOUR_PASSWORD;Encrypt=True;TrustServerCertificate=False;Connection Timeout=60;"
-
-dotnet run
+# Run SQL Server + backend + frontend together
+./scripts/dev-stack.sh
 ```
+
+Use `Ctrl+C` to stop backend/frontend.
+Set `STOP_DB_ON_EXIT=true` in `.env` if you want the SQL Server container stopped automatically.
 
 ### API configuration and security
 
@@ -29,4 +21,3 @@ dotnet run
 - **EF Core** uses **transient fault handling** (retries) for Azure SQL.
 
 See also **`docs/import-csv-to-azure-sql.md`** for loading Lighthouse CSVs into Azure SQL (separate from the API process).
-

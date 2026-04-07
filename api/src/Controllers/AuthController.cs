@@ -1,10 +1,10 @@
-using api.Data;
 using api.DTOs;
 using api.Models;
-using api.Services;
+using api.Security;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace api.Controllers;
 
@@ -12,81 +12,125 @@ namespace api.Controllers;
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
 {
-    private readonly AppDbContext _db;
-    private readonly TokenService _tokens;
+    private readonly UserManager<ApplicationUser> _userManager;
+    private readonly SignInManager<ApplicationUser> _signInManager;
 
-    public AuthController(AppDbContext db, TokenService tokens)
+    public AuthController(
+        UserManager<ApplicationUser> userManager,
+        SignInManager<ApplicationUser> signInManager)
     {
-        _db = db;
-        _tokens = tokens;
+        _userManager = userManager;
+        _signInManager = signInManager;
     }
 
+    [AllowAnonymous]
+    [EnableRateLimiting("auth")]
+    [HttpPost("signup")]
     [HttpPost("register")]
-    public async Task<IActionResult> Register([FromBody] RegisterRequest request)
+    public async Task<ActionResult<AuthUserResponse>> Register([FromBody] RegisterRequest request)
     {
-        if (!Enum.TryParse<UserRole>(request.Role, ignoreCase: true, out var role))
-            return BadRequest(new { error = "Role must be 'admin' or 'donor'." });
-
-        var exists = await _db.Users.AnyAsync(u => u.Username == request.Username);
-        if (exists)
-            return Conflict(new { error = "Username already taken." });
-
-        var user = new User
+        var username = request.Username.Trim();
+        if (string.IsNullOrWhiteSpace(username))
         {
-            Username = request.Username,
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
-            Role = role,
+            ModelState.AddModelError(nameof(request.Username), "Username is required.");
+            return ValidationProblem(ModelState);
+        }
+
+        var user = new ApplicationUser
+        {
+            UserName = username,
         };
 
-        _db.Users.Add(user);
-        await _db.SaveChangesAsync();
-
-        var (token, expiresAt) = _tokens.GenerateToken(user);
-
-        return Created("", new AuthResponse
+        var createResult = await _userManager.CreateAsync(user, request.Password);
+        if (!createResult.Succeeded)
         {
-            Token = token,
-            Username = user.Username,
-            Role = user.Role.ToString(),
-            ExpiresAt = expiresAt,
-        });
+            return ToValidationProblem(createResult);
+        }
+
+        var roleResult = await _userManager.AddToRoleAsync(user, AppRoles.Donor);
+        if (!roleResult.Succeeded)
+        {
+            await _userManager.DeleteAsync(user);
+            return ToValidationProblem(roleResult);
+        }
+
+        await _signInManager.SignInAsync(user, isPersistent: false);
+
+        return CreatedAtAction(nameof(Me), await BuildResponseAsync(user));
     }
 
+    [AllowAnonymous]
+    [EnableRateLimiting("auth")]
     [HttpPost("login")]
-    public async Task<IActionResult> Login([FromBody] LoginRequest request)
+    public async Task<ActionResult<AuthUserResponse>> Login([FromBody] LoginRequest request)
     {
-        var user = await _db.Users
-            .FirstOrDefaultAsync(u => u.Username == request.Username && u.IsActive);
+        var username = request.Username.Trim();
+        var user = await _userManager.FindByNameAsync(username);
 
-        if (user is null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
-            return Unauthorized(new { error = "Invalid username or password." });
-
-        var (token, expiresAt) = _tokens.GenerateToken(user);
-
-        return Ok(new AuthResponse
+        if (user is null)
         {
-            Token = token,
-            Username = user.Username,
-            Role = user.Role.ToString(),
-            ExpiresAt = expiresAt,
-        });
+            return Unauthorized(new { error = "Invalid username or password." });
+        }
+
+        var signInResult = await _signInManager.PasswordSignInAsync(
+            user,
+            request.Password,
+            isPersistent: false,
+            lockoutOnFailure: true);
+
+        if (!signInResult.Succeeded)
+        {
+            return Unauthorized(new { error = "Invalid username or password." });
+        }
+
+        return Ok(await BuildResponseAsync(user));
+    }
+
+    [Authorize]
+    [HttpPost("logout")]
+    public async Task<IActionResult> Logout()
+    {
+        await _signInManager.SignOutAsync();
+        return NoContent();
     }
 
     [Authorize]
     [HttpGet("me")]
-    public IActionResult Me()
+    public async Task<ActionResult<AuthUserResponse>> Me()
     {
-        return Ok(new
+        var user = await _userManager.GetUserAsync(User);
+        if (user is null)
         {
-            Username = User.Identity?.Name,
-            Role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value,
-        });
+            return Unauthorized();
+        }
+
+        return Ok(await BuildResponseAsync(user));
     }
 
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = AppRoles.Admin)]
     [HttpGet("admin-only")]
     public IActionResult AdminOnly()
     {
         return Ok(new { message = "You have admin access." });
+    }
+
+    private async Task<AuthUserResponse> BuildResponseAsync(ApplicationUser user)
+    {
+        var roles = await _userManager.GetRolesAsync(user);
+        return new AuthUserResponse
+        {
+            Username = user.UserName ?? string.Empty,
+            Roles = roles.ToArray()
+        };
+    }
+
+    private ActionResult ToValidationProblem(IdentityResult result)
+    {
+        foreach (var error in result.Errors)
+        {
+            ModelState.AddModelError(error.Code, error.Description);
+        }
+
+        return ValidationProblem(ModelState);
     }
 }

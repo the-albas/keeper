@@ -1,12 +1,15 @@
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using api.Models;
 
 namespace api.Data;
 
-public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
+public class AppDbContext(DbContextOptions<AppDbContext> options)
+    : IdentityDbContext<ApplicationUser, IdentityRole, string>(options)
 {
     public DbSet<Safehouse> Safehouses => Set<Safehouse>();
-    public DbSet<User> Users => Set<User>();
+    public DbSet<User> LegacyUsers => Set<User>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
