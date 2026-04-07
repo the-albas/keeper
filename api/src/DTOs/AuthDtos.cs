@@ -20,6 +20,13 @@ public class RegisterRequest
     public string Password { get; set; } = string.Empty;
 }
 
+public class CodeVerificationRequest
+{
+    [Required]
+    [StringLength(6, MinimumLength = 6)]
+    public string Code { get; set; } = string.Empty;
+}
+
 public class LoginRequest
 {
     [Required]
@@ -31,6 +38,13 @@ public class LoginRequest
     [MinLength(8)]
     [MaxLength(128)]
     public string Password { get; set; } = string.Empty;
+}
+
+public class AuthChallengeResponse
+{
+    public bool RequiresCode { get; set; }
+    public string Flow { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
 }
 
 public class AuthUserResponse

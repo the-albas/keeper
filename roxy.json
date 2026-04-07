@@ -1,0 +1,18 @@
+{
+  "$schema": "https://raw.githubusercontent.com/logscore/roxy/refs/heads/main/roxy.schema.json",
+  "services": {
+    "web": {
+      "cmd": "cd web && bun run dev",
+      "port": 5173
+    },
+    "api": {
+      "cmd": "cd api/src && sleep 15 && dotnet run .",
+      "port": 5216,
+      "name": "dotnet"
+    },
+    "db": {
+      "cmd": "docker compose up",
+      "listen-port": 1433
+    }
+  }
+}
