@@ -6,7 +6,7 @@ export default function LandingFooter() {
   return (
     <footer id="contact" className="bg-foreground text-white/80">
       <div className="max-w-7xl mx-auto px-6 py-16">
-        <div className="grid md:grid-cols-4 gap-10">
+        <div className="grid md:grid-cols-3 gap-10">
           <div className="md:col-span-1">
             <div className="flex items-center gap-3 mb-4">
               <img src={logoImg} alt="Haven Shield" className="h-8 w-8 rounded-lg" />
@@ -39,16 +39,6 @@ export default function LandingFooter() {
               <a href="#" className="block text-sm hover:text-white transition-colors">Cookie Policy</a>
               <a href="#" className="block text-sm hover:text-white transition-colors">Terms of Service</a>
               <a href="#" className="block text-sm hover:text-white transition-colors">Annual Report</a>
-            </div>
-          </div>
-
-          <div>
-            <h4 className="font-body text-sm font-semibold text-white mb-4 uppercase tracking-wider">Follow Us</h4>
-            <div className="space-y-3">
-              <a href="#" className="block text-sm hover:text-white transition-colors">Facebook</a>
-              <a href="#" className="block text-sm hover:text-white transition-colors">Instagram</a>
-              <a href="#" className="block text-sm hover:text-white transition-colors">LinkedIn</a>
-              <a href="#" className="block text-sm hover:text-white transition-colors">Twitter / X</a>
             </div>
           </div>
         </div>
