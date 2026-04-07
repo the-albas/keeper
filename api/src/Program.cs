@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using api.Data;
 using api.Services;
+using api.Services.Ml;
 
 var builder = WebApplication.CreateBuilder(args);
 
