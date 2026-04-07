@@ -14,11 +14,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddHttpClient("ml-pipelines", client =>
+builder.Services.AddHttpClient<MlClientService>(client =>
 {
     var baseUrl = builder.Configuration["MLPipelines:BaseUrl"] ?? "http://localhost:8000";
     client.BaseAddress = new Uri(baseUrl.TrimEnd('/') + "/");
-    client.Timeout = TimeSpan.FromSeconds(120); // training can take a moment
+    client.Timeout = TimeSpan.FromSeconds(120);
 });
 
 builder.Services
