@@ -2,10 +2,12 @@ using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
+using Resend;
 using api.Data;
 using api.Services.Ml;
 using api.Models;
 using api.Security;
+using api.Services.Auth;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,9 +33,30 @@ builder.Services
         options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
         options.Lockout.MaxFailedAccessAttempts = 5;
         options.Lockout.AllowedForNewUsers = true;
+        options.Tokens.EmailConfirmationTokenProvider = TokenOptions.DefaultEmailProvider;
     })
     .AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders();
+
+builder.Services.AddOptions();
+builder.Services.Configure<AuthEmailOptions>(builder.Configuration.GetSection(AuthEmailOptions.SectionName));
+builder.Services.AddHttpClient<ResendClient>();
+builder.Services.Configure<ResendClientOptions>(options =>
+{
+    options.ApiToken = builder.Configuration["RESEND_APITOKEN"] ?? string.Empty;
+});
+builder.Services.AddTransient<IResend, ResendClient>();
+builder.Services.AddDataProtection();
+builder.Services.AddScoped<PendingSignupChallengeStore>();
+
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddScoped<IAuthCodeSender, DevelopmentAuthCodeSender>();
+}
+else
+{
+    builder.Services.AddScoped<IAuthCodeSender, ResendAuthCodeSender>();
+}
 
 builder.Services.ConfigureApplicationCookie(options =>
 {

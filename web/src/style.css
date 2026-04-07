@@ -95,7 +95,8 @@
 
 	--sidebar-border: oklch(0.922 0.005 34.3);
 
-	--sidebar-ring: oklch(0.714 0.014 41.2)}
+	--sidebar-ring: oklch(0.714 0.014 41.2)
+}
 
 @media (prefers-color-scheme: dark) {
 	:root {
@@ -203,9 +204,15 @@ p {
 }
 
 @layer base {
-  * {
-    @apply border-border outline-ring/50;}
-  body {
-    @apply bg-background text-foreground;}
-  html {
-    @apply font-sans;}}
+	* {
+		@apply border-border outline-ring/50;
+	}
+
+	body {
+		@apply bg-background text-foreground;
+	}
+
+	html {
+		@apply font-sans;
+	}
+}
