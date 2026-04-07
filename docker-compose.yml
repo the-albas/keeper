@@ -1,16 +1,16 @@
 services:
-  postgres:
-    image: postgres:17-alpine
-    container_name: keeper-postgres
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: keeper-sqlserver
     restart: unless-stopped
     environment:
-      POSTGRES_DB: keeper
-      POSTGRES_USER: keeper
-      POSTGRES_PASSWORD: keeper123
+      ACCEPT_EULA: Y
+      MSSQL_SA_PASSWORD: keeper123
+      MSSQL_DB: keeper
     ports:
-      - "5432:5432"
+      - "1433:1433"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - sqlserver_data:/var/opt/mssql
 
 volumes:
-  postgres_data:
+  sqlserver_data:
