@@ -6,6 +6,7 @@ import { tanstackRouter } from "@tanstack/router-plugin/vite";
 export default defineConfig({
   fmt: {},
   lint: { options: { typeAware: true, typeCheck: true } },
+  resolve: { tsconfigPaths: true },
   plugins: [
     tailwindcss(),
     tanstackRouter({
