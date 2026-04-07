@@ -23,9 +23,9 @@ public class RegisterRequest
 public class LoginRequest
 {
     [Required]
-    [MinLength(3)]
-    [MaxLength(50)]
-    public string Username { get; set; } = string.Empty;
+    [EmailAddress]
+    [MaxLength(254)]
+    public string Email { get; set; } = string.Empty;
 
     [Required]
     [MinLength(8)]

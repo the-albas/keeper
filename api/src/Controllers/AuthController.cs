@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.EntityFrameworkCore;
 
 namespace api.Controllers;
 
@@ -72,12 +73,19 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public async Task<ActionResult<AuthUserResponse>> Login([FromBody] LoginRequest request)
     {
-        var username = request.Username.Trim();
-        var user = await _userManager.FindByNameAsync(username);
+        var email = request.Email.Trim();
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            ModelState.AddModelError(nameof(request.Email), "Email is required.");
+            return ValidationProblem(ModelState);
+        }
+
+        var normalizedEmail = _userManager.NormalizeEmail(email);
+        var user = await _userManager.Users.SingleOrDefaultAsync(candidate => candidate.NormalizedEmail == normalizedEmail);
 
         if (user is null)
         {
-            return Unauthorized(new { error = "Invalid username or password." });
+            return Unauthorized(new { error = "Invalid email or password." });
         }
 
         var signInResult = await _signInManager.PasswordSignInAsync(
@@ -88,7 +96,7 @@ public class AuthController : ControllerBase
 
         if (!signInResult.Succeeded)
         {
-            return Unauthorized(new { error = "Invalid username or password." });
+            return Unauthorized(new { error = "Invalid email or password." });
         }
 
         return Ok(await BuildResponseAsync(user));

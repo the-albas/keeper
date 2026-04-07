@@ -2,9 +2,12 @@
 
 - C# with Dotnet 10 hosted on Azure
   - Linq & Entity Framework Core for DB querying
+  - Identity for auth and user management
 - React + Vite hosted on Vercel
+  - Tanstack Router
+  - Tanstack Query
   - Shadcn components
-- Postgres 16 in Docker (dev) / AzureSQL (prod)
+- SQLServer in Docker (dev) / AzureSQL (prod)
 - FastAPI machine learning pipeline
 
 ## Important notes
