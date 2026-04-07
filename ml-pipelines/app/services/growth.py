@@ -10,14 +10,25 @@ import pandas as pd
 from app.config import growth_pipeline_path, max_recency_fallback
 
 # Must match GROWTH_* columns in donor_growth.ipynb — never include total_monetary_value as input.
+# avg_monetary_value is intentionally excluded: it equals total_monetary_value / frequency exactly,
+# which allows the model to reconstruct the target from its own components (data leakage).
 GROWTH_NUMERIC_FEATURES = [
     "recency_days",
     "frequency",
-    "avg_monetary_value",
     "social_referral_count",
     "is_recurring_donor",
+    "donor_tenure_days",
+    "gift_volatility",
+    "donation_type_diversity",
 ]
-GROWTH_CATEGORICAL_FEATURES = ["top_program_interest"]
+GROWTH_CATEGORICAL_FEATURES = [
+    "top_program_interest",
+    "supporter_type",
+    "relationship_type",
+    "region",
+    "acquisition_channel",
+    "status",
+]
 GROWTH_FEATURE_COLUMNS = GROWTH_NUMERIC_FEATURES + GROWTH_CATEGORICAL_FEATURES
 
 
@@ -42,20 +53,20 @@ def clean_growth_row(row: dict, *, recency_fallback: float | None = None) -> pd.
         out.loc[out["recency_days"].isna(), "recency_days"] = float(fallback)
 
     out["frequency"] = out["frequency"].fillna(0.0)
-    zero_gift = out["frequency"] == 0
-    out.loc[out["avg_monetary_value"].isna() & zero_gift, "avg_monetary_value"] = 0.0
-    med_avg = out["avg_monetary_value"].median(skipna=True)
-    if pd.isna(med_avg):
-        med_avg = 0.0
-    out["avg_monetary_value"] = out["avg_monetary_value"].fillna(med_avg)
-
     out["social_referral_count"] = out["social_referral_count"].fillna(0.0)
     out["is_recurring_donor"] = out["is_recurring_donor"].fillna(0).astype(int)
+    out["donor_tenure_days"] = out["donor_tenure_days"].fillna(0.0)
+    out["gift_volatility"] = out["gift_volatility"].fillna(0.0)
+    out["donation_type_diversity"] = out["donation_type_diversity"].fillna(0.0)
 
     out["top_program_interest"] = (
         out["top_program_interest"].fillna("Unknown").astype(str).str.strip()
     )
     out.loc[out["top_program_interest"] == "", "top_program_interest"] = "Unknown"
+
+    for col in ["supporter_type", "relationship_type", "region", "acquisition_channel", "status"]:
+        out[col] = out[col].fillna("Unknown").astype(str).str.strip()
+        out.loc[out[col] == "", col] = "Unknown"
 
     return out[GROWTH_FEATURE_COLUMNS]
 

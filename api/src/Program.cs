@@ -12,6 +12,13 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddSingleton<TokenService>();
 
+builder.Services.AddHttpClient("ml-pipelines", client =>
+{
+    var baseUrl = builder.Configuration["MLPipelines:BaseUrl"] ?? "http://localhost:8000";
+    client.BaseAddress = new Uri(baseUrl.TrimEnd('/') + "/");
+    client.Timeout = TimeSpan.FromSeconds(120); // training can take a moment
+});
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
