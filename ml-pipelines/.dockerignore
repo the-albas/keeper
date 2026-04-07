@@ -5,6 +5,7 @@ __pycache__/
 .env.*
 Dataset/
 ipynb notebooks/
+scripts/
 *.ipynb
 *.md
 .git/

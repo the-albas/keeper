@@ -1,0 +1,74 @@
+name: Build and deploy ML pipelines to Azure Web App - keeper-intex-pipeline
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "ml-pipelines/app/**"
+      - "ml-pipelines/pipelines/**"
+      - "ml-pipelines/requirements.txt"
+      - ".github/workflows/main_keeper-intex-pipeline.yml"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python version
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        working-directory: ml-pipelines
+        run: |
+          python -m venv antenv
+          source antenv/bin/activate
+          pip install -r requirements.txt
+
+      - name: Prepare deployment package
+        run: |
+          mkdir -p deploy
+          cp -r ml-pipelines/app deploy/
+          cp -r ml-pipelines/pipelines deploy/
+          cp ml-pipelines/requirements.txt deploy/
+
+      - name: Upload artifact for deployment jobs
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-app
+          path: deploy/
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Download artifact from build job
+        uses: actions/download-artifact@v4
+        with:
+          name: python-app
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_CAD0925CB07F477D9F771CACD61F5651 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_B4782A2638ED47EF8910A728AA0F5FB9 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_35E6C106F70F4F26B54124A7BEFD081F }}
+
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v3
+        id: deploy-to-webapp
+        with:
+          app-name: 'keeper-intex-pipeline'
+          slot-name: 'Production'
+          package: .

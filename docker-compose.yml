@@ -5,7 +5,7 @@ services:
     restart: unless-stopped
     environment:
       ACCEPT_EULA: Y
-      MSSQL_SA_PASSWORD: keeper123
+      MSSQL_SA_PASSWORD: KeeperDev#2026!
       MSSQL_DB: keeper
     ports:
       - "1433:1433"

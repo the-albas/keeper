@@ -9,6 +9,7 @@
 
 ## Important notes
 
+- All frontend styling must be desktop and mobile friendly
 - The machine learning pipeline must be available via FastAPI
 - Never trust frontend validation. Validate everything again in the .NET API
 - Use [Authorize] on protected endpoints and check roles/ownership explicitly
