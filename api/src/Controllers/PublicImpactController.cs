@@ -14,7 +14,11 @@ public class PublicImpactController : ControllerBase
     private readonly IConfiguration _config;
     private readonly ILogger<PublicImpactController> _logger;
 
-    public PublicImpactController(AppDbContext db, IConfiguration config, ILogger<PublicImpactController> logger)
+    public PublicImpactController(
+        AppDbContext db,
+        IConfiguration config,
+        ILogger<PublicImpactController> logger
+    )
     {
         _db = db;
         _config = config;
@@ -35,7 +39,11 @@ public class PublicImpactController : ControllerBase
             );
         }
 
-        return Ok(new PublicMetricDto(girlsFromResidents.Value.ToString()));
+        return Ok(
+            new PublicMetricDto(
+                girlsFromResidents.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)
+            )
+        );
     }
 
     [AllowAnonymous]
@@ -43,7 +51,9 @@ public class PublicImpactController : ControllerBase
     public async Task<ActionResult<PublicMetricDto>> GetSafehouses(CancellationToken ct)
     {
         var count = await _db.Safehouses.CountAsync(ct);
-        return Ok(new PublicMetricDto(count.ToString()));
+        return Ok(
+            new PublicMetricDto(count.ToString(System.Globalization.CultureInfo.InvariantCulture))
+        );
     }
 
     [AllowAnonymous]
@@ -64,23 +74,27 @@ public class PublicImpactController : ControllerBase
             return Ok(fromDb);
         }
 
-        return Ok(new PublicMoneyFlowDto(
-            ReadPct("PublicImpact:MoneyFlow:ProgramsPct", 85m),
-            ReadPct("PublicImpact:MoneyFlow:OperationsPct", 10m),
-            ReadPct("PublicImpact:MoneyFlow:AdministrationPct", 5m)
-        ));
+        return Ok(
+            new PublicMoneyFlowDto(
+                ReadPct("PublicImpact:MoneyFlow:ProgramsPct", 85m),
+                ReadPct("PublicImpact:MoneyFlow:OperationsPct", 10m),
+                ReadPct("PublicImpact:MoneyFlow:AdministrationPct", 5m)
+            )
+        );
     }
 
     private async Task<int?> TryGetGirlsServedFromResidents(CancellationToken ct)
     {
         try
         {
-            var girlsServed = await _db.Database.SqlQuery<int>(
-                $"""
-                 SELECT COUNT(1)
-                 FROM dbo.residents
-                 """
-            ).SingleAsync(ct);
+            var girlsServed = await _db
+                .Database.SqlQuery<int>(
+                    $"""
+                    SELECT COUNT(1)
+                    FROM dbo.residents
+                    """
+                )
+                .SingleAsync(ct);
 
             return girlsServed;
         }
@@ -95,36 +109,44 @@ public class PublicImpactController : ControllerBase
     {
         try
         {
-            var allocations = await _db.Database.SqlQuery<MoneyFlowRow>(
-                $"""
-                 SELECT
-                     CAST(SUM(CASE
-                         WHEN LOWER(ISNULL(program_area, '')) IN ('education', 'wellbeing', 'outreach', 'transport')
-                         THEN amount_allocated
-                         ELSE 0
-                     END) AS decimal(18,2)) AS ProgramsAmount,
-                     CAST(SUM(CASE
-                         WHEN LOWER(ISNULL(program_area, '')) = 'operations'
-                         THEN amount_allocated
-                         ELSE 0
-                     END) AS decimal(18,2)) AS OperationsAmount,
-                     CAST(SUM(CASE
-                         WHEN LOWER(ISNULL(program_area, '')) = 'maintenance'
-                         THEN amount_allocated
-                         ELSE 0
-                     END) AS decimal(18,2)) AS AdministrationAmount,
-                     CAST(SUM(amount_allocated) AS decimal(18,2)) AS TotalAmount
-                 FROM donation_allocations
-                 """
-            ).SingleAsync(ct);
+            var allocations = await _db
+                .Database.SqlQuery<MoneyFlowRow>(
+                    $"""
+                    SELECT
+                        CAST(SUM(CASE
+                            WHEN LOWER(ISNULL(program_area, '')) IN ('education', 'wellbeing', 'outreach', 'transport')
+                            THEN amount_allocated
+                            ELSE 0
+                        END) AS decimal(18,2)) AS ProgramsAmount,
+                        CAST(SUM(CASE
+                            WHEN LOWER(ISNULL(program_area, '')) = 'operations'
+                            THEN amount_allocated
+                            ELSE 0
+                        END) AS decimal(18,2)) AS OperationsAmount,
+                        CAST(SUM(CASE
+                            WHEN LOWER(ISNULL(program_area, '')) = 'maintenance'
+                            THEN amount_allocated
+                            ELSE 0
+                        END) AS decimal(18,2)) AS AdministrationAmount,
+                        CAST(SUM(amount_allocated) AS decimal(18,2)) AS TotalAmount
+                    FROM donation_allocations
+                    """
+                )
+                .SingleAsync(ct);
 
             if (allocations.TotalAmount <= 0)
             {
                 return null;
             }
 
-            var programs = Math.Round((allocations.ProgramsAmount / allocations.TotalAmount) * 100m, 1);
-            var operations = Math.Round((allocations.OperationsAmount / allocations.TotalAmount) * 100m, 1);
+            var programs = Math.Round(
+                (allocations.ProgramsAmount / allocations.TotalAmount) * 100m,
+                1
+            );
+            var operations = Math.Round(
+                (allocations.OperationsAmount / allocations.TotalAmount) * 100m,
+                1
+            );
             var administration = Math.Round(100m - programs - operations, 1);
 
             if (administration < 0)
@@ -145,7 +167,7 @@ public class PublicImpactController : ControllerBase
         return decimal.TryParse(_config[key], out var value) ? value : fallback;
     }
 
-    private class MoneyFlowRow
+    private sealed class MoneyFlowRow
     {
         public decimal ProgramsAmount { get; set; }
         public decimal OperationsAmount { get; set; }

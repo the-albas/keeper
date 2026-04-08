@@ -3,18 +3,24 @@ using Resend;
 
 namespace api.Services.Auth;
 
-public class ResendAuthCodeSender(IResend resend, IOptions<AuthEmailOptions> options) : IAuthCodeSender
+public class ResendAuthCodeSender(IResend resend, IOptions<AuthEmailOptions> options)
+    : IAuthCodeSender
 {
     private readonly IResend _resend = resend;
     private readonly AuthEmailOptions _options = options.Value;
 
-    public async Task SendCodeAsync(string email, string code, string flow, CancellationToken cancellationToken = default)
+    public async Task SendCodeAsync(
+        string email,
+        string code,
+        string flow,
+        CancellationToken cancellationToken = default
+    )
     {
         var message = new EmailMessage
         {
             From = $"{_options.FromName} <{_options.FromAddress}>",
             Subject = flow == "signup" ? "Verify your Keeper email" : "Your Keeper login code",
-            HtmlBody = BuildHtmlBody(code, flow)
+            HtmlBody = BuildHtmlBody(code, flow),
         };
 
         message.To.Add(email);
@@ -24,9 +30,10 @@ public class ResendAuthCodeSender(IResend resend, IOptions<AuthEmailOptions> opt
 
     private static string BuildHtmlBody(string code, string flow)
     {
-        var intro = flow == "signup"
-            ? "Use this code to verify your email and finish creating your Keeper account."
-            : "Use this code to finish signing in to Keeper.";
+        var intro =
+            flow == "signup"
+                ? "Use this code to verify your email and finish creating your Keeper account."
+                : "Use this code to finish signing in to Keeper.";
 
         return $"""
 <div style="font-family:Arial,sans-serif;line-height:1.5;color:#111827">

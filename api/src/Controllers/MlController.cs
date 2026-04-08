@@ -1,11 +1,14 @@
 using System.Text.Json;
+using api.Security;
 using api.Services.Ml;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace api.Controllers;
 
 [ApiController]
 [Route("api/ml")]
+[Authorize(Roles = $"{AppRoles.Admin},{AppRoles.Staff}")]
 public class MlController : ControllerBase
 {
     private static readonly HashSet<string> AllowedPipelines = new(StringComparer.OrdinalIgnoreCase)
@@ -54,7 +57,10 @@ public class MlController : ControllerBase
 
     [HttpPost("{pipeline}/predict")]
     public async Task<IActionResult> Predict(
-        string pipeline, [FromBody] JsonElement body, CancellationToken ct)
+        string pipeline,
+        [FromBody] JsonElement body,
+        CancellationToken ct
+    )
     {
         if (!AllowedPipelines.Contains(pipeline))
             return NotFound(new { error = $"Unknown pipeline '{pipeline}'" });

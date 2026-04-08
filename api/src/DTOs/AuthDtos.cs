@@ -64,3 +64,18 @@ public class AuthUserResponse
     public string Username { get; set; } = string.Empty;
     public string[] Roles { get; set; } = [];
 }
+
+public class UserListItemResponse
+{
+    public string Id { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string Username { get; set; } = string.Empty;
+    public string[] Roles { get; set; } = [];
+}
+
+public class AssignRoleRequest
+{
+    [Required]
+    [MaxLength(50)]
+    public string RoleName { get; set; } = string.Empty;
+}

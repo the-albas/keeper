@@ -1,7 +1,7 @@
+using api.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using api.Models;
 
 namespace api.Data;
 
@@ -10,11 +10,11 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
 {
     public DbSet<Safehouse> Safehouses => Set<Safehouse>();
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    protected override void OnModelCreating(ModelBuilder builder)
     {
-        base.OnModelCreating(modelBuilder);
+        base.OnModelCreating(builder);
 
-        modelBuilder.Entity<Safehouse>(entity =>
+        builder.Entity<Safehouse>(entity =>
         {
             entity.ToTable("safehouses");
 
