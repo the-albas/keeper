@@ -16,8 +16,12 @@ function WorkPage() {
           <h1 className="font-heading text-4xl md:text-5xl font-bold text-foreground text-center">
             The Work You Make Possible
           </h1>
+          <br />
           <p className="font-body text-base text-muted-foreground text-center mt-4 max-w-2xl text-balance">
-            Your generous contributions directly fund life-changing interventions, safe shelter, and long-term recovery for survivors across the Philippines. Here is a look at what we've accomplished together.
+            Your generous contributions directly fund life-changing
+            interventions, safe shelter, and long-term recovery for survivors
+            across the Philippines. Here is a look at what we've accomplished
+            together.
           </p>
         </div>
         <ImpactStats useDynamicData />
