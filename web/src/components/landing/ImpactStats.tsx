@@ -1,7 +1,13 @@
-import { motion, useInView, animate } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
+import { motion } from "framer-motion";
+import { Home, TrendingUp, Users } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
-<<<<<<< data_updates
+import {
+  useGirlsServedMetric,
+  useReintegrationRateMetric,
+  useSafehousesMetric,
+} from "@/components/landing/useImpactMetrics";
+
 export type ImpactStatsData = {
   girlsServed: string;
   safehouses: string;
@@ -22,11 +28,6 @@ function ImpactStatCard({
   motionDelay = 0,
 }: {
   icon: LucideIcon;
-=======
-interface Stat {
-  value: number;
-  suffix: string;
->>>>>>> main
   label: string;
   description: string;
   displayValue: string;
@@ -52,94 +53,17 @@ interface Stat {
   );
 }
 
-<<<<<<< data_updates
-function GirlsServedStat({ value }: { value: string }) {
-  return (
-    <ImpactStatCard
-      icon={Users}
-      label="Girls Served"
-      description="Survivors given safety and support since 2018"
-      displayValue={value}
-      motionDelay={0}
-    />
-  );
-}
-
-function SafehousesStat({ value }: { value: string }) {
-  return (
-    <ImpactStatCard
-      icon={Home}
-      label="Safehouses"
-      description="Operating across the Philippines with local partners"
-      displayValue={value}
-      motionDelay={0.15}
-    />
-  );
-}
-
-function ReintegrationStat({ value }: { value: string }) {
-  return (
-    <ImpactStatCard
-      icon={TrendingUp}
-      label="Reintegration Rate"
-      description="Successfully reintegrated into safe communities"
-      displayValue={value}
-      motionDelay={0.3}
-    />
-  );
-}
-
 export default function ImpactStats({ stats = defaultStats }: { stats?: ImpactStatsData }) {
-=======
-const stats: Stat[] = [
-  {
-    value: 250,
-    suffix: "+",
-    label: "Survivors Empowered",
-    description: "Survivors given safety and support since 2018",
-  },
-  {
-    value: 5,
-    suffix: "",
-    label: "Safehouses",
-    description: "Operating across the Philippines with local partners",
-  },
-  {
-    value: 87,
-    suffix: "%",
-    label: "Reintegration Rate",
-    description: "Successfully reintegrated into safe communities",
-  },
-];
+  const girlsServedMetric = useGirlsServedMetric();
+  const safehousesMetric = useSafehousesMetric();
+  const reintegrationMetric = useReintegrationRateMetric();
 
-function AnimatedCounter({ value, suffix }: { value: number; suffix: string }) {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-50px" });
-  const [count, setCount] = useState(0);
+  const resolvedStats: ImpactStatsData = {
+    girlsServed: girlsServedMetric.data?.displayValue ?? stats.girlsServed,
+    safehouses: safehousesMetric.data?.displayValue ?? stats.safehouses,
+    reintegration: reintegrationMetric.data?.displayValue ?? stats.reintegration,
+  };
 
-  useEffect(() => {
-    if (isInView) {
-      const controls = animate(0, value, {
-        duration: 2.5,
-        ease: "easeOut",
-        onUpdate(v) {
-          setCount(Math.floor(v));
-        },
-      });
-      return () => controls.stop();
-    }
-  }, [value, isInView]);
-
-  return (
-    <span ref={ref}>
-      {count}
-      {suffix}
-    </span>
-  );
-}
-
-export default function ImpactStats() {
->>>>>>> main
   return (
     <section id="impact" className="py-24 bg-[#FDFBF7]">
       <div className="max-w-7xl mx-auto px-6">
@@ -151,35 +75,29 @@ export default function ImpactStats() {
             Measurable Change, Real Lives
           </h2>
         </div>
-<<<<<<< data_updates
 
         <div className="grid md:grid-cols-3 gap-8">
-          <GirlsServedStat value={stats.girlsServed} />
-          <SafehousesStat value={stats.safehouses} />
-          <ReintegrationStat value={stats.reintegration} />
-=======
-        <div className="grid md:grid-cols-3 gap-12">
-          {stats.map((stat, i) => (
-            <motion.div
-              key={stat.label}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.15, duration: 0.6, ease: "easeOut" }}
-              className="relative p-6 text-center"
-            >
-              <div className="font-heading text-6xl md:text-7xl font-bold text-primary mb-4 drop-shadow-sm">
-                <AnimatedCounter value={stat.value} suffix={stat.suffix} />
-              </div>
-              <div className="font-body text-lg font-semibold text-foreground mb-2">
-                {stat.label}
-              </div>
-              <p className="font-body text-base text-muted-foreground leading-relaxed">
-                {stat.description}
-              </p>
-            </motion.div>
-          ))}
->>>>>>> main
+          <ImpactStatCard
+            icon={Users}
+            label="Girls Served"
+            description="Survivors given safety and support since 2018"
+            displayValue={resolvedStats.girlsServed}
+            motionDelay={0}
+          />
+          <ImpactStatCard
+            icon={Home}
+            label="Safehouses"
+            description="Operating across the Philippines with local partners"
+            displayValue={resolvedStats.safehouses}
+            motionDelay={0.15}
+          />
+          <ImpactStatCard
+            icon={TrendingUp}
+            label="Reintegration Rate"
+            description="Successfully reintegrated into safe communities"
+            displayValue={resolvedStats.reintegration}
+            motionDelay={0.3}
+          />
         </div>
       </div>
     </section>
