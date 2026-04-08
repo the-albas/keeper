@@ -1,7 +1,12 @@
 import { type FormEvent, useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
-import { CodeChallengeForm } from "@/components/auth/code-challenge-form";
+import { useMutation } from "@tanstack/react-query";
+import {
+  Link,
+  Outlet,
+  createFileRoute,
+  useNavigate,
+  useRouterState,
+} from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,12 +20,6 @@ type AuthChallengeResponse = {
   email: string;
 };
 
-type AuthUserResponse = {
-  email: string;
-  username: string;
-  roles: string[];
-};
-
 const apiBaseUrl = (() => {
   const url = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.trim();
   if (!url) throw new Error("VITE_API_BASE_URL is not set.");
@@ -32,57 +31,38 @@ export const Route = createFileRoute("/signup")({
 });
 
 function Signup() {
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [challenge, setChallenge] = useState<AuthChallengeResponse | null>(
-    null
-  );
   const signupMutation = useMutation({
     mutationFn: ({
-      username,
       email,
       password,
     }: {
-      username: string;
       email: string;
       password: string;
-    }) => submitSignup({ username, email, password }),
+    }) => submitSignup({ email, password }),
     onSuccess: async (response) => {
       if (response.requiresCode) {
-        setChallenge(response);
+        await navigate({
+          to: "/signup/verify",
+          search: { email: response.email },
+        } as unknown as Parameters<ReturnType<typeof useNavigate>>[0]);
         return;
       }
 
-      await navigate({ to: "/donor" });
+      await navigate({ to: "/dashboard" });
     },
-  });
-  const verifyMutation = useMutation({
-    mutationFn: (code: string) => verifySignupCode(code),
-    onSuccess: async (user) => {
-      queryClient.setQueryData(["auth", "me"], {
-        email: user.email,
-        username: user.username,
-      });
-      await queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
-      await navigate({ to: "/donor" });
-    },
-  });
-  const resendMutation = useMutation({
-    mutationFn: () => resendSignupCode(),
   });
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    await signupMutation.mutateAsync({ username, email, password });
+    await signupMutation.mutateAsync({ email, password });
   }
 
-  function resetChallenge() {
-    setChallenge(null);
-    verifyMutation.reset();
-    resendMutation.reset();
+  if (pathname !== "/signup") {
+    return <Outlet />;
   }
 
   return (
@@ -133,90 +113,54 @@ function Signup() {
             </Link>
 
             <h1 className="font-heading text-2xl font-bold text-foreground">
-              {challenge ? "Verify your email" : "Create your account"}
+              Create your account
             </h1>
             <p className="font-body mt-1.5 mb-8 text-sm text-muted-foreground">
-              {challenge
-                ? "Enter the code we emailed you to finish signing up."
-                : "Enter your details to get started."}
+              Enter your details to get started.
             </p>
             <br />
 
-            {challenge ? (
-              <CodeChallengeForm
-                verifyLabel="Create account"
-                isVerifying={verifyMutation.isPending}
-                isResending={resendMutation.isPending}
-                errorMessage={
-                  verifyMutation.error?.message ?? resendMutation.error?.message
-                }
-                onVerify={async (code) => {
-                  await verifyMutation.mutateAsync(code);
-                }}
-                onResend={async () => {
-                  await resendMutation.mutateAsync();
-                }}
-                onBack={resetChallenge}
-              />
-            ) : (
-              <form className="space-y-4" onSubmit={handleSubmit}>
-                <div className="grid gap-2">
-                  <Label htmlFor="username" className="font-body">
-                    Username
-                  </Label>
-                  <Input
-                    id="username"
-                    type="text"
-                    placeholder="janedoe"
-                    autoComplete="username"
-                    value={username}
-                    onChange={(event) => setUsername(event.target.value)}
-                    required
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="email" className="font-body">
-                    Email
-                  </Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="you@example.com"
-                    autoComplete="email"
-                    value={email}
-                    onChange={(event) => setEmail(event.target.value)}
-                    required
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="password" className="font-body">
-                    Password
-                  </Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    autoComplete="new-password"
-                    value={password}
-                    onChange={(event) => setPassword(event.target.value)}
-                    required
-                  />
-                </div>
-                {signupMutation.error ? (
-                  <p className="font-body text-sm text-destructive">
-                    {signupMutation.error.message}
-                  </p>
-                ) : null}
-                <Button
-                  type="submit"
-                  className="w-full font-body bg-primary hover:bg-primary/90"
-                  disabled={signupMutation.isPending}
-                >
-                  {signupMutation.isPending
-                    ? "Creating account..."
-                    : "Continue"}
-                </Button>
-              </form>
-            )}
+            <form className="space-y-4" onSubmit={handleSubmit}>
+              <div className="grid gap-2">
+                <Label htmlFor="email" className="font-body">
+                  Email
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="you@example.com"
+                  autoComplete="email"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  required
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="password" className="font-body">
+                  Password
+                </Label>
+                <Input
+                  id="password"
+                  type="password"
+                  autoComplete="new-password"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  required
+                />
+              </div>
+              {signupMutation.error ? (
+                <p className="font-body text-sm text-destructive">
+                  {signupMutation.error.message}
+                </p>
+              ) : null}
+              <Button
+                type="submit"
+                className="w-full font-body bg-primary hover:bg-primary/90"
+                disabled={signupMutation.isPending}
+              >
+                {signupMutation.isPending ? "Creating account..." : "Continue"}
+              </Button>
+            </form>
             <br />
             <p className="mt-10 text-center font-body text-sm text-muted-foreground">
               Already have an account?{" "}
@@ -235,7 +179,6 @@ function Signup() {
 }
 
 async function submitSignup(input: {
-  username: string;
   email: string;
   password: string;
 }): Promise<AuthChallengeResponse> {
@@ -253,34 +196,6 @@ async function submitSignup(input: {
   }
 
   return response.json() as Promise<AuthChallengeResponse>;
-}
-
-async function verifySignupCode(code: string): Promise<AuthUserResponse> {
-  const response = await fetch(`${apiBaseUrl}/api/auth/signup/verify`, {
-    method: "POST",
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ code }),
-  });
-
-  if (!response.ok) {
-    throw new Error(await readError(response, "Unable to verify your code."));
-  }
-
-  return response.json() as Promise<AuthUserResponse>;
-}
-
-async function resendSignupCode(): Promise<void> {
-  const response = await fetch(`${apiBaseUrl}/api/auth/signup/resend`, {
-    method: "POST",
-    credentials: "include",
-  });
-
-  if (!response.ok) {
-    throw new Error(await readError(response, "Unable to resend your code."));
-  }
 }
 
 async function readError(

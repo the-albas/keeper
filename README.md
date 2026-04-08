@@ -9,17 +9,29 @@ Keeper is a case management and donor intelligence platform for nonprofit/safeho
 - **Safehouse operations** — track locations, staff assignments, monthly metrics, and process recordings
 - **Donor intelligence (ML)** — predict donor retention/lapse, project future giving, analyze social media engagement, and flag at-risk residents using 5 scikit-learn models served via FastAPI
 - **Social media management** — track posts and engagement across platforms; optimize strategy with ML predictions
+- **Animated UI** — drawer animations, transitions, and responsive layouts via Framer Motion
 - **Role-based access** — Admin, Staff, and Donor roles with cookie-based authentication via ASP.NET Identity
 
 ## Tech stack
 
 | Layer | Technology |
 |---|---|
-| Frontend | React 19 + TypeScript + Vite, TanStack Router & Query, Tailwind CSS v4, Shadcn |
+| Frontend | React 19 + TypeScript + Vite, TanStack Router & Query, Tailwind CSS v4, Shadcn, Framer Motion, Recharts, Base UI React |
 | Backend | ASP.NET Core 10 Web API (C#), EF Core, ASP.NET Identity |
 | ML service | FastAPI (Python), scikit-learn, pandas, joblib |
 | Database | SQL Server 2022 (Docker locally, Azure SQL in production) |
 | Deployment | Vercel (frontend), Azure App Service (backend) |
+
+## Pages & roles
+
+| Role | Pages |
+|---|---|
+| Public | Home, About, Contact, Privacy Policy |
+| Admin | Dashboard (metrics, activity feed, quick actions), caseload table, donation trends, safehouse occupancy |
+| Staff | Caseload, Home Visitations, Process Recordings, Reports (with ML predictions) |
+| Donor | Donor portal — metrics, donation history, allocation & outcomes charts, account settings |
+
+---
 
 ## Prerequisites
 
@@ -104,6 +116,19 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 # → Swagger docs: http://localhost:8000/docs
 ```
 
+#### 5. Seed data (optional)
+
+PowerShell scripts in `scripts/` import CSV data into the database:
+
+```powershell
+.\scripts\Import-Residents.ps1
+.\scripts\Import-SocialMediaPosts.ps1
+.\scripts\Import-ProcessRecordings.ps1
+.\scripts\Import-PublicImpactSnapshots.ps1
+```
+
+See `docs/import-csv-to-azure-sql.md` for instructions on loading CSVs into Azure SQL.
+
 ---
 
 ## Environment variables
@@ -121,7 +146,15 @@ Backend configuration (via `appsettings.Development.json` or environment variabl
 ConnectionStrings__DefaultConnection=Server=localhost,1433;Database=keeper;User Id=sa;Password=<your-sa-password>;TrustServerCertificate=True;Encrypt=False
 MLPipelines__BaseUrl=http://localhost:8000
 Cors__AllowedOrigins__0=http://localhost:5173
+
+# Production only
+RESEND_APITOKEN=<api-key>                         # email sending via Resend
+AuthEmail__FromAddress=onboarding@resend.dev
+AuthEmail__FromName=Keeper
+Cors__AllowedOrigins__0=https://your-app.vercel.app
 ```
+
+In development, `RESEND_APITOKEN` is not required — OTP codes are logged to the console instead.
 
 ---
 
@@ -169,4 +202,4 @@ Authentication uses cookies (`keeper.auth`) via ASP.NET Identity.
 **Frontend (Vercel):**
 - Set `VITE_API_BASE_URL` to your Azure App Service URL
 
-See `docs/import-csv-to-azure-sql.md` for loading Lighthouse CSVs into Azure SQL.
+See `docs/import-csv-to-azure-sql.md` for loading Lighthouse CSVs into Azure SQL. The `data-analytics/` directory contains additional reporting and analytics tooling.

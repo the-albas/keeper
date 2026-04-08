@@ -1,0 +1,576 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import AdminSidebar from "@/components/admin/AdminSidebar";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Plus, ChevronUp, CalendarDays, User, Users } from "lucide-react";
+
+export const Route = createFileRoute("/process-recordings")({
+  component: ProcessRecordingsPage,
+});
+
+type SessionType = "individual" | "group";
+
+interface Resident {
+  id: number;
+  name: string;
+  caseNumber: string;
+}
+
+interface ProcessRecording {
+  id: number;
+  residentId: number;
+  sessionDate: string;
+  socialWorker: string;
+  sessionType: SessionType;
+  emotionalState: string;
+  narrativeSummary: string;
+  interventions: string;
+  followUpActions: string;
+}
+
+const EMOTIONAL_STATES = [
+  "Calm",
+  "Hopeful",
+  "Anxious",
+  "Distressed",
+  "Withdrawn",
+  "Angry",
+  "Sad",
+  "Guarded",
+  "Engaged",
+  "Overwhelmed",
+];
+
+const EMPTY_FORM = {
+  sessionDate: "",
+  socialWorker: "",
+  sessionType: "individual" as SessionType,
+  emotionalState: "",
+  narrativeSummary: "",
+  interventions: "",
+  followUpActions: "",
+};
+
+function ProcessRecordingsPage() {
+  const [selectedResident, setSelectedResident] = useState<Resident | null>(
+    null
+  );
+  const [residentSearch, setResidentSearch] = useState("");
+  const [showForm, setShowForm] = useState(false);
+  const [formData, setFormData] = useState(EMPTY_FORM);
+  const [recordings, setRecordings] = useState<ProcessRecording[]>([
+    {
+      id: 1,
+      residentId: 1,
+      sessionDate: "2025-03-15",
+      socialWorker: "Maria Santos",
+      sessionType: "individual",
+      emotionalState: "Anxious",
+      narrativeSummary:
+        "Client expressed difficulty sleeping and recurring nightmares. Discussed grounding techniques and reviewed safety plan. Client showed willingness to engage in coping strategies.",
+      interventions:
+        "Trauma-informed grounding exercise (5-4-3-2-1 technique). Safety plan review. Psychoeducation on trauma responses.",
+      followUpActions:
+        "Schedule follow-up in one week. Refer to group therapy intake. Coordinate with shelter staff on sleep environment.",
+    },
+    {
+      id: 2,
+      residentId: 1,
+      sessionDate: "2025-03-22",
+      socialWorker: "Maria Santos",
+      sessionType: "individual",
+      emotionalState: "Calm",
+      narrativeSummary:
+        "Client reported improved sleep with grounding techniques. Explored family reunification concerns. Discussed long-term housing options and employment readiness.",
+      interventions:
+        "Strengths-based counseling. Goal-setting worksheet completed. Discussed community resources for vocational training.",
+      followUpActions:
+        "Connect with vocational training program coordinator. Review housing application status. Continue weekly sessions.",
+    },
+    {
+      id: 3,
+      residentId: 2,
+      sessionDate: "2025-03-18",
+      socialWorker: "Jose Reyes",
+      sessionType: "group",
+      emotionalState: "Withdrawn",
+      narrativeSummary:
+        "Client participated minimally in group session on rebuilding trust. Observed non-verbal cues suggesting discomfort. After session, client approached worker to share concerns privately.",
+      interventions:
+        "Group facilitation — rebuilding trust module. Individual check-in post-session. Active listening and validation.",
+      followUpActions:
+        "Schedule individual session to process group experience. Monitor engagement in future group sessions.",
+    },
+  ]);
+
+  const { data: user } = useQuery({
+    queryKey: ["auth", "me"],
+    queryFn: async () => {
+      // TODO: Call your C# auth endpoint
+      return { full_name: "Admin User", email: "admin@keeper.org" };
+    },
+  });
+
+  const { data: residents = [] } = useQuery<Resident[]>({
+    queryKey: ["residents"],
+    queryFn: async () => {
+      // TODO: Call your C# API endpoint
+      // const res = await fetch(`${API_BASE}/residents`);
+      // return res.json();
+      return [
+        { id: 1, name: "Ana Reyes", caseNumber: "KPR-2025-001" },
+        { id: 2, name: "Maria Cruz", caseNumber: "KPR-2025-002" },
+        { id: 3, name: "Liza Gomez", caseNumber: "KPR-2025-003" },
+        { id: 4, name: "Rosa Dela Cruz", caseNumber: "KPR-2025-004" },
+      ];
+    },
+  });
+
+  const filteredResidents = residents.filter(
+    (r) =>
+      r.name.toLowerCase().includes(residentSearch.toLowerCase()) ||
+      r.caseNumber.toLowerCase().includes(residentSearch.toLowerCase())
+  );
+
+  const residentRecordings = recordings
+    .filter((r) => r.residentId === selectedResident?.id)
+    .sort(
+      (a, b) =>
+        new Date(b.sessionDate).getTime() - new Date(a.sessionDate).getTime()
+    );
+
+  function handleFieldChange(field: keyof typeof EMPTY_FORM, value: string) {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  }
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!selectedResident) return;
+    const newRecording: ProcessRecording = {
+      id: Date.now(),
+      residentId: selectedResident.id,
+      ...formData,
+    };
+    // TODO: POST to your C# API endpoint
+    setRecordings((prev) => [newRecording, ...prev]);
+    setFormData(EMPTY_FORM);
+    setShowForm(false);
+  }
+
+  function handleSelectResident(resident: Resident) {
+    setSelectedResident(resident);
+    setShowForm(false);
+    setFormData(EMPTY_FORM);
+  }
+
+  return (
+    <div className="min-h-screen bg-background font-body">
+      <AdminSidebar user={user ?? null} />
+
+      <main className="ml-64 p-8">
+        {/* Page header */}
+        <div className="mb-8">
+          <h1 className="font-heading text-3xl font-bold text-foreground">
+            Process Recordings
+          </h1>
+          <p className="font-body text-base text-muted-foreground mt-1">
+            Document and review counseling sessions for each resident's healing
+            journey.
+          </p>
+        </div>
+
+        <div className="grid lg:grid-cols-[280px_1fr] gap-6 items-start">
+          {/* Resident selector panel */}
+          <div className="bg-card rounded-2xl border border-border shadow-sm p-5 sticky top-8">
+            <h2 className="font-heading text-base font-bold text-foreground mb-3">
+              Residents
+            </h2>
+            <Input
+              type="text"
+              placeholder="Search by name or case #"
+              value={residentSearch}
+              onChange={(e) => setResidentSearch(e.target.value)}
+              className="mb-3"
+            />
+            <div className="space-y-1 max-h-[calc(100vh-280px)] overflow-y-auto">
+              {filteredResidents.length === 0 ? (
+                <p className="font-body text-sm text-muted-foreground text-center py-6">
+                  No residents found.
+                </p>
+              ) : (
+                filteredResidents.map((resident) => (
+                  <button
+                    key={resident.id}
+                    onClick={() => handleSelectResident(resident)}
+                    className={`w-full text-left px-3 py-2.5 rounded-xl transition-all font-body text-sm ${
+                      selectedResident?.id === resident.id
+                        ? "bg-primary/10 text-primary font-semibold border border-primary/20"
+                        : "text-foreground hover:bg-muted"
+                    }`}
+                  >
+                    <div className="font-medium">{resident.name}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {resident.caseNumber}
+                    </div>
+                  </button>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* Main content */}
+          {selectedResident === null ? (
+            <div className="bg-card rounded-2xl border border-border shadow-sm p-12 flex flex-col items-center justify-center text-center">
+              <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-4">
+                <CalendarDays className="h-6 w-6 text-muted-foreground" />
+              </div>
+              <h3 className="font-heading text-lg font-bold text-foreground mb-2">
+                Select a Resident
+              </h3>
+              <p className="font-body text-sm text-muted-foreground max-w-xs">
+                Choose a resident from the list to view their session history or
+                add a new process recording.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {/* Resident context bar */}
+              <div className="bg-[#FDFBF7] border-t-4 border-t-yellow-500 rounded-2xl px-6 py-4 flex items-center justify-between shadow-sm">
+                <div>
+                  <h2 className="font-heading text-xl font-bold text-foreground">
+                    {selectedResident.name}
+                  </h2>
+                  <p className="font-body text-sm text-muted-foreground">
+                    Case #{selectedResident.caseNumber} &mdash;{" "}
+                    {residentRecordings.length} session
+                    {residentRecordings.length !== 1 ? "s" : ""} recorded
+                  </p>
+                </div>
+                <Button
+                  onClick={() => setShowForm((v) => !v)}
+                  className="font-body gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-5 h-10 rounded-xl shadow-sm transition-all"
+                >
+                  {showForm ? (
+                    <>
+                      <ChevronUp className="h-4 w-4" />
+                      Hide Form
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="h-4 w-4" />
+                      New Recording
+                    </>
+                  )}
+                </Button>
+              </div>
+
+              {/* Add new recording form */}
+              {showForm && (
+                <div className="bg-card rounded-2xl border border-border shadow-sm p-6">
+                  <h3 className="font-heading text-lg font-bold text-foreground mb-5">
+                    New Session Recording
+                  </h3>
+                  <form onSubmit={handleSubmit} className="space-y-5">
+                    <div className="grid sm:grid-cols-2 gap-5">
+                      {/* Session date */}
+                      <div className="space-y-1.5">
+                        <Label
+                          htmlFor="sessionDate"
+                          className="font-body text-sm font-medium text-foreground"
+                        >
+                          Session Date <span className="text-red-500">*</span>
+                        </Label>
+                        <Input
+                          id="sessionDate"
+                          type="date"
+                          required
+                          value={formData.sessionDate}
+                          onChange={(e) =>
+                            handleFieldChange("sessionDate", e.target.value)
+                          }
+                        />
+                      </div>
+
+                      {/* Social worker */}
+                      <div className="space-y-1.5">
+                        <Label
+                          htmlFor="socialWorker"
+                          className="font-body text-sm font-medium text-foreground"
+                        >
+                          Social Worker <span className="text-red-500">*</span>
+                        </Label>
+                        <Input
+                          id="socialWorker"
+                          type="text"
+                          placeholder="Full name"
+                          required
+                          value={formData.socialWorker}
+                          onChange={(e) =>
+                            handleFieldChange("socialWorker", e.target.value)
+                          }
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid sm:grid-cols-2 gap-5">
+                      {/* Session type */}
+                      <div className="space-y-1.5">
+                        <Label className="font-body text-sm font-medium text-foreground">
+                          Session Type <span className="text-red-500">*</span>
+                        </Label>
+                        <div className="flex gap-3">
+                          {(["individual", "group"] as SessionType[]).map(
+                            (type) => (
+                              <button
+                                key={type}
+                                type="button"
+                                onClick={() =>
+                                  handleFieldChange("sessionType", type)
+                                }
+                                className={`flex-1 flex items-center justify-center gap-2 h-9 rounded-3xl border font-body text-sm transition-all ${
+                                  formData.sessionType === type
+                                    ? "bg-primary/10 border-primary/40 text-primary font-semibold"
+                                    : "border-transparent bg-input/50 text-foreground hover:bg-input"
+                                }`}
+                              >
+                                {type === "individual" ? (
+                                  <User className="h-4 w-4" />
+                                ) : (
+                                  <Users className="h-4 w-4" />
+                                )}
+                                {type.charAt(0).toUpperCase() + type.slice(1)}
+                              </button>
+                            )
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Emotional state */}
+                      <div className="space-y-1.5">
+                        <Label
+                          htmlFor="emotionalState"
+                          className="font-body text-sm font-medium text-foreground"
+                        >
+                          Emotional State Observed{" "}
+                          <span className="text-red-500">*</span>
+                        </Label>
+                        <select
+                          id="emotionalState"
+                          required
+                          value={formData.emotionalState}
+                          onChange={(e) =>
+                            handleFieldChange("emotionalState", e.target.value)
+                          }
+                          className="h-9 w-full rounded-3xl border border-transparent bg-input/50 px-3 text-sm font-body text-foreground transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30"
+                        >
+                          <option value="" disabled>
+                            Select state…
+                          </option>
+                          {EMOTIONAL_STATES.map((s) => (
+                            <option key={s} value={s}>
+                              {s}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Narrative summary */}
+                    <div className="space-y-1.5">
+                      <Label
+                        htmlFor="narrativeSummary"
+                        className="font-body text-sm font-medium text-foreground"
+                      >
+                        Narrative Summary{" "}
+                        <span className="text-red-500">*</span>
+                      </Label>
+                      <textarea
+                        id="narrativeSummary"
+                        required
+                        rows={4}
+                        placeholder="Describe what occurred during the session…"
+                        value={formData.narrativeSummary}
+                        onChange={(e) =>
+                          handleFieldChange("narrativeSummary", e.target.value)
+                        }
+                        className="w-full rounded-2xl border border-transparent bg-input/50 px-3 py-2 text-sm font-body text-foreground placeholder:text-muted-foreground transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30 resize-none"
+                      />
+                    </div>
+
+                    {/* Interventions */}
+                    <div className="space-y-1.5">
+                      <Label
+                        htmlFor="interventions"
+                        className="font-body text-sm font-medium text-foreground"
+                      >
+                        Interventions Applied{" "}
+                        <span className="text-red-500">*</span>
+                      </Label>
+                      <textarea
+                        id="interventions"
+                        required
+                        rows={3}
+                        placeholder="List techniques, approaches, or tools used…"
+                        value={formData.interventions}
+                        onChange={(e) =>
+                          handleFieldChange("interventions", e.target.value)
+                        }
+                        className="w-full rounded-2xl border border-transparent bg-input/50 px-3 py-2 text-sm font-body text-foreground placeholder:text-muted-foreground transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30 resize-none"
+                      />
+                    </div>
+
+                    {/* Follow-up actions */}
+                    <div className="space-y-1.5">
+                      <Label
+                        htmlFor="followUpActions"
+                        className="font-body text-sm font-medium text-foreground"
+                      >
+                        Follow-up Actions{" "}
+                        <span className="text-red-500">*</span>
+                      </Label>
+                      <textarea
+                        id="followUpActions"
+                        required
+                        rows={3}
+                        placeholder="Next steps, referrals, or tasks to complete…"
+                        value={formData.followUpActions}
+                        onChange={(e) =>
+                          handleFieldChange("followUpActions", e.target.value)
+                        }
+                        className="w-full rounded-2xl border border-transparent bg-input/50 px-3 py-2 text-sm font-body text-foreground placeholder:text-muted-foreground transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30 resize-none"
+                      />
+                    </div>
+
+                    <div className="flex gap-3 justify-end pt-1">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          setShowForm(false);
+                          setFormData(EMPTY_FORM);
+                        }}
+                        className="font-body px-5 h-10 rounded-xl"
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        type="submit"
+                        className="font-body bg-primary hover:bg-primary/90 text-primary-foreground px-5 h-10 rounded-xl"
+                      >
+                        Save Recording
+                      </Button>
+                    </div>
+                  </form>
+                </div>
+              )}
+
+              {/* Session history */}
+              <div className="bg-card rounded-2xl border border-border shadow-sm p-6">
+                <h3 className="font-heading text-lg font-bold text-foreground mb-5">
+                  Session History
+                </h3>
+
+                {residentRecordings.length === 0 ? (
+                  <div className="text-center py-10">
+                    <p className="font-body text-sm text-muted-foreground">
+                      No sessions recorded yet. Add the first recording above.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="relative">
+                    {/* Timeline line */}
+                    <div className="absolute left-[11px] top-2 bottom-2 w-px bg-border" />
+
+                    <div className="space-y-6">
+                      {residentRecordings.map((rec) => (
+                        <div key={rec.id} className="relative pl-8">
+                          {/* Timeline dot */}
+                          <div className="absolute left-0 top-1.5 w-[23px] h-[23px] rounded-full bg-card border-2 border-primary flex items-center justify-center">
+                            <div className="w-2 h-2 rounded-full bg-primary" />
+                          </div>
+
+                          <div className="bg-background rounded-xl border border-border p-5">
+                            {/* Header row */}
+                            <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
+                              <div>
+                                <p className="font-heading text-base font-bold text-foreground">
+                                  {new Date(
+                                    rec.sessionDate + "T00:00:00"
+                                  ).toLocaleDateString("en-US", {
+                                    weekday: "long",
+                                    year: "numeric",
+                                    month: "long",
+                                    day: "numeric",
+                                  })}
+                                </p>
+                                <p className="font-body text-sm text-muted-foreground mt-0.5">
+                                  with {rec.socialWorker}
+                                </p>
+                              </div>
+                              <div className="flex gap-2 flex-wrap">
+                                <span
+                                  className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-body font-medium border ${
+                                    rec.sessionType === "individual"
+                                      ? "bg-blue-50 text-blue-700 border-blue-200"
+                                      : "bg-purple-50 text-purple-700 border-purple-200"
+                                  }`}
+                                >
+                                  {rec.sessionType === "individual" ? (
+                                    <User className="h-3 w-3" />
+                                  ) : (
+                                    <Users className="h-3 w-3" />
+                                  )}
+                                  {rec.sessionType.charAt(0).toUpperCase() +
+                                    rec.sessionType.slice(1)}
+                                </span>
+                                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-body font-medium bg-yellow-50 text-yellow-700 border border-yellow-200">
+                                  {rec.emotionalState}
+                                </span>
+                              </div>
+                            </div>
+
+                            <div className="space-y-3">
+                              <div>
+                                <p className="font-body text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">
+                                  Narrative Summary
+                                </p>
+                                <p className="font-body text-sm text-foreground leading-relaxed">
+                                  {rec.narrativeSummary}
+                                </p>
+                              </div>
+                              <div className="grid sm:grid-cols-2 gap-3 pt-1">
+                                <div>
+                                  <p className="font-body text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">
+                                    Interventions Applied
+                                  </p>
+                                  <p className="font-body text-sm text-foreground leading-relaxed">
+                                    {rec.interventions}
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="font-body text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">
+                                    Follow-up Actions
+                                  </p>
+                                  <p className="font-body text-sm text-foreground leading-relaxed">
+                                    {rec.followUpActions}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      </main>
+    </div>
+  );
+}

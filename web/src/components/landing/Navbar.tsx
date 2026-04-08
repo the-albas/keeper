@@ -4,26 +4,16 @@ import { Button } from "@/components/ui/button";
 import { Heart } from "lucide-react";
 
 import logoImg from "@/assets/logo.png";
-import { getApiBaseUrl } from "../../lib/api";
+import { getApiBaseUrl, type AuthMeResponse, logout } from "../../lib/api";
 
-async function fetchCurrentUser() {
+async function fetchCurrentUser(): Promise<AuthMeResponse | null> {
   const apiBaseUrl = getApiBaseUrl();
   if (!apiBaseUrl) return null;
   const res = await fetch(`${apiBaseUrl}/api/auth/me`, {
     credentials: "include",
   });
   if (!res.ok) return null;
-  return res.json() as Promise<{ email: string; username: string }>;
-}
-
-async function logout() {
-  const apiBaseUrl = getApiBaseUrl();
-  if (!apiBaseUrl) return;
-  const res = await fetch(`${apiBaseUrl}/api/auth/logout`, {
-    method: "POST",
-    credentials: "include",
-  });
-  if (!res.ok) throw new Error("Logout failed");
+  return res.json() as Promise<AuthMeResponse>;
 }
 
 export default function Navbar() {
@@ -79,6 +69,12 @@ export default function Navbar() {
               className="text-sm font-body font-medium text-muted-foreground hover:text-yellow-600 transition-colors [&.active]:text-yellow-600 [&.active]:font-semibold"
             >
               About
+            </Link>
+            <Link
+              to={user ? "/dashboard" : "/login"}
+              className="text-sm font-body font-medium text-muted-foreground hover:text-yellow-600 transition-colors [&.active]:text-yellow-600 [&.active]:font-semibold"
+            >
+              Dashboard
             </Link>
             <Link
               to={user ? "/dashboard" : "/login"}
