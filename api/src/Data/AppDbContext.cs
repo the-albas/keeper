@@ -11,6 +11,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<Safehouse> Safehouses => Set<Safehouse>();
     public DbSet<Supporter> Supporters => Set<Supporter>();
     public DbSet<Donation> Donations => Set<Donation>();
+    public DbSet<DonationAllocation> DonationAllocations => Set<DonationAllocation>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -59,6 +60,21 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
             entity.Property(e => e.ImpactUnit).HasColumnName("impact_unit").HasMaxLength(50);
             entity.Property(e => e.Notes).HasColumnName("notes").HasMaxLength(2000);
             entity.Property(e => e.ReferralPostId).HasColumnName("referral_post_id");
+        });
+
+        modelBuilder.Entity<DonationAllocation>(entity =>
+        {
+            entity.ToTable("donation_allocations");
+
+            entity.HasKey(e => e.AllocationId);
+
+            entity.Property(e => e.AllocationId).HasColumnName("allocation_id");
+            entity.Property(e => e.DonationId).HasColumnName("donation_id");
+            entity.Property(e => e.SafehouseId).HasColumnName("safehouse_id");
+            entity.Property(e => e.ProgramArea).HasColumnName("program_area").HasMaxLength(100);
+            entity.Property(e => e.AmountAllocated).HasColumnName("amount_allocated").HasPrecision(18, 2);
+            entity.Property(e => e.AllocationDate).HasColumnName("allocation_date");
+            entity.Property(e => e.AllocationNotes).HasColumnName("allocation_notes").HasMaxLength(2000);
         });
 
         modelBuilder.Entity<Safehouse>(entity =>

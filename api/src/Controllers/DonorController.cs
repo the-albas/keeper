@@ -53,7 +53,11 @@ public class DonorController : ControllerBase
                 CreatedDate = d.DonationDate.ToString("yyyy-MM-dd"),
                 Type = d.DonationType,
                 Campaign = d.CampaignName,
-                Allocation = null,
+                Allocation = _db.DonationAllocations
+                    .Where(a => a.DonationId == d.DonationId)
+                    .OrderBy(a => a.AllocationId)
+                    .Select(a => a.ProgramArea)
+                    .FirstOrDefault(),
             })
             .ToListAsync(cancellationToken);
 
