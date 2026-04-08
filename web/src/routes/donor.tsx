@@ -57,7 +57,9 @@ function DonorDashboard() {
         <div className="bg-[#FDFBF7] border-t-4 border-t-yellow-500 rounded-2xl p-8 mb-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 shadow-sm">
           <div>
             <h1 className="font-heading text-3xl font-bold text-foreground">
-              The Impact You Make
+              {metrics.girlsSupported > 0
+                ? `You Changed ${metrics.girlsSupported} Girls' Lives`
+                : "You're Changing Girls' Lives"}
             </h1>
             <p className="font-body text-base text-muted-foreground mt-2">
               See how your generosity is making a difference in the lives of survivors.

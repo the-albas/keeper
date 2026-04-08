@@ -1,5 +1,4 @@
 import { Link } from "@tanstack/react-router";
-import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 import logoImg from "@/assets/logo.png";
@@ -33,16 +32,7 @@ export default function DonorNav({ user }: { user: User | null }) {
         </Link>
 
         <div className="flex items-center gap-4">
-          <Link to="/admin">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="font-body text-sm text-muted-foreground"
-            >
-              Admin
-            </Button>
-          </Link>
-          <div className="flex items-center gap-3 pl-4 border-l border-border">
+          <div className="flex items-center gap-3">
             <div className="text-right hidden sm:block">
               <div className="font-body text-sm font-medium text-foreground">
                 {user?.full_name || "Donor"}

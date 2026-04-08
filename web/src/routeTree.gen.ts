@@ -14,6 +14,7 @@ import { Route as SignupRouteImport } from './routes/signup'
 import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as DonorRouteImport } from './routes/donor'
+import { Route as DonateThankYouRouteImport } from './routes/donate-thank-you'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AboutRouteImport } from './routes/about'
@@ -44,6 +45,11 @@ const DonorRoute = DonorRouteImport.update({
   path: '/donor',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DonateThankYouRoute = DonateThankYouRouteImport.update({
+  id: '/donate-thank-you',
+  path: '/donate-thank-you',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ContactRoute = ContactRouteImport.update({
   id: '/contact',
   path: '/contact',
@@ -70,6 +76,7 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
   '/contact': typeof ContactRoute
+  '/donate-thank-you': typeof DonateThankYouRoute
   '/donor': typeof DonorRoute
   '/login': typeof LoginRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
@@ -81,6 +88,7 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
   '/contact': typeof ContactRoute
+  '/donate-thank-you': typeof DonateThankYouRoute
   '/donor': typeof DonorRoute
   '/login': typeof LoginRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
@@ -93,6 +101,7 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
   '/contact': typeof ContactRoute
+  '/donate-thank-you': typeof DonateThankYouRoute
   '/donor': typeof DonorRoute
   '/login': typeof LoginRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
@@ -106,6 +115,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/admin'
     | '/contact'
+    | '/donate-thank-you'
     | '/donor'
     | '/login'
     | '/privacy-policy'
@@ -117,6 +127,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/admin'
     | '/contact'
+    | '/donate-thank-you'
     | '/donor'
     | '/login'
     | '/privacy-policy'
@@ -128,6 +139,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/admin'
     | '/contact'
+    | '/donate-thank-you'
     | '/donor'
     | '/login'
     | '/privacy-policy'
@@ -140,6 +152,7 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   AdminRoute: typeof AdminRoute
   ContactRoute: typeof ContactRoute
+  DonateThankYouRoute: typeof DonateThankYouRoute
   DonorRoute: typeof DonorRoute
   LoginRoute: typeof LoginRoute
   PrivacyPolicyRoute: typeof PrivacyPolicyRoute
@@ -184,6 +197,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DonorRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/donate-thank-you': {
+      id: '/donate-thank-you'
+      path: '/donate-thank-you'
+      fullPath: '/donate-thank-you'
+      preLoaderRoute: typeof DonateThankYouRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/contact': {
       id: '/contact'
       path: '/contact'
@@ -220,6 +240,7 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   AdminRoute: AdminRoute,
   ContactRoute: ContactRoute,
+  DonateThankYouRoute: DonateThankYouRoute,
   DonorRoute: DonorRoute,
   LoginRoute: LoginRoute,
   PrivacyPolicyRoute: PrivacyPolicyRoute,

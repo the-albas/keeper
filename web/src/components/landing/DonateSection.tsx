@@ -1,14 +1,51 @@
 import { Button } from "@/components/ui/button";
 import { Heart } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 
-const amounts = [25, 50, 100, 250, 500];
+const amounts = [5, 10, 25, 50, 100, 250, 500];
+
+function formatAmount(value: number) {
+  return value.toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+}
 
 export default function DonateSection() {
+  const navigate = useNavigate();
   const [selectedAmount, setSelectedAmount] = useState<
     number | "custom" | null
   >(50);
+  const [customAmount, setCustomAmount] = useState("");
+  const [customTouched, setCustomTouched] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+
+  const parsedCustom = parseFloat(customAmount);
+  const resolvedAmount =
+    selectedAmount === "custom" ? parsedCustom : selectedAmount;
+  const customValid = !isNaN(parsedCustom) && parsedCustom > 0;
+  const showCustomError =
+    selectedAmount === "custom" && customTouched && !customValid;
+
+  function handleDonate() {
+    if (selectedAmount === "custom") {
+      setCustomTouched(true);
+      if (!customValid) return;
+    }
+    if (!resolvedAmount || resolvedAmount <= 0) return;
+    setShowConfirm(true);
+  }
+
+  function confirmDonate() {
+    setShowConfirm(false);
+    if (!resolvedAmount || resolvedAmount <= 0) return;
+    navigate({
+      to: "/donate-thank-you",
+      search: { amount: resolvedAmount },
+    });
+  }
 
   return (
     <section id="donate" className="py-24 bg-background">
@@ -58,9 +95,44 @@ export default function DonateSection() {
             </button>
           </div>
 
+          {selectedAmount === "custom" && (
+            <div className="mb-8 flex flex-col items-center gap-2">
+              <div className="relative w-48">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 font-body font-semibold text-muted-foreground">
+                  $
+                </span>
+                <input
+                  type="number"
+                  min="0.01"
+                  step="0.01"
+                  placeholder="0.00"
+                  required
+                  value={customAmount}
+                  onChange={(e) => {
+                    setCustomAmount(e.target.value);
+                    setCustomTouched(true);
+                  }}
+                  onBlur={() => setCustomTouched(true)}
+                  className={`w-full rounded-xl border-2 bg-background py-3 pl-8 pr-4 text-center font-body text-lg font-semibold text-foreground outline-none transition-all focus:border-yellow-500 ${
+                    showCustomError
+                      ? "border-red-400"
+                      : "border-border"
+                  }`}
+                />
+              </div>
+              {showCustomError && (
+                <p className="font-body text-xs text-red-500">
+                  Please enter an amount greater than $0.
+                </p>
+              )}
+            </div>
+          )}
+
           <Button
             size="lg"
-            className="font-body text-base gap-2 bg-yellow-500 hover:bg-yellow-600 text-black px-12 h-14 rounded-xl shadow-lg text-lg"
+            onClick={handleDonate}
+            disabled={!resolvedAmount || resolvedAmount <= 0}
+            className="font-body text-base gap-2 bg-yellow-500 hover:bg-yellow-600 text-black px-12 h-14 rounded-xl shadow-lg text-lg disabled:opacity-50"
           >
             <Heart className="h-5 w-5" />
             Donate Now
@@ -73,6 +145,58 @@ export default function DonateSection() {
           </p>
         </motion.div>
       </div>
+
+      <AnimatePresence>
+        {showConfirm && resolvedAmount && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
+            onClick={() => setShowConfirm(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.2 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-sm rounded-2xl bg-background p-8 text-center shadow-xl"
+            >
+              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-yellow-500/20">
+                <Heart className="h-7 w-7 text-yellow-600 fill-yellow-500" />
+              </div>
+              <h3 className="font-heading text-xl font-bold text-foreground">
+                Confirm Your Donation
+              </h3>
+              <p className="font-body text-sm text-muted-foreground mt-3">
+                You are about to donate{" "}
+                <span className="font-semibold text-yellow-600 text-base">
+                  ${formatAmount(resolvedAmount)}
+                </span>
+                . Would you like to proceed?
+              </p>
+              <div className="mt-6 flex gap-3">
+                <Button
+                  variant="outline"
+                  className="flex-1 font-body rounded-xl h-11"
+                  onClick={() => setShowConfirm(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  className="flex-1 font-body gap-2 bg-yellow-500 hover:bg-yellow-600 text-black rounded-xl h-11"
+                  onClick={confirmDonate}
+                >
+                  <Heart className="h-4 w-4" />
+                  Donate
+                </Button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   );
 }
