@@ -16,18 +16,18 @@ export default function Navbar() {
         </Link>
 
         <div className="hidden md:flex items-center gap-8">
-          <a href="#mission" className="text-sm font-body font-medium text-muted-foreground hover:text-foreground transition-colors">
-            Mission
-          </a>
-          <a href="#impact" className="text-sm font-body font-medium text-muted-foreground hover:text-foreground transition-colors">
-            Impact
-          </a>
-          <a href="#about" className="text-sm font-body font-medium text-muted-foreground hover:text-foreground transition-colors">
+          <Link to="/" className="text-sm font-body font-medium text-muted-foreground hover:text-foreground transition-colors [&.active]:text-foreground [&.active]:font-semibold">
+            Home
+          </Link>
+          <Link to="/work" className="text-sm font-body font-medium text-muted-foreground hover:text-foreground transition-colors [&.active]:text-foreground [&.active]:font-semibold">
+            Our Work
+          </Link>
+          <Link to="/about" className="text-sm font-body font-medium text-muted-foreground hover:text-foreground transition-colors [&.active]:text-foreground [&.active]:font-semibold">
             About
-          </a>
-          <a href="#contact" className="text-sm font-body font-medium text-muted-foreground hover:text-foreground transition-colors">
+          </Link>
+          <Link to="/contact" className="text-sm font-body font-medium text-muted-foreground hover:text-foreground transition-colors [&.active]:text-foreground [&.active]:font-semibold">
             Contact
-          </a>
+          </Link>
         </div>
 
         <div className="flex items-center gap-3">
@@ -36,12 +36,12 @@ export default function Navbar() {
               Log In
             </Button>
           </Link>
-          <a href="#donate">
+          <Link to="/" hash="donate">
             <Button size="sm" className="font-body text-sm gap-2 bg-primary hover:bg-primary/90">
               <Heart className="h-4 w-4" />
               Donate
             </Button>
-          </a>
+          </Link>
         </div>
       </div>
     </nav>

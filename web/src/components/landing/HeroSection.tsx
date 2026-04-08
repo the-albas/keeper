@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { Link } from "@tanstack/react-router";
 import { Heart, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -23,23 +24,21 @@ export default function HeroSection() {
           transition={{ duration: 0.8, ease: "easeOut" }}
           className="max-w-2xl"
         >
-          <span className="inline-block px-4 py-1.5 rounded-full bg-accent/20 text-accent text-xs font-body font-semibold tracking-widest uppercase mb-6">
-            501(c)(3) Nonprofit Organization
-          </span>
+
 
           <h1 className="font-heading text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6">
             A Safe Place to{" "}
-            <span className="text-accent">Heal & Thrive</span>
+            <span className="text-white">Heal & Thrive</span>
           </h1>
 
-          <p className="font-body text-lg text-white/80 leading-relaxed mb-10 max-w-xl">
+          <p className="font-body text-lg text-white/80 leading-relaxed max-w-xl text-balance mb-32">
             We operate safehouses in the Philippines for girls who are survivors of
             sexual abuse and sex trafficking. Every child deserves safety, healing,
-            and a future full of hope.
+            and a future full of hope. With your contribution, we can turn that hope into reality.
           </p>
 
-          <div className="flex flex-wrap gap-4">
-            <a href="#donate">
+          <div className="flex flex-wrap gap-4 mt-12">
+            <Link to="/" hash="donate">
               <Button
                 size="lg"
                 className="font-body text-base gap-2 bg-accent hover:bg-accent/90 text-accent-foreground px-8 h-12 rounded-lg shadow-lg"
@@ -47,17 +46,17 @@ export default function HeroSection() {
                 <Heart className="h-5 w-5" />
                 Donate Now
               </Button>
-            </a>
-            <a href="#about">
+            </Link>
+            <Link to="/about">
               <Button
                 size="lg"
-                variant="outline"
-                className="font-body text-base gap-2 border-white/30 text-white hover:bg-white/10 px-8 h-12 rounded-lg"
+                variant="ghost"
+                className="font-body text-base gap-2 border-2 border-white/50 text-white hover:bg-white/10 hover:text-white px-8 h-12 rounded-lg"
               >
                 Get Involved
                 <ArrowRight className="h-5 w-5" />
               </Button>
-            </a>
+            </Link>
           </div>
         </motion.div>
       </div>

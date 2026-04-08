@@ -13,7 +13,7 @@ const stats: Stat[] = [
   {
     icon: Users,
     value: "250+",
-    label: "Girls Served",
+    label: "Survivors Empowered",
     description: "Survivors given safety and support since 2018",
   },
   {
