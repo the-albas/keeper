@@ -280,6 +280,27 @@ public class AuthController : ControllerBase
         return Ok(await BuildResponseAsync(user));
     }
 
+    /// <summary>Permanently deletes the signed-in user account (e.g. donor self-service).</summary>
+    [Authorize]
+    [HttpDelete("account")]
+    public async Task<IActionResult> DeleteAccount()
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user is null)
+        {
+            return Unauthorized();
+        }
+
+        await _signInManager.SignOutAsync();
+        var deleteResult = await _userManager.DeleteAsync(user);
+        if (!deleteResult.Succeeded)
+        {
+            return ToValidationProblem(deleteResult);
+        }
+
+        return NoContent();
+    }
+
     [Authorize(Roles = AppRoles.Admin)]
     [HttpGet("admin-only")]
     public IActionResult AdminOnly()

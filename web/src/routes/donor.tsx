@@ -1,6 +1,7 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+import { getApiBaseUrl } from "@/lib/api";
 import DonorNav from "@/components/donor/DonorNav";
 import DonorMetrics from "@/components/donor/DonorMetrics";
 import AllocationChart from "@/components/donor/AllocationChart";
@@ -17,16 +18,55 @@ export const Route = createFileRoute("/donor")({
   component: DonorDashboard,
 });
 
+async function fetchCurrentUser() {
+  const apiBaseUrl = getApiBaseUrl();
+  if (!apiBaseUrl) return null;
+  const res = await fetch(`${apiBaseUrl}/api/auth/me`, {
+    credentials: "include",
+  });
+  if (!res.ok) return null;
+  const data = (await res.json()) as { email: string };
+  return { email: data.email, full_name: data.email.split("@")[0] };
+}
+
+async function deleteAccount() {
+  const apiBaseUrl = getApiBaseUrl();
+  if (!apiBaseUrl) throw new Error("API base URL is not configured.");
+  const res = await fetch(`${apiBaseUrl}/api/auth/account`, {
+    method: "DELETE",
+    credentials: "include",
+  });
+  if (!res.ok) {
+    let message = `Could not delete account (${res.status}).`;
+    try {
+      const body = (await res.json()) as { title?: string; errors?: Record<string, string[]> };
+      if (body.title) message = body.title;
+    } catch {
+      /* ignore */
+    }
+    throw new Error(message);
+  }
+}
+
 function DonorDashboard() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const { data: user } = useQuery({
     queryKey: ["auth", "me"],
-    queryFn: async () => {
-      // TODO: Call your C# auth endpoint
-      // const res = await fetch(`${API_BASE}/auth/me`);
-      // return res.json();
-      return { full_name: "Donor User", email: "donor@example.com" };
+    queryFn: fetchCurrentUser,
+    retry: false,
+    staleTime: 60_000,
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteAccount,
+    onSuccess: () => {
+      queryClient.setQueryData(["auth", "me"], null);
+      queryClient.invalidateQueries({ queryKey: ["auth"] });
+      setShowDeleteModal(false);
+      navigate({ to: "/" });
     },
   });
 
@@ -142,7 +182,9 @@ function DonorDashboard() {
           <Button
             onClick={() => setShowDeleteModal(true)}
             variant="outline"
-            className="font-body border-red-500 text-red-500 hover:bg-red-50 hover:text-red-600 hover:border-red-600 px-6 h-11 rounded-xl transition-all"
+            disabled={!user}
+            title={!user ? "Sign in to manage your account." : undefined}
+            className="font-body border-red-500 text-red-500 hover:bg-red-50 hover:text-red-600 hover:border-red-600 px-6 h-11 rounded-xl transition-all disabled:opacity-50"
           >
             Delete Account
           </Button>
@@ -159,19 +201,29 @@ function DonorDashboard() {
               Are you sure you want to delete your account? This action cannot
               be undone.
             </p>
+            {deleteMutation.isError && (
+              <p className="font-body text-sm text-red-600 mb-4">
+                {(deleteMutation.error as Error).message}
+              </p>
+            )}
             <div className="flex gap-3 justify-end">
               <Button
                 variant="outline"
-                onClick={() => setShowDeleteModal(false)}
+                onClick={() => {
+                  deleteMutation.reset();
+                  setShowDeleteModal(false);
+                }}
+                disabled={deleteMutation.isPending}
                 className="font-body border-border text-foreground hover:bg-muted px-5 h-10 rounded-xl transition-all"
               >
                 Cancel
               </Button>
               <Button
-                onClick={() => setShowDeleteModal(false)}
+                onClick={() => deleteMutation.mutate()}
+                disabled={deleteMutation.isPending}
                 className="font-body bg-red-500 hover:bg-red-600 text-white px-5 h-10 rounded-xl transition-all"
               >
-                Confirm
+                {deleteMutation.isPending ? "Deleting…" : "Confirm"}
               </Button>
             </div>
           </div>
