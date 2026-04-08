@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import AdminSidebar from "@/components/admin/AdminSidebar";
+import { apiGetJson, type AuthMeResponse } from "@/lib/api";
 import {
   AreaChart,
   Area,
@@ -182,10 +183,119 @@ function ReportsPage() {
 
   const { data: user } = useQuery({
     queryKey: ["auth", "me"],
-    queryFn: async () => {
-      // TODO: Call your C# auth endpoint
-      return { full_name: "Admin User", email: "admin@keeper.org" };
-    },
+    queryFn: () => apiGetJson<AuthMeResponse>("/api/auth/me"),
+    retry: false,
+    staleTime: 60_000,
+  });
+
+  // ── ML Predictions (sample inputs — swap for real DB data when ready) ────────
+  const ML_HEADERS = { "Content-Type": "application/json" };
+
+  const { data: mlRetention, isLoading: retentionLoading } = useQuery({
+    queryKey: ["ml", "retention", "sample"],
+    queryFn: () =>
+      apiGetJson<{ predicted_class: number; label: string; probability_lapsed: number; probability_retained: number }>(
+        "/api/ml/retention/predict",
+        {
+          method: "POST",
+          headers: ML_HEADERS,
+          body: JSON.stringify({
+            frequency: 3,
+            avg_monetary_value: 5000,
+            social_referral_count: 1,
+            is_recurring_donor: 0,
+            top_program_interest: "Education",
+          }),
+        }
+      ),
+    staleTime: Infinity,
+    retry: false,
+  });
+
+  const { data: mlGrowth, isLoading: growthLoading } = useQuery({
+    queryKey: ["ml", "growth", "sample"],
+    queryFn: () =>
+      apiGetJson<{ predicted_total_monetary_value: number }>(
+        "/api/ml/growth/predict",
+        {
+          method: "POST",
+          headers: ML_HEADERS,
+          body: JSON.stringify({
+            recency_days: 45,
+            frequency: 3,
+            social_referral_count: 1,
+            is_recurring_donor: 0,
+            donor_tenure_days: 730,
+            top_program_interest: "Education",
+            supporter_type: "Individual",
+            relationship_type: "Donor",
+            region: "NCR",
+            acquisition_channel: "Online",
+            status: "Active",
+          }),
+        }
+      ),
+    staleTime: Infinity,
+    retry: false,
+  });
+
+  const { data: mlGirlsProgress, isLoading: progressLoading } = useQuery({
+    queryKey: ["ml", "girls-progress", "sample"],
+    queryFn: () =>
+      apiGetJson<{ predicted_mean_progress: number }>(
+        "/api/ml/girls-progress/predict",
+        {
+          method: "POST",
+          headers: ML_HEADERS,
+          body: JSON.stringify({
+            present_age_years: 14,
+            length_stay_years: 1.5,
+            age_upon_admission_years: 12,
+            edu_earliest_progress: 60,
+            edu_earliest_attendance_rate: 0.85,
+            hw_mean_general_health_score: 7,
+            hw_mean_nutrition_score: 7,
+            case_status: "Active",
+            case_category: "Trafficked",
+            initial_risk_level: "High",
+            current_risk_level: "Medium",
+          }),
+        }
+      ),
+    staleTime: Infinity,
+    retry: false,
+  });
+
+  const { data: mlTrajectory, isLoading: trajectoryLoading } = useQuery({
+    queryKey: ["ml", "girls-trajectory", "sample"],
+    queryFn: () =>
+      apiGetJson<{ predicted_next_progress: number; risk_label: string | null }>(
+        "/api/ml/girls-trajectory/predict",
+        {
+          method: "POST",
+          headers: ML_HEADERS,
+          body: JSON.stringify({
+            current_progress: 65,
+            days_since_admission: 180,
+            present_age_years: 14,
+            age_upon_admission_years: 12,
+            has_special_needs: 0,
+            hw_mean_general_health_score: 7,
+            hw_mean_nutrition_score: 7,
+            hw_mean_energy_level_score: 7,
+            hw_mean_sleep_quality_score: 7,
+            n_incidents: 1,
+            n_home_visitations: 3,
+            n_intervention_plans: 2,
+            case_status: "Active",
+            case_category: "Trafficked",
+            initial_risk_level: "High",
+            current_risk_level: "Medium",
+          }),
+        }
+      ),
+    staleTime: Infinity,
+    retry: false,
   });
 
   const totalDonations = DONATION_TREND.reduce((s, d) => s + d.amount, 0);
@@ -638,6 +748,140 @@ function ReportsPage() {
               Indicators measured at case closure through standardized welfare
               assessment forms. Target threshold: 70%.
             </p>
+          </div>
+        </div>
+
+        {/* ── ML Predictions ───────────────────────────────────────────────── */}
+        <div className="mb-8">
+          <SectionHeader
+            title="ML Predictions"
+            subtitle="Sample profiles shown — connect donor & resident DB endpoints to score everyone"
+          />
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+
+            {/* Donor Retention Score */}
+            <div className="bg-card rounded-2xl border border-border shadow-sm p-5 flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <span className="font-body text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                  Donor Retention
+                </span>
+                <span className="font-body text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
+                  Sample
+                </span>
+              </div>
+              {retentionLoading ? (
+                <div className="h-10 bg-muted animate-pulse rounded-lg" />
+              ) : mlRetention ? (
+                <>
+                  <div
+                    className="font-heading text-3xl font-bold"
+                    style={{
+                      color:
+                        mlRetention.probability_retained >= 0.7
+                          ? C_GREEN
+                          : mlRetention.probability_retained >= 0.4
+                          ? C_YELLOW
+                          : "hsl(0,72%,51%)",
+                    }}
+                  >
+                    {Math.round(mlRetention.probability_retained * 100)}%
+                  </div>
+                  <div className="font-body text-xs text-muted-foreground">
+                    Likelihood of giving again · connect DB to score all donors
+                  </div>
+                </>
+              ) : (
+                <div className="font-body text-xs text-muted-foreground">ML service offline</div>
+              )}
+            </div>
+
+            {/* Predicted Contribution */}
+            <div className="bg-card rounded-2xl border border-border shadow-sm p-5 flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <span className="font-body text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                  Predicted Giving
+                </span>
+                <span className="font-body text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
+                  Sample
+                </span>
+              </div>
+              {growthLoading ? (
+                <div className="h-10 bg-muted animate-pulse rounded-lg" />
+              ) : mlGrowth ? (
+                <>
+                  <div className="font-heading text-3xl font-bold text-foreground">
+                    {formatPHP(mlGrowth.predicted_total_monetary_value)}
+                  </div>
+                  <div className="font-body text-xs text-muted-foreground">
+                    Est. lifetime giving · connect DB to rank all donors by value
+                  </div>
+                </>
+              ) : (
+                <div className="font-body text-xs text-muted-foreground">ML service offline</div>
+              )}
+            </div>
+
+            {/* Resident Education Progress */}
+            <div className="bg-card rounded-2xl border border-border shadow-sm p-5 flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <span className="font-body text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                  Edu. Progress
+                </span>
+                <span className="font-body text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
+                  Sample
+                </span>
+              </div>
+              {progressLoading ? (
+                <div className="h-10 bg-muted animate-pulse rounded-lg" />
+              ) : mlGirlsProgress ? (
+                <>
+                  <div className="font-heading text-3xl font-bold text-foreground">
+                    {Math.round(mlGirlsProgress.predicted_mean_progress)}
+                    <span className="font-body text-base font-normal text-muted-foreground">/100</span>
+                  </div>
+                  <div className="font-body text-xs text-muted-foreground">
+                    Expected academic score · connect DB to flag residents needing support
+                  </div>
+                </>
+              ) : (
+                <div className="font-body text-xs text-muted-foreground">ML service offline</div>
+              )}
+            </div>
+
+            {/* At-Risk Trajectory */}
+            <div className="bg-card rounded-2xl border border-border shadow-sm p-5 flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <span className="font-body text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                  Risk Trajectory
+                </span>
+                <span className="font-body text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
+                  Sample
+                </span>
+              </div>
+              {trajectoryLoading ? (
+                <div className="h-10 bg-muted animate-pulse rounded-lg" />
+              ) : mlTrajectory ? (
+                <>
+                  <div
+                    className="font-heading text-2xl font-bold"
+                    style={{
+                      color:
+                        mlTrajectory.risk_label === "At Risk"
+                          ? "hsl(0,72%,51%)"
+                          : C_GREEN,
+                    }}
+                  >
+                    {mlTrajectory.risk_label ?? "On Track"}
+                  </div>
+                  <div className="font-body text-xs text-muted-foreground">
+                    Education trend · connect DB to surface all at-risk residents
+                  </div>
+                </>
+              ) : (
+                <div className="font-body text-xs text-muted-foreground">ML service offline</div>
+              )}
+            </div>
+
           </div>
         </div>
 

@@ -1,0 +1,42 @@
+name: Nightly Model Retraining
+
+on:
+  schedule:
+    - cron: '0 18 * * *'  # 2:00 AM Philippine Standard Time (UTC+8)
+  workflow_dispatch:        # Allow manual trigger from GitHub Actions UI
+
+jobs:
+  retrain:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Retrain all models
+        run: |
+          ML_URL="${{ secrets.ML_SERVICE_URL }}"
+          if [ -z "$ML_URL" ]; then
+            echo "ERROR: ML_SERVICE_URL secret is not set. Add it in GitHub → Settings → Secrets."
+            exit 1
+          fi
+
+          FAILED=0
+          for model in retention growth social_engagement girls_progress girls_trajectory social_causal; do
+            echo "▶ Retraining $model..."
+            STATUS=$(curl -s -o /tmp/retrain_response.json -w "%{http_code}" \
+              -X POST "$ML_URL/admin/retrain/$model" \
+              -H "Content-Type: application/json" \
+              --max-time 600)
+            if [ "$STATUS" = "200" ]; then
+              echo "✓ $model retrained successfully"
+              cat /tmp/retrain_response.json
+            else
+              echo "✗ $model retrain failed (HTTP $STATUS)"
+              cat /tmp/retrain_response.json
+              FAILED=$((FAILED + 1))
+            fi
+            echo ""
+          done
+
+          if [ "$FAILED" -gt 0 ]; then
+            echo "$FAILED model(s) failed to retrain."
+            exit 1
+          fi
+          echo "All models retrained successfully."
