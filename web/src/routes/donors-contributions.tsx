@@ -1164,8 +1164,8 @@ function DonorsPage() {
       {/* Supporter drawer */}
       {panelMode !== null && (
         <>
-          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40" onClick={closePanel} />
-          <div className="fixed inset-y-0 right-0 w-[520px] bg-background border-l border-border shadow-2xl z-50 flex flex-col">
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 animate-in fade-in duration-200" onClick={closePanel} />
+          <div className="fixed inset-y-0 right-0 w-[520px] bg-background border-l border-border shadow-2xl z-50 flex flex-col animate-in slide-in-from-right duration-300 ease-out">
             <div className="flex items-start justify-between p-6 border-b border-border flex-shrink-0">
               <div>
                 <p className="font-body text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-0.5">

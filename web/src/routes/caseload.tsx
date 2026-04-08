@@ -141,7 +141,7 @@ const STATUS_COLORS: Record<CaseStatus, string> = {
 
 const RISK_COLORS: Record<RiskLevel, string> = {
   Low: "bg-chart-5/15 text-chart-5 border-chart-5/20",
-  Medium: "bg-accent/15 text-accent border-accent/20",
+  Medium: "bg-amber-500/15 text-amber-600 border-amber-500/30 dark:text-amber-400",
   High: "bg-chart-4/15 text-chart-4 border-chart-4/20",
   Critical: "bg-destructive/15 text-destructive border-destructive/20",
 };
@@ -974,12 +974,12 @@ function CaseloadPage() {
         <>
           {/* Backdrop */}
           <div
-            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 animate-in fade-in duration-200"
             onClick={closePanel}
           />
 
           {/* Panel */}
-          <div className="fixed inset-y-0 right-0 w-[520px] bg-background border-l border-border shadow-2xl z-50 flex flex-col">
+          <div className="fixed inset-y-0 right-0 w-[520px] bg-background border-l border-border shadow-2xl z-50 flex flex-col animate-in slide-in-from-right duration-300 ease-out">
             {/* Panel header */}
             <div className="flex items-start justify-between p-6 border-b border-border flex-shrink-0">
               <div>
