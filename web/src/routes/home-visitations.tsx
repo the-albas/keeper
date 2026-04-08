@@ -5,15 +5,7 @@ import AdminSidebar from "@/components/admin/AdminSidebar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Home,
-  CalendarDays,
-  Plus,
-  ChevronUp,
-  ChevronDown,
-  Users,
-  Clock,
-} from "lucide-react";
+import { Home, Plus, ChevronUp, Users, Clock } from "lucide-react";
 
 export const Route = createFileRoute("/home-visitations")({
   component: HomeVisitationsPage,
@@ -98,26 +90,27 @@ const CONFERENCE_TYPES: ConferenceType[] = [
 // ─── Badge colors ─────────────────────────────────────────────────────────────
 
 const VISIT_TYPE_COLORS: Record<VisitType, string> = {
-  "Initial Assessment":        "bg-blue-50 text-blue-700 border-blue-200",
-  "Routine Follow-up":         "bg-primary/10 text-primary border-primary/20",
-  "Reintegration Assessment":  "bg-purple-50 text-purple-700 border-purple-200",
+  "Initial Assessment": "bg-blue-50 text-blue-700 border-blue-200",
+  "Routine Follow-up": "bg-primary/10 text-primary border-primary/20",
+  "Reintegration Assessment": "bg-purple-50 text-purple-700 border-purple-200",
   "Post-Placement Monitoring": "bg-green-50 text-green-700 border-green-200",
-  Emergency:                   "bg-destructive/15 text-destructive border-destructive/20",
+  Emergency: "bg-destructive/15 text-destructive border-destructive/20",
 };
 
 const COOPERATION_COLORS: Record<FamilyCooperation, string> = {
-  Cooperative:             "bg-green-50 text-green-700 border-green-200",
+  Cooperative: "bg-green-50 text-green-700 border-green-200",
   "Partially Cooperative": "bg-yellow-50 text-yellow-700 border-yellow-200",
-  Uncooperative:           "bg-red-50 text-red-700 border-red-200",
-  "Not Available":         "bg-muted text-muted-foreground border-border",
+  Uncooperative: "bg-red-50 text-red-700 border-red-200",
+  "Not Available": "bg-muted text-muted-foreground border-border",
 };
 
 const CONFERENCE_TYPE_COLORS: Record<ConferenceType, string> = {
   "Initial Case Conference": "bg-blue-50 text-blue-700 border-blue-200",
-  "Progress Review":         "bg-primary/10 text-primary border-primary/20",
-  "Reintegration Planning":  "bg-purple-50 text-purple-700 border-purple-200",
-  "Crisis Conference":       "bg-destructive/15 text-destructive border-destructive/20",
-  "Discharge Planning":      "bg-green-50 text-green-700 border-green-200",
+  "Progress Review": "bg-primary/10 text-primary border-primary/20",
+  "Reintegration Planning": "bg-purple-50 text-purple-700 border-purple-200",
+  "Crisis Conference":
+    "bg-destructive/15 text-destructive border-destructive/20",
+  "Discharge Planning": "bg-green-50 text-green-700 border-green-200",
 };
 
 // ─── Empty forms ──────────────────────────────────────────────────────────────
@@ -193,7 +186,8 @@ const MOCK_CONFERENCES: CaseConference[] = [
     residentId: 1,
     conferenceDate: "2025-01-25",
     conferenceType: "Initial Case Conference",
-    attendees: "Maria Santos (SW), Dr. Elena Cruz (Psychologist), Shelter Director, Resident",
+    attendees:
+      "Maria Santos (SW), Dr. Elena Cruz (Psychologist), Shelter Director, Resident",
     discussionSummary:
       "Initial conference to establish care plan. Discussed trauma history, immediate safety needs, and short-term goals. Resident expressed desire to return to school and reconnect with maternal aunt.",
     decisionsMade:
@@ -217,7 +211,8 @@ const MOCK_CONFERENCES: CaseConference[] = [
     residentId: 1,
     conferenceDate: "2025-07-25",
     conferenceType: "Reintegration Planning",
-    attendees: "Maria Santos (SW), Shelter Director, Resident, Maternal Aunt, DSWD Liaison",
+    attendees:
+      "Maria Santos (SW), Shelter Director, Resident, Maternal Aunt, DSWD Liaison",
     discussionSummary:
       "Planned reintegration timeline with all stakeholders. Maternal aunt confirmed readiness to receive resident. Housing conditions verified as suitable.",
     decisionsMade:
@@ -229,7 +224,8 @@ const MOCK_CONFERENCES: CaseConference[] = [
     residentId: 2,
     conferenceDate: "2025-04-10",
     conferenceType: "Crisis Conference",
-    attendees: "Jose Reyes (SW), Shelter Director, PNP WCPD Officer, Psychologist",
+    attendees:
+      "Jose Reyes (SW), Shelter Director, PNP WCPD Officer, Psychologist",
     discussionSummary:
       "Emergency conference triggered by safety concerns identified during home visit. Perpetrator's proximity and family contact poses ongoing risk. Discussed escalation options.",
     decisionsMade:
@@ -241,7 +237,8 @@ const MOCK_CONFERENCES: CaseConference[] = [
     residentId: 2,
     conferenceDate: "2025-05-10",
     conferenceType: "Progress Review",
-    attendees: "Jose Reyes (SW), Shelter Director, Psychologist, Legal Aid Officer",
+    attendees:
+      "Jose Reyes (SW), Shelter Director, Psychologist, Legal Aid Officer",
     discussionSummary:
       "Protection order has been granted. Resident's trauma assessment complete — PTSD indicators present. Legal proceedings underway.",
     decisionsMade:
@@ -278,9 +275,13 @@ function selectClass() {
 // ─── Main component ───────────────────────────────────────────────────────────
 
 function HomeVisitationsPage() {
-  const [selectedResident, setSelectedResident] = useState<Resident | null>(null);
+  const [selectedResident, setSelectedResident] = useState<Resident | null>(
+    null
+  );
   const [residentSearch, setResidentSearch] = useState("");
-  const [activeTab, setActiveTab] = useState<"visits" | "conferences">("visits");
+  const [activeTab, setActiveTab] = useState<"visits" | "conferences">(
+    "visits"
+  );
 
   const [showVisitForm, setShowVisitForm] = useState(false);
   const [visitForm, setVisitForm] = useState(EMPTY_VISIT);
@@ -289,7 +290,8 @@ function HomeVisitationsPage() {
   const [conferenceForm, setConferenceForm] = useState(EMPTY_CONFERENCE);
 
   const [visits, setVisits] = useState<HomeVisit[]>(MOCK_VISITS);
-  const [conferences, setConferences] = useState<CaseConference[]>(MOCK_CONFERENCES);
+  const [conferences, setConferences] =
+    useState<CaseConference[]>(MOCK_CONFERENCES);
 
   const { data: user } = useQuery({
     queryKey: ["auth", "me"],
@@ -322,14 +324,25 @@ function HomeVisitationsPage() {
 
   const residentVisits = visits
     .filter((v) => v.residentId === selectedResident?.id)
-    .sort((a, b) => new Date(b.visitDate).getTime() - new Date(a.visitDate).getTime());
+    .sort(
+      (a, b) =>
+        new Date(b.visitDate).getTime() - new Date(a.visitDate).getTime()
+    );
 
   const residentConferences = conferences
     .filter((c) => c.residentId === selectedResident?.id)
-    .sort((a, b) => new Date(b.conferenceDate).getTime() - new Date(a.conferenceDate).getTime());
+    .sort(
+      (a, b) =>
+        new Date(b.conferenceDate).getTime() -
+        new Date(a.conferenceDate).getTime()
+    );
 
-  const upcomingConferences = residentConferences.filter((c) => isUpcoming(c.conferenceDate));
-  const pastConferences = residentConferences.filter((c) => !isUpcoming(c.conferenceDate));
+  const upcomingConferences = residentConferences.filter((c) =>
+    isUpcoming(c.conferenceDate)
+  );
+  const pastConferences = residentConferences.filter(
+    (c) => !isUpcoming(c.conferenceDate)
+  );
 
   // ── Handlers ────────────────────────────────────────────────────────────────
 
@@ -397,7 +410,9 @@ function HomeVisitationsPage() {
                 type="date"
                 required
                 value={visitForm.visitDate}
-                onChange={(e) => setVisitForm((f) => ({ ...f, visitDate: e.target.value }))}
+                onChange={(e) =>
+                  setVisitForm((f) => ({ ...f, visitDate: e.target.value }))
+                }
               />
             </div>
             <div className="space-y-1.5">
@@ -408,7 +423,9 @@ function HomeVisitationsPage() {
                 required
                 placeholder="Full name"
                 value={visitForm.staffName}
-                onChange={(e) => setVisitForm((f) => ({ ...f, staffName: e.target.value }))}
+                onChange={(e) =>
+                  setVisitForm((f) => ({ ...f, staffName: e.target.value }))
+                }
               />
             </div>
           </div>
@@ -421,10 +438,17 @@ function HomeVisitationsPage() {
               <select
                 required
                 value={visitForm.visitType}
-                onChange={(e) => setVisitForm((f) => ({ ...f, visitType: e.target.value as VisitType }))}
+                onChange={(e) =>
+                  setVisitForm((f) => ({
+                    ...f,
+                    visitType: e.target.value as VisitType,
+                  }))
+                }
                 className={selectClass()}
               >
-                {VISIT_TYPES.map((t) => <option key={t}>{t}</option>)}
+                {VISIT_TYPES.map((t) => (
+                  <option key={t}>{t}</option>
+                ))}
               </select>
             </div>
             <div className="space-y-1.5">
@@ -434,24 +458,37 @@ function HomeVisitationsPage() {
               <select
                 required
                 value={visitForm.familyCooperation}
-                onChange={(e) => setVisitForm((f) => ({ ...f, familyCooperation: e.target.value as FamilyCooperation }))}
+                onChange={(e) =>
+                  setVisitForm((f) => ({
+                    ...f,
+                    familyCooperation: e.target.value as FamilyCooperation,
+                  }))
+                }
                 className={selectClass()}
               >
-                {COOPERATION_LEVELS.map((c) => <option key={c}>{c}</option>)}
+                {COOPERATION_LEVELS.map((c) => (
+                  <option key={c}>{c}</option>
+                ))}
               </select>
             </div>
           </div>
 
           <div className="space-y-1.5">
             <Label className="font-body text-sm font-medium text-foreground">
-              Home Environment Observations <span className="text-red-500">*</span>
+              Home Environment Observations{" "}
+              <span className="text-red-500">*</span>
             </Label>
             <textarea
               required
               rows={3}
               placeholder="Describe the physical environment, living conditions, and any notable observations…"
               value={visitForm.homeEnvironmentObservations}
-              onChange={(e) => setVisitForm((f) => ({ ...f, homeEnvironmentObservations: e.target.value }))}
+              onChange={(e) =>
+                setVisitForm((f) => ({
+                  ...f,
+                  homeEnvironmentObservations: e.target.value,
+                }))
+              }
               className={textareaClass()}
             />
           </div>
@@ -464,7 +501,9 @@ function HomeVisitationsPage() {
               rows={2}
               placeholder="Note any threats, risks, or safety issues observed or reported…"
               value={visitForm.safetyConcerns}
-              onChange={(e) => setVisitForm((f) => ({ ...f, safetyConcerns: e.target.value }))}
+              onChange={(e) =>
+                setVisitForm((f) => ({ ...f, safetyConcerns: e.target.value }))
+              }
               className={textareaClass()}
             />
           </div>
@@ -478,7 +517,9 @@ function HomeVisitationsPage() {
               rows={2}
               placeholder="Next steps, referrals, or tasks arising from this visit…"
               value={visitForm.followUpActions}
-              onChange={(e) => setVisitForm((f) => ({ ...f, followUpActions: e.target.value }))}
+              onChange={(e) =>
+                setVisitForm((f) => ({ ...f, followUpActions: e.target.value }))
+              }
               className={textareaClass()}
             />
           </div>
@@ -487,7 +528,10 @@ function HomeVisitationsPage() {
             <Button
               type="button"
               variant="outline"
-              onClick={() => { setShowVisitForm(false); setVisitForm(EMPTY_VISIT); }}
+              onClick={() => {
+                setShowVisitForm(false);
+                setVisitForm(EMPTY_VISIT);
+              }}
               className="font-body px-5 h-10 rounded-xl"
             >
               Cancel
@@ -509,7 +553,9 @@ function HomeVisitationsPage() {
   function renderVisitHistory() {
     return (
       <div className="bg-card rounded-2xl border border-border shadow-sm p-6">
-        <h3 className="font-heading text-lg font-bold text-foreground mb-5">Visit History</h3>
+        <h3 className="font-heading text-lg font-bold text-foreground mb-5">
+          Visit History
+        </h3>
         {residentVisits.length === 0 ? (
           <p className="font-body text-sm text-muted-foreground text-center py-10">
             No visits recorded yet. Log the first visit above.
@@ -532,10 +578,14 @@ function HomeVisitationsPage() {
                         </p>
                       </div>
                       <div className="flex gap-2 flex-wrap">
-                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-body font-medium border ${VISIT_TYPE_COLORS[v.visitType]}`}>
+                        <span
+                          className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-body font-medium border ${VISIT_TYPE_COLORS[v.visitType]}`}
+                        >
                           {v.visitType}
                         </span>
-                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-body font-medium border ${COOPERATION_COLORS[v.familyCooperation]}`}>
+                        <span
+                          className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-body font-medium border ${COOPERATION_COLORS[v.familyCooperation]}`}
+                        >
                           {v.familyCooperation}
                         </span>
                       </div>
@@ -555,7 +605,11 @@ function HomeVisitationsPage() {
                             Safety Concerns
                           </p>
                           <p className="font-body text-sm text-foreground leading-relaxed">
-                            {v.safetyConcerns || <span className="text-muted-foreground">None identified.</span>}
+                            {v.safetyConcerns || (
+                              <span className="text-muted-foreground">
+                                None identified.
+                              </span>
+                            )}
                           </p>
                         </div>
                         <div>
@@ -596,7 +650,12 @@ function HomeVisitationsPage() {
                 type="date"
                 required
                 value={conferenceForm.conferenceDate}
-                onChange={(e) => setConferenceForm((f) => ({ ...f, conferenceDate: e.target.value }))}
+                onChange={(e) =>
+                  setConferenceForm((f) => ({
+                    ...f,
+                    conferenceDate: e.target.value,
+                  }))
+                }
               />
             </div>
             <div className="space-y-1.5">
@@ -606,10 +665,17 @@ function HomeVisitationsPage() {
               <select
                 required
                 value={conferenceForm.conferenceType}
-                onChange={(e) => setConferenceForm((f) => ({ ...f, conferenceType: e.target.value as ConferenceType }))}
+                onChange={(e) =>
+                  setConferenceForm((f) => ({
+                    ...f,
+                    conferenceType: e.target.value as ConferenceType,
+                  }))
+                }
                 className={selectClass()}
               >
-                {CONFERENCE_TYPES.map((t) => <option key={t}>{t}</option>)}
+                {CONFERENCE_TYPES.map((t) => (
+                  <option key={t}>{t}</option>
+                ))}
               </select>
             </div>
           </div>
@@ -622,7 +688,9 @@ function HomeVisitationsPage() {
               required
               placeholder="e.g. Social Worker, Psychologist, Shelter Director, Resident…"
               value={conferenceForm.attendees}
-              onChange={(e) => setConferenceForm((f) => ({ ...f, attendees: e.target.value }))}
+              onChange={(e) =>
+                setConferenceForm((f) => ({ ...f, attendees: e.target.value }))
+              }
             />
           </div>
 
@@ -635,7 +703,12 @@ function HomeVisitationsPage() {
               rows={3}
               placeholder="Summarize the key topics discussed during the conference…"
               value={conferenceForm.discussionSummary}
-              onChange={(e) => setConferenceForm((f) => ({ ...f, discussionSummary: e.target.value }))}
+              onChange={(e) =>
+                setConferenceForm((f) => ({
+                  ...f,
+                  discussionSummary: e.target.value,
+                }))
+              }
               className={textareaClass()}
             />
           </div>
@@ -649,7 +722,12 @@ function HomeVisitationsPage() {
               rows={3}
               placeholder="List the decisions, action items, or resolutions agreed upon…"
               value={conferenceForm.decisionsMade}
-              onChange={(e) => setConferenceForm((f) => ({ ...f, decisionsMade: e.target.value }))}
+              onChange={(e) =>
+                setConferenceForm((f) => ({
+                  ...f,
+                  decisionsMade: e.target.value,
+                }))
+              }
               className={textareaClass()}
             />
           </div>
@@ -661,7 +739,12 @@ function HomeVisitationsPage() {
             <Input
               type="date"
               value={conferenceForm.nextConferenceDate}
-              onChange={(e) => setConferenceForm((f) => ({ ...f, nextConferenceDate: e.target.value }))}
+              onChange={(e) =>
+                setConferenceForm((f) => ({
+                  ...f,
+                  nextConferenceDate: e.target.value,
+                }))
+              }
             />
           </div>
 
@@ -669,7 +752,10 @@ function HomeVisitationsPage() {
             <Button
               type="button"
               variant="outline"
-              onClick={() => { setShowConferenceForm(false); setConferenceForm(EMPTY_CONFERENCE); }}
+              onClick={() => {
+                setShowConferenceForm(false);
+                setConferenceForm(EMPTY_CONFERENCE);
+              }}
               className="font-body px-5 h-10 rounded-xl"
             >
               Cancel
@@ -696,23 +782,32 @@ function HomeVisitationsPage() {
           <div className="bg-card rounded-2xl border border-border shadow-sm p-6">
             <div className="flex items-center gap-2 mb-5">
               <Clock className="h-5 w-5 text-yellow-600" />
-              <h3 className="font-heading text-lg font-bold text-foreground">Upcoming Conferences</h3>
+              <h3 className="font-heading text-lg font-bold text-foreground">
+                Upcoming Conferences
+              </h3>
             </div>
             <div className="space-y-4">
               {upcomingConferences.map((c) => (
-                <div key={c.id} className="bg-yellow-50 border border-yellow-200 rounded-xl p-5">
+                <div
+                  key={c.id}
+                  className="bg-yellow-50 border border-yellow-200 rounded-xl p-5"
+                >
                   <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
                     <div>
                       <p className="font-heading text-base font-bold text-foreground">
                         {formatDate(c.conferenceDate)}
                       </p>
-                      <p className="font-body text-sm text-muted-foreground mt-0.5">{c.attendees}</p>
+                      <p className="font-body text-sm text-muted-foreground mt-0.5">
+                        {c.attendees}
+                      </p>
                     </div>
                     <div className="flex gap-2">
                       <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-body font-semibold bg-yellow-100 text-yellow-800 border border-yellow-300">
                         Upcoming
                       </span>
-                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-body font-medium border ${CONFERENCE_TYPE_COLORS[c.conferenceType]}`}>
+                      <span
+                        className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-body font-medium border ${CONFERENCE_TYPE_COLORS[c.conferenceType]}`}
+                      >
                         {c.conferenceType}
                       </span>
                     </div>
@@ -722,7 +817,9 @@ function HomeVisitationsPage() {
                       <p className="font-body text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">
                         Planned Agenda / Decisions to Review
                       </p>
-                      <p className="font-body text-sm text-foreground leading-relaxed">{c.decisionsMade}</p>
+                      <p className="font-body text-sm text-foreground leading-relaxed">
+                        {c.decisionsMade}
+                      </p>
                     </div>
                   )}
                 </div>
@@ -733,7 +830,9 @@ function HomeVisitationsPage() {
 
         {/* Conference history */}
         <div className="bg-card rounded-2xl border border-border shadow-sm p-6">
-          <h3 className="font-heading text-lg font-bold text-foreground mb-5">Conference History</h3>
+          <h3 className="font-heading text-lg font-bold text-foreground mb-5">
+            Conference History
+          </h3>
           {pastConferences.length === 0 ? (
             <p className="font-body text-sm text-muted-foreground text-center py-10">
               No past conferences recorded yet. Log the first conference above.
@@ -755,7 +854,9 @@ function HomeVisitationsPage() {
                             {c.attendees}
                           </p>
                         </div>
-                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-body font-medium border ${CONFERENCE_TYPE_COLORS[c.conferenceType]}`}>
+                        <span
+                          className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-body font-medium border ${CONFERENCE_TYPE_COLORS[c.conferenceType]}`}
+                        >
                           {c.conferenceType}
                         </span>
                       </div>
@@ -811,14 +912,17 @@ function HomeVisitationsPage() {
             Home Visitations & Case Conferences
           </h1>
           <p className="font-body text-base text-muted-foreground mt-1">
-            Log field visits and track case conference history for each resident.
+            Log field visits and track case conference history for each
+            resident.
           </p>
         </div>
 
         <div className="grid lg:grid-cols-[280px_1fr] gap-6 items-start">
           {/* Resident selector */}
           <div className="bg-card rounded-2xl border border-border shadow-sm p-5 sticky top-8">
-            <h2 className="font-heading text-base font-bold text-foreground mb-3">Residents</h2>
+            <h2 className="font-heading text-base font-bold text-foreground mb-3">
+              Residents
+            </h2>
             <Input
               type="text"
               placeholder="Search by name or case #"
@@ -833,8 +937,12 @@ function HomeVisitationsPage() {
                 </p>
               ) : (
                 filteredResidents.map((r) => {
-                  const vCount = visits.filter((v) => v.residentId === r.id).length;
-                  const cCount = conferences.filter((c) => c.residentId === r.id).length;
+                  const vCount = visits.filter(
+                    (v) => v.residentId === r.id
+                  ).length;
+                  const cCount = conferences.filter(
+                    (c) => c.residentId === r.id
+                  ).length;
                   return (
                     <button
                       key={r.id}
@@ -866,7 +974,8 @@ function HomeVisitationsPage() {
                 Select a Resident
               </h3>
               <p className="font-body text-sm text-muted-foreground max-w-xs">
-                Choose a resident from the list to view their visit and conference history or add a new entry.
+                Choose a resident from the list to view their visit and
+                conference history or add a new entry.
               </p>
             </div>
           ) : (
@@ -885,11 +994,13 @@ function HomeVisitationsPage() {
                   <div className="flex items-center gap-4 text-sm font-body text-muted-foreground">
                     <span className="flex items-center gap-1.5">
                       <Home className="h-4 w-4" />
-                      {residentVisits.length} visit{residentVisits.length !== 1 ? "s" : ""}
+                      {residentVisits.length} visit
+                      {residentVisits.length !== 1 ? "s" : ""}
                     </span>
                     <span className="flex items-center gap-1.5">
                       <Users className="h-4 w-4" />
-                      {residentConferences.length} conference{residentConferences.length !== 1 ? "s" : ""}
+                      {residentConferences.length} conference
+                      {residentConferences.length !== 1 ? "s" : ""}
                     </span>
                     {upcomingConferences.length > 0 && (
                       <span className="flex items-center gap-1.5 text-yellow-700 font-semibold">
@@ -927,9 +1038,13 @@ function HomeVisitationsPage() {
                       className="font-body gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-5 h-10 rounded-xl shadow-sm"
                     >
                       {showVisitForm ? (
-                        <><ChevronUp className="h-4 w-4" /> Hide Form</>
+                        <>
+                          <ChevronUp className="h-4 w-4" /> Hide Form
+                        </>
                       ) : (
-                        <><Plus className="h-4 w-4" /> Log Visit</>
+                        <>
+                          <Plus className="h-4 w-4" /> Log Visit
+                        </>
                       )}
                     </Button>
                   </div>
@@ -947,9 +1062,13 @@ function HomeVisitationsPage() {
                       className="font-body gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-5 h-10 rounded-xl shadow-sm"
                     >
                       {showConferenceForm ? (
-                        <><ChevronUp className="h-4 w-4" /> Hide Form</>
+                        <>
+                          <ChevronUp className="h-4 w-4" /> Hide Form
+                        </>
                       ) : (
-                        <><Plus className="h-4 w-4" /> Log Conference</>
+                        <>
+                          <Plus className="h-4 w-4" /> Log Conference
+                        </>
                       )}
                     </Button>
                   </div>
