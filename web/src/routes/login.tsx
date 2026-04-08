@@ -92,7 +92,7 @@ function Login() {
               are survivors of abuse and trafficking in the Philippines.
             </p>
             <Link
-              to="/impact"
+              to="/"
               className="mt-4 inline-block rounded-lg bg-white/15 backdrop-blur-sm border border-white/30 px-4 py-2 font-body text-sm font-medium text-white hover:bg-white/25 transition-colors"
             >
               Learn about how we make a difference →
