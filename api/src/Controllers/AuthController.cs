@@ -81,10 +81,20 @@ public class AuthController : ControllerBase
             return ToValidationProblem(enableMfaResult);
         }
 
-        await SendSignupCodeAsync(user, cancellationToken);
+        try
+        {
+            await SendSignupCodeAsync(user, cancellationToken);
+        }
+        catch (Exception)
+        {
+            await _userManager.DeleteAsync(user);
+            return StatusCode(StatusCodes.Status503ServiceUnavailable,
+                new { error = "Unable to send the verification email. Please try again later." });
+        }
+
         _pendingSignupChallengeStore.Write(Response, user.Id, email, _environment.IsDevelopment());
 
-        return CreatedAtAction(nameof(Register), new AuthChallengeResponse
+        return StatusCode(StatusCodes.Status201Created, new AuthChallengeResponse
         {
             RequiresCode = true,
             Flow = "signup",
@@ -117,6 +127,11 @@ public class AuthController : ControllerBase
             request.Password,
             isPersistent: false,
             lockoutOnFailure: true);
+
+        if (signInResult.IsNotAllowed)
+        {
+            return Unauthorized(new { error = "Please verify your email before signing in." });
+        }
 
         if (!signInResult.Succeeded)
         {
