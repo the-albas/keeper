@@ -9,6 +9,7 @@
   - Shadcn components
 - SQLServer in Docker (dev) / AzureSQL (prod)
 - FastAPI machine learning pipeline
+- check ml-pipelines/requirements.txt for packages used in the pipeline
 
 ## Important notes
 

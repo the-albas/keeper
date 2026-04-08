@@ -14,7 +14,6 @@ public class MlController : ControllerBase
         "growth",
         "social",
         "girls-progress",
-        "girls-struggling",
         "girls-trajectory",
     };
 
