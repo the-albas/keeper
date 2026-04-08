@@ -2,7 +2,7 @@ from pydantic import BaseModel, Field
 
 
 class RetentionFeatures(BaseModel):
-    recency_days: float | None = Field(None, description="Days since last gift; null uses fallback")
+    # recency_days removed: is_retained := (recency_days <= 365), so it is the target in disguise.
     frequency: float = Field(0, ge=0)
     avg_monetary_value: float | None = None
     social_referral_count: float = Field(0, ge=0)

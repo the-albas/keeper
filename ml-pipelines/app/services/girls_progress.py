@@ -12,7 +12,6 @@ from app.config import girls_progress_pipeline_path
 
 # Must match GIRLS_* in girls_progressing.ipynb — never include mean_progress as input.
 GIRLS_NUMERIC_FEATURES = [
-    "safehouse_id",
     "present_age_years",
     "length_stay_years",
     "age_upon_admission_years",
@@ -43,11 +42,10 @@ GIRLS_NUMERIC_FEATURES = [
     "hw_rate_medical_checkup_done",
     "hw_rate_dental_checkup_done",
     "hw_rate_psychological_checkup_done",
-    "n_education_records",
     "n_intervention_plans",
     "n_home_visitations",
     "edu_earliest_progress",
-    "edu_mean_attendance_rate",
+    "edu_earliest_attendance_rate",
 ]
 GIRLS_CATEGORICAL_FEATURES = [
     "case_status",
@@ -62,7 +60,7 @@ GIRLS_CATEGORICAL_FEATURES = [
     "current_risk_level",
     "pwd_type",
     "special_needs_diagnosis",
-    "edu_latest_education_level",
+    "edu_earliest_education_level",
     "region",
     "province",
     "status",
