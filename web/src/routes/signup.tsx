@@ -56,7 +56,7 @@ function Signup() {
         return;
       }
 
-      await navigate({ to: "/donor" });
+      await navigate({ to: "/dashboard" });
     },
   });
   const verifyMutation = useMutation({
@@ -67,7 +67,7 @@ function Signup() {
         username: user.username,
       });
       await queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
-      await navigate({ to: "/donor" });
+      await navigate({ to: "/dashboard" });
     },
   });
   const resendMutation = useMutation({

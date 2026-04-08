@@ -13,7 +13,7 @@ import { Route as WorkRouteImport } from './routes/work'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
 import { Route as LoginRouteImport } from './routes/login'
-import { Route as DonorRouteImport } from './routes/donor'
+import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AboutRouteImport } from './routes/about'
@@ -39,9 +39,9 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DonorRoute = DonorRouteImport.update({
-  id: '/donor',
-  path: '/donor',
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ContactRoute = ContactRouteImport.update({
@@ -70,7 +70,7 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
   '/contact': typeof ContactRoute
-  '/donor': typeof DonorRoute
+  '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/signup': typeof SignupRoute
@@ -81,7 +81,7 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
   '/contact': typeof ContactRoute
-  '/donor': typeof DonorRoute
+  '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/signup': typeof SignupRoute
@@ -93,7 +93,7 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
   '/contact': typeof ContactRoute
-  '/donor': typeof DonorRoute
+  '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/signup': typeof SignupRoute
@@ -106,7 +106,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/admin'
     | '/contact'
-    | '/donor'
+    | '/dashboard'
     | '/login'
     | '/privacy-policy'
     | '/signup'
@@ -117,7 +117,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/admin'
     | '/contact'
-    | '/donor'
+    | '/dashboard'
     | '/login'
     | '/privacy-policy'
     | '/signup'
@@ -128,7 +128,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/admin'
     | '/contact'
-    | '/donor'
+    | '/dashboard'
     | '/login'
     | '/privacy-policy'
     | '/signup'
@@ -140,7 +140,7 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   AdminRoute: typeof AdminRoute
   ContactRoute: typeof ContactRoute
-  DonorRoute: typeof DonorRoute
+  DashboardRoute: typeof DashboardRoute
   LoginRoute: typeof LoginRoute
   PrivacyPolicyRoute: typeof PrivacyPolicyRoute
   SignupRoute: typeof SignupRoute
@@ -177,11 +177,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/donor': {
-      id: '/donor'
-      path: '/donor'
-      fullPath: '/donor'
-      preLoaderRoute: typeof DonorRouteImport
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/contact': {
@@ -220,7 +220,7 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   AdminRoute: AdminRoute,
   ContactRoute: ContactRoute,
-  DonorRoute: DonorRoute,
+  DashboardRoute: DashboardRoute,
   LoginRoute: LoginRoute,
   PrivacyPolicyRoute: PrivacyPolicyRoute,
   SignupRoute: SignupRoute,
