@@ -25,12 +25,8 @@ function Landing() {
       <HeroSection />
       <ImpactStats stats={landingImpactStats} />
       <AboutSection />
+      <MoneyFlow />
       <DonateSection />
-      <main className="flex-1">
-        <HeroSection />
-        <DonateSection />
-        <MoneyFlow />
-      </main>
       <LandingFooter />
     </div>
   );

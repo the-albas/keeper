@@ -20,7 +20,7 @@ function WorkPage() {
             Your generous contributions directly fund life-changing interventions, safe shelter, and long-term recovery for survivors across the Philippines. Here is a look at what we've accomplished together.
           </p>
         </div>
-        <ImpactStats />
+        <ImpactStats useDynamicData />
       </main>
       <LandingFooter />
     </div>

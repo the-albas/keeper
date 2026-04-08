@@ -53,15 +53,23 @@ function ImpactStatCard({
   );
 }
 
-export default function ImpactStats({ stats = defaultStats }: { stats?: ImpactStatsData }) {
+export default function ImpactStats({
+  stats = defaultStats,
+  useDynamicData = false,
+}: {
+  stats?: ImpactStatsData;
+  useDynamicData?: boolean;
+}) {
   const girlsServedMetric = useGirlsServedMetric();
   const safehousesMetric = useSafehousesMetric();
   const reintegrationMetric = useReintegrationRateMetric();
 
   const resolvedStats: ImpactStatsData = {
-    girlsServed: girlsServedMetric.data?.displayValue ?? stats.girlsServed,
-    safehouses: safehousesMetric.data?.displayValue ?? stats.safehouses,
-    reintegration: reintegrationMetric.data?.displayValue ?? stats.reintegration,
+    girlsServed: useDynamicData ? girlsServedMetric.data?.displayValue ?? stats.girlsServed : stats.girlsServed,
+    safehouses: useDynamicData ? safehousesMetric.data?.displayValue ?? stats.safehouses : stats.safehouses,
+    reintegration: useDynamicData
+      ? reintegrationMetric.data?.displayValue ?? stats.reintegration
+      : stats.reintegration,
   };
 
   return (
