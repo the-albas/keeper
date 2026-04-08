@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { getApiBaseUrl } from "@/lib/api";
+import { getApiBaseUrl, type AuthMeResponse } from "@/lib/api";
 import DonorNav from "@/components/donor/DonorNav";
 import DonorMetrics from "@/components/donor/DonorMetrics";
 import AllocationChart from "@/components/donor/AllocationChart";
@@ -18,6 +18,41 @@ export const Route = createFileRoute("/dashboard")({
   component: DonorDashboard,
 });
 
+type DonorDonationApi = {
+  id: string;
+  amount: number;
+  createdDate: string;
+  type?: string | null;
+  campaign?: string | null;
+  allocation?: string | null;
+};
+
+function mapDonorDonationApi(row: DonorDonationApi): Donation {
+  return {
+    id: row.id,
+    amount: Number(row.amount),
+    created_date: row.createdDate,
+    type: row.type ?? undefined,
+    campaign: row.campaign ?? undefined,
+    allocation: row.allocation ?? undefined,
+  };
+}
+
+async function fetchMyDonations(): Promise<Donation[]> {
+  const apiBaseUrl = getApiBaseUrl();
+  if (!apiBaseUrl) return [];
+  const res = await fetch(`${apiBaseUrl}/api/donor/donations`, {
+    credentials: "include",
+  });
+  if (res.status === 401) return [];
+  if (!res.ok) {
+    throw new Error(`Could not load donations (${res.status}).`);
+  }
+  const data = (await res.json()) as DonorDonationApi[];
+  if (!Array.isArray(data)) return [];
+  return data.map(mapDonorDonationApi);
+}
+
 async function fetchCurrentUser() {
   const apiBaseUrl = getApiBaseUrl();
   if (!apiBaseUrl) return null;
@@ -25,8 +60,13 @@ async function fetchCurrentUser() {
     credentials: "include",
   });
   if (!res.ok) return null;
-  const data = (await res.json()) as { email: string };
-  return { email: data.email, full_name: data.email.split("@")[0] };
+  const data = (await res.json()) as AuthMeResponse;
+  return {
+    email: data.email,
+    full_name: data.email.split("@")[0],
+    supporterId: data.supporterId,
+    roles: data.roles,
+  };
 }
 
 async function deleteAccount() {
@@ -53,7 +93,7 @@ function DonorDashboard() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const { data: user } = useQuery({
+  const { data: user, isLoading: userLoading } = useQuery({
     queryKey: ["auth", "me"],
     queryFn: fetchCurrentUser,
     retry: false,
@@ -70,24 +110,31 @@ function DonorDashboard() {
     },
   });
 
-  const { data: donations = [], isLoading } = useQuery<Donation[]>({
-    queryKey: ["donor", "donations"],
-    queryFn: async () => {
-      // TODO: Call your C# API endpoint filtered by donor
-      // const res = await fetch(`${API_BASE}/donations?donor_email=${user?.email}`);
-      // return res.json();
-      return [];
-    },
+  const { data: donations = [], isLoading: donationsLoading } = useQuery<Donation[]>({
+    queryKey: ["donor", "donations", user?.supporterId ?? "none"],
+    queryFn: fetchMyDonations,
+    enabled: user != null,
+    staleTime: 30_000,
   });
 
-  const metrics: DonorMetricsData = {
-    totalDonated: donations.reduce((sum, d) => sum + (d.amount || 0), 0),
-    girlsSupported: Math.floor(
-      donations.reduce((sum, d) => sum + (d.amount || 0), 0) / 150
+  const totalDonated = donations.reduce((sum, d) => sum + (d.amount || 0), 0);
+  const campaignNames = [
+    ...new Set(
+      donations
+        .map((d) => d.campaign?.trim())
+        .filter((c): c is string => Boolean(c && c.length > 0)),
     ),
+  ].sort((a, b) => a.localeCompare(b));
+
+  const metrics: DonorMetricsData = {
+    totalDonated,
+    girlsSupported: Math.floor(totalDonated / 150),
+    campaignNames,
   };
 
-  if (isLoading) {
+  const pageLoading = userLoading || (user != null && donationsLoading);
+
+  if (pageLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />

@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 type AuthUserResponse = {
   email: string;
   roles: string[];
+  supporterId: number | null;
 };
 
 const apiBaseUrl = (() => {
@@ -37,9 +38,7 @@ function SignupVerify() {
     mutationFn: ({ code, email }: { code: string; email: string }) =>
       verifySignupCode(code, email),
     onSuccess: async (user) => {
-      queryClient.setQueryData(["auth", "me"], {
-        email: user.email,
-      });
+      queryClient.setQueryData(["auth", "me"], user);
       await queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
       await navigate({ to: "/dashboard" });
     },

@@ -18,6 +18,7 @@ type AuthChallengeResponse = {
 type AuthUserResponse = {
   email: string;
   roles: string[];
+  supporterId: number | null;
 };
 
 const apiBaseUrl = (() => {
@@ -56,9 +57,7 @@ function Login() {
     mutationFn: (code: string) =>
       verifyLoginCode(code, (challenge?.email ?? email).trim()),
     onSuccess: async (user) => {
-      queryClient.setQueryData(["auth", "me"], {
-        email: user.email,
-      });
+      queryClient.setQueryData(["auth", "me"], user);
       await queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
       await navigate({ to: "/dashboard" });
     },

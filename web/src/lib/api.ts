@@ -4,6 +4,13 @@ export function getApiBaseUrl(): string | undefined {
     .replace(/\/$/, "");
 }
 
+/** Body of GET /api/auth/me (camelCase JSON). */
+export type AuthMeResponse = {
+  email: string;
+  roles: string[];
+  supporterId: number | null;
+};
+
 export async function apiGetJson<T>(
   path: string,
   init?: RequestInit,

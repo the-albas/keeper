@@ -10,6 +10,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
 {
     public DbSet<Safehouse> Safehouses => Set<Safehouse>();
     public DbSet<Supporter> Supporters => Set<Supporter>();
+    public DbSet<Donation> Donations => Set<Donation>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -37,6 +38,27 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
             entity.Property(e => e.CreatedAt).HasColumnName("created_at");
             entity.Property(e => e.FirstDonationDate).HasColumnName("first_donation_date");
             entity.Property(e => e.AcquisitionChannel).HasColumnName("acquisition_channel").HasMaxLength(100);
+        });
+
+        modelBuilder.Entity<Donation>(entity =>
+        {
+            entity.ToTable("donations");
+
+            entity.HasKey(e => e.DonationId);
+
+            entity.Property(e => e.DonationId).HasColumnName("donation_id");
+            entity.Property(e => e.SupporterId).HasColumnName("supporter_id");
+            entity.Property(e => e.DonationType).HasColumnName("donation_type").HasMaxLength(100);
+            entity.Property(e => e.DonationDate).HasColumnName("donation_date");
+            entity.Property(e => e.IsRecurring).HasColumnName("is_recurring");
+            entity.Property(e => e.CampaignName).HasColumnName("campaign_name").HasMaxLength(200);
+            entity.Property(e => e.ChannelSource).HasColumnName("channel_source").HasMaxLength(100);
+            entity.Property(e => e.CurrencyCode).HasColumnName("currency_code").HasMaxLength(10);
+            entity.Property(e => e.Amount).HasColumnName("amount").HasPrecision(18, 2);
+            entity.Property(e => e.EstimatedValue).HasColumnName("estimated_value").HasPrecision(18, 2);
+            entity.Property(e => e.ImpactUnit).HasColumnName("impact_unit").HasMaxLength(50);
+            entity.Property(e => e.Notes).HasColumnName("notes").HasMaxLength(2000);
+            entity.Property(e => e.ReferralPostId).HasColumnName("referral_post_id");
         });
 
         modelBuilder.Entity<Safehouse>(entity =>

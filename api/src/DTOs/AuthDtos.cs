@@ -57,4 +57,7 @@ public class AuthUserResponse
 {
     public string Email { get; set; } = string.Empty;
     public string[] Roles { get; set; } = [];
+
+    /// <summary>Primary key in <c>supporters</c> when this account is linked to a donor row (matched by email).</summary>
+    public int? SupporterId { get; set; }
 }

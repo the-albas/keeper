@@ -4,16 +4,16 @@ import { Button } from "@/components/ui/button";
 import { Heart } from "lucide-react";
 
 import logoImg from "@/assets/logo.png";
-import { getApiBaseUrl } from "../../lib/api";
+import { getApiBaseUrl, type AuthMeResponse } from "../../lib/api";
 
-async function fetchCurrentUser() {
+async function fetchCurrentUser(): Promise<AuthMeResponse | null> {
   const apiBaseUrl = getApiBaseUrl();
   if (!apiBaseUrl) return null;
   const res = await fetch(`${apiBaseUrl}/api/auth/me`, {
     credentials: "include",
   });
   if (!res.ok) return null;
-  return res.json() as Promise<{ email: string }>;
+  return res.json() as Promise<AuthMeResponse>;
 }
 
 async function logout() {

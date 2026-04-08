@@ -59,7 +59,7 @@ export default function DonationHistory({ donations }: { donations: Donation[] }
                       typeColors[d.type ?? ""] || "bg-muted text-muted-foreground border-border"
                     }`}
                   >
-                    {d.type}
+                    {d.type ?? "—"}
                   </span>
                 </TableCell>
                 <TableCell className="font-body text-sm text-foreground">{d.campaign || "—"}</TableCell>

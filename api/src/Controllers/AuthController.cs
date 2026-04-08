@@ -301,12 +301,24 @@ public class AuthController : ControllerBase
     /// <summary>Permanently deletes the signed-in user account (e.g. donor self-service).</summary>
     [Authorize]
     [HttpDelete("account")]
-    public async Task<IActionResult> DeleteAccount()
+    public async Task<IActionResult> DeleteAccount(CancellationToken cancellationToken)
     {
         var user = await _userManager.GetUserAsync(User);
         if (user is null)
         {
             return Unauthorized();
+        }
+
+        var email = user.Email?.Trim();
+        if (!string.IsNullOrEmpty(email))
+        {
+            var supporter = await _db.Supporters
+                .FirstOrDefaultAsync(s => s.Email == email, cancellationToken);
+            if (supporter is not null)
+            {
+                supporter.Email = null;
+                await _db.SaveChangesAsync(cancellationToken);
+            }
         }
 
         await _signInManager.SignOutAsync();
@@ -329,10 +341,20 @@ public class AuthController : ControllerBase
     private async Task<AuthUserResponse> BuildResponseAsync(ApplicationUser user)
     {
         var roles = await _userManager.GetRolesAsync(user);
+        int? supporterId = null;
+        if (!string.IsNullOrWhiteSpace(user.Email))
+        {
+            supporterId = await _db.Supporters.AsNoTracking()
+                .Where(s => s.Email == user.Email)
+                .Select(s => (int?)s.SupporterId)
+                .FirstOrDefaultAsync();
+        }
+
         return new AuthUserResponse
         {
             Email = user.Email ?? string.Empty,
-            Roles = roles.ToArray()
+            Roles = roles.ToArray(),
+            SupporterId = supporterId
         };
     }
 
