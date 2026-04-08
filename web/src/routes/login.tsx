@@ -17,7 +17,6 @@ type AuthChallengeResponse = {
 
 type AuthUserResponse = {
   email: string;
-  username: string;
   roles: string[];
 };
 
@@ -26,6 +25,8 @@ const apiBaseUrl = (() => {
   if (!url) throw new Error("VITE_API_BASE_URL is not set.");
   return url;
 })();
+
+const unverifiedAccountError = "Please verify your email before signing in.";
 
 export const Route = createFileRoute("/login")({
   component: Login,
@@ -37,7 +38,7 @@ function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [challenge, setChallenge] = useState<AuthChallengeResponse | null>(
-    null
+    null,
   );
   const loginMutation = useMutation({
     mutationFn: ({ email, password }: { email: string; password: string }) =>
@@ -52,18 +53,18 @@ function Login() {
     },
   });
   const verifyMutation = useMutation({
-    mutationFn: (code: string) => verifyLoginCode(code),
+    mutationFn: (code: string) =>
+      verifyLoginCode(code, (challenge?.email ?? email).trim()),
     onSuccess: async (user) => {
       queryClient.setQueryData(["auth", "me"], {
         email: user.email,
-        username: user.username,
       });
       await queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
       await navigate({ to: "/dashboard" });
     },
   });
   const resendMutation = useMutation({
-    mutationFn: () => resendLoginCode(),
+    mutationFn: () => resendLoginCode((challenge?.email ?? email).trim()),
   });
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -76,6 +77,9 @@ function Login() {
     verifyMutation.reset();
     resendMutation.reset();
   }
+
+  const showVerifyLink =
+    loginMutation.error?.message === unverifiedAccountError;
 
   return (
     <div className="fixed inset-0 font-body">
@@ -115,11 +119,11 @@ function Login() {
             <Link to="/" className="mb-6 flex items-center gap-2.5">
               <img
                 src={logoImg}
-                alt="Haven Shield"
+                alt="Keeper"
                 className="h-8 w-8 rounded-lg object-cover"
               />
               <span className="font-heading text-lg font-semibold text-foreground">
-                Haven Shield
+                Keeper
               </span>
             </Link>
 
@@ -179,9 +183,23 @@ function Login() {
                   />
                 </div>
                 {loginMutation.error ? (
-                  <p className="font-body text-sm text-destructive">
-                    {loginMutation.error.message}
-                  </p>
+                  <div className="space-y-2">
+                    <p className="font-body text-sm text-destructive">
+                      {loginMutation.error.message}
+                    </p>
+                    {showVerifyLink ? (
+                      <p className="font-body text-sm text-muted-foreground">
+                        <Link
+                          to="/signup/verify"
+                          search={{ email: email.trim() }}
+                          className="text-primary underline underline-offset-4"
+                        >
+                          Verify your email
+                        </Link>
+                        .
+                      </p>
+                    ) : null}
+                  </div>
                 ) : null}
                 <Button
                   type="submit"
@@ -231,14 +249,17 @@ async function submitLogin(input: {
   return response.json() as Promise<AuthChallengeResponse>;
 }
 
-async function verifyLoginCode(code: string): Promise<AuthUserResponse> {
+async function verifyLoginCode(
+  code: string,
+  emailForChallenge: string,
+): Promise<AuthUserResponse> {
   const response = await fetch(`${apiBaseUrl}/api/auth/login/verify`, {
     method: "POST",
     credentials: "include",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ code }),
+    body: JSON.stringify({ code, email: emailForChallenge }),
   });
 
   if (!response.ok) {
@@ -248,10 +269,14 @@ async function verifyLoginCode(code: string): Promise<AuthUserResponse> {
   return response.json() as Promise<AuthUserResponse>;
 }
 
-async function resendLoginCode(): Promise<void> {
+async function resendLoginCode(emailForChallenge: string): Promise<void> {
   const response = await fetch(`${apiBaseUrl}/api/auth/login/resend`, {
     method: "POST",
     credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ email: emailForChallenge }),
   });
 
   if (!response.ok) {
@@ -261,7 +286,7 @@ async function resendLoginCode(): Promise<void> {
 
 async function readError(
   response: Response,
-  fallbackMessage: string
+  fallbackMessage: string,
 ): Promise<string> {
   const body = (await response.json().catch(() => null)) as {
     error?: string;

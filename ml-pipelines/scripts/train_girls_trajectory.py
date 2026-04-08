@@ -30,7 +30,8 @@ from sklearn.preprocessing import OneHotEncoder, StandardScaler
 TRAJ_NUMERIC_FEATURES = [
     "current_progress",
     "days_since_admission",
-    "days_to_next_record",
+    # days_to_next_record removed: the gap to the NEXT record is future information — it is
+    # only computable in hindsight and is not available at prediction time.
     "present_age_years",
     "age_upon_admission_years",
     "has_special_needs",
@@ -110,7 +111,6 @@ def _build_frame(data_root: Path) -> tuple[pd.DataFrame, np.ndarray]:
                 "current_progress": grp.loc[i, "progress_percent"],
                 "edu_education_level": grp.loc[i, "education_level"],
                 TARGET: grp.loc[i + 1, "progress_percent"],
-                "days_to_next_record": (grp.loc[i + 1, "record_date"] - grp.loc[i, "record_date"]).days,
             })
     frame = pd.DataFrame(pair_rows)
 

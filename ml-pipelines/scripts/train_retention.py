@@ -27,7 +27,8 @@ from sklearn.svm import SVC
 
 # ── Feature / target constants (must match app/services/retention.py) ─────────
 NUMERIC_FEATURES = [
-    "recency_days",
+    # recency_days removed: is_retained = (recency_days <= 365) by definition,
+    # so including it is perfect target leakage and explains the near-perfect CV scores.
     "frequency",
     "avg_monetary_value",
     "social_referral_count",
@@ -40,8 +41,6 @@ FEATURE_COLUMNS = NUMERIC_FEATURES + CATEGORICAL_FEATURES
 
 def _clean(df: pd.DataFrame) -> pd.DataFrame:
     out = df.copy()
-    max_recency = out["recency_days"].max(skipna=True)
-    out.loc[out["recency_days"].isna(), "recency_days"] = float(max_recency or 0.0)
     zero_gift = out["frequency"].fillna(0) == 0
     out.loc[out["avg_monetary_value"].isna() & zero_gift, "avg_monetary_value"] = 0.0
     med_avg = out["avg_monetary_value"].median(skipna=True)

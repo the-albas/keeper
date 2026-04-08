@@ -13,7 +13,7 @@ async function fetchCurrentUser() {
     credentials: "include",
   });
   if (!res.ok) return null;
-  return res.json() as Promise<{ email: string; username: string }>;
+  return res.json() as Promise<{ email: string }>;
 }
 
 async function logout() {

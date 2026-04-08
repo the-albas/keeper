@@ -8,7 +8,7 @@ class GirlsTrajectoryFeatures(BaseModel):
 
     current_progress: float | None = None
     days_since_admission: float | None = None
-    days_to_next_record: float | None = None
+    # days_to_next_record removed: future information not available at prediction time
     present_age_years: float | None = None
     age_upon_admission_years: float | None = None
     has_special_needs: int | None = Field(None, ge=0, le=1)

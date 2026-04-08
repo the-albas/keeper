@@ -7,12 +7,12 @@ from pathlib import Path
 import joblib
 import pandas as pd
 
-from app.config import max_recency_fallback, retention_pipeline_path
+from app.config import retention_pipeline_path
 
 NUMERIC_FEATURES = [
-    "recency_days",
+    # recency_days removed: is_retained = (recency_days <= 365) by definition — perfect leakage.
     "frequency",
-    "avg_monetary_value",       # total_monetary_value dropped (≈ freq × avg, redundant)
+    "avg_monetary_value",
     "social_referral_count",
     "is_recurring_donor",
 ]
@@ -30,18 +30,10 @@ def load_retention_pipeline(path: Path | None = None):
     return joblib.load(p)
 
 
-def clean_engineered_row(row: dict, *, recency_fallback: float | None = None) -> pd.DataFrame:
-    """
-    Mirror notebook cleaning for one engineered supporter row.
-    NaN recency uses recency_fallback (default from config / env).
-    """
-    fallback = recency_fallback if recency_fallback is not None else max_recency_fallback()
-
+def clean_engineered_row(row: dict) -> pd.DataFrame:
+    """Mirror notebook cleaning for one engineered supporter row."""
     df = pd.DataFrame([dict(row)])
     out = df.copy()
-
-    if out["recency_days"].isna().any():
-        out.loc[out["recency_days"].isna(), "recency_days"] = float(fallback)
 
     out["frequency"] = out["frequency"].fillna(0.0)
     zero_gift = out["frequency"] == 0
@@ -67,3 +59,4 @@ def predict_retention(pipeline, row: dict) -> tuple[int, list[float]]:
     pred = int(pipeline.predict(X)[0])
     proba = pipeline.predict_proba(X)[0].tolist()
     return pred, proba
+

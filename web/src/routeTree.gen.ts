@@ -11,13 +11,20 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WorkRouteImport } from './routes/work'
 import { Route as SignupRouteImport } from './routes/signup'
+import { Route as ReportsRouteImport } from './routes/reports'
+import { Route as ProcessRecordingsRouteImport } from './routes/process-recordings'
 import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as HomeVisitationsRouteImport } from './routes/home-visitations'
+import { Route as DonorsContributionsRouteImport } from './routes/donors-contributions'
+import { Route as DonateThankYouRouteImport } from './routes/donate-thank-you'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ContactRouteImport } from './routes/contact'
+import { Route as CaseloadRouteImport } from './routes/caseload'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SignupVerifyRouteImport } from './routes/signup.verify'
 
 const WorkRoute = WorkRouteImport.update({
   id: '/work',
@@ -27,6 +34,16 @@ const WorkRoute = WorkRouteImport.update({
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReportsRoute = ReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProcessRecordingsRoute = ProcessRecordingsRouteImport.update({
+  id: '/process-recordings',
+  path: '/process-recordings',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrivacyPolicyRoute = PrivacyPolicyRouteImport.update({
@@ -39,6 +56,21 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const HomeVisitationsRoute = HomeVisitationsRouteImport.update({
+  id: '/home-visitations',
+  path: '/home-visitations',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DonorsContributionsRoute = DonorsContributionsRouteImport.update({
+  id: '/donors-contributions',
+  path: '/donors-contributions',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DonateThankYouRoute = DonateThankYouRouteImport.update({
+  id: '/donate-thank-you',
+  path: '/donate-thank-you',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -47,6 +79,11 @@ const DashboardRoute = DashboardRouteImport.update({
 const ContactRoute = ContactRouteImport.update({
   id: '/contact',
   path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CaseloadRoute = CaseloadRouteImport.update({
+  id: '/caseload',
+  path: '/caseload',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminRoute = AdminRouteImport.update({
@@ -64,40 +101,66 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SignupVerifyRoute = SignupVerifyRouteImport.update({
+  id: '/verify',
+  path: '/verify',
+  getParentRoute: () => SignupRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
+  '/caseload': typeof CaseloadRoute
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
+  '/donate-thank-you': typeof DonateThankYouRoute
+  '/donors-contributions': typeof DonorsContributionsRoute
+  '/home-visitations': typeof HomeVisitationsRoute
   '/login': typeof LoginRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
-  '/signup': typeof SignupRoute
+  '/process-recordings': typeof ProcessRecordingsRoute
+  '/reports': typeof ReportsRoute
+  '/signup': typeof SignupRouteWithChildren
   '/work': typeof WorkRoute
+  '/signup/verify': typeof SignupVerifyRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
+  '/caseload': typeof CaseloadRoute
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
+  '/donate-thank-you': typeof DonateThankYouRoute
+  '/donors-contributions': typeof DonorsContributionsRoute
+  '/home-visitations': typeof HomeVisitationsRoute
   '/login': typeof LoginRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
-  '/signup': typeof SignupRoute
+  '/process-recordings': typeof ProcessRecordingsRoute
+  '/reports': typeof ReportsRoute
+  '/signup': typeof SignupRouteWithChildren
   '/work': typeof WorkRoute
+  '/signup/verify': typeof SignupVerifyRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
+  '/caseload': typeof CaseloadRoute
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
+  '/donate-thank-you': typeof DonateThankYouRoute
+  '/donors-contributions': typeof DonorsContributionsRoute
+  '/home-visitations': typeof HomeVisitationsRoute
   '/login': typeof LoginRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
-  '/signup': typeof SignupRoute
+  '/process-recordings': typeof ProcessRecordingsRoute
+  '/reports': typeof ReportsRoute
+  '/signup': typeof SignupRouteWithChildren
   '/work': typeof WorkRoute
+  '/signup/verify': typeof SignupVerifyRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -105,45 +168,72 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/admin'
+    | '/caseload'
     | '/contact'
     | '/dashboard'
+    | '/donate-thank-you'
+    | '/donors-contributions'
+    | '/home-visitations'
     | '/login'
     | '/privacy-policy'
+    | '/process-recordings'
+    | '/reports'
     | '/signup'
     | '/work'
+    | '/signup/verify'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/about'
     | '/admin'
+    | '/caseload'
     | '/contact'
     | '/dashboard'
+    | '/donate-thank-you'
+    | '/donors-contributions'
+    | '/home-visitations'
     | '/login'
     | '/privacy-policy'
+    | '/process-recordings'
+    | '/reports'
     | '/signup'
     | '/work'
+    | '/signup/verify'
   id:
     | '__root__'
     | '/'
     | '/about'
     | '/admin'
+    | '/caseload'
     | '/contact'
     | '/dashboard'
+    | '/donate-thank-you'
+    | '/donors-contributions'
+    | '/home-visitations'
     | '/login'
     | '/privacy-policy'
+    | '/process-recordings'
+    | '/reports'
     | '/signup'
     | '/work'
+    | '/signup/verify'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
   AdminRoute: typeof AdminRoute
+  CaseloadRoute: typeof CaseloadRoute
   ContactRoute: typeof ContactRoute
   DashboardRoute: typeof DashboardRoute
+  DonateThankYouRoute: typeof DonateThankYouRoute
+  DonorsContributionsRoute: typeof DonorsContributionsRoute
+  HomeVisitationsRoute: typeof HomeVisitationsRoute
   LoginRoute: typeof LoginRoute
   PrivacyPolicyRoute: typeof PrivacyPolicyRoute
-  SignupRoute: typeof SignupRoute
+  ProcessRecordingsRoute: typeof ProcessRecordingsRoute
+  ReportsRoute: typeof ReportsRoute
+  SignupRoute: typeof SignupRouteWithChildren
   WorkRoute: typeof WorkRoute
 }
 
@@ -163,6 +253,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SignupRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/reports': {
+      id: '/reports'
+      path: '/reports'
+      fullPath: '/reports'
+      preLoaderRoute: typeof ReportsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/process-recordings': {
+      id: '/process-recordings'
+      path: '/process-recordings'
+      fullPath: '/process-recordings'
+      preLoaderRoute: typeof ProcessRecordingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/privacy-policy': {
       id: '/privacy-policy'
       path: '/privacy-policy'
@@ -177,6 +281,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/home-visitations': {
+      id: '/home-visitations'
+      path: '/home-visitations'
+      fullPath: '/home-visitations'
+      preLoaderRoute: typeof HomeVisitationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/donors-contributions': {
+      id: '/donors-contributions'
+      path: '/donors-contributions'
+      fullPath: '/donors-contributions'
+      preLoaderRoute: typeof DonorsContributionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/donate-thank-you': {
+      id: '/donate-thank-you'
+      path: '/donate-thank-you'
+      fullPath: '/donate-thank-you'
+      preLoaderRoute: typeof DonateThankYouRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dashboard': {
       id: '/dashboard'
       path: '/dashboard'
@@ -189,6 +314,13 @@ declare module '@tanstack/react-router' {
       path: '/contact'
       fullPath: '/contact'
       preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/caseload': {
+      id: '/caseload'
+      path: '/caseload'
+      fullPath: '/caseload'
+      preLoaderRoute: typeof CaseloadRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin': {
@@ -212,18 +344,42 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/signup/verify': {
+      id: '/signup/verify'
+      path: '/verify'
+      fullPath: '/signup/verify'
+      preLoaderRoute: typeof SignupVerifyRouteImport
+      parentRoute: typeof SignupRoute
+    }
   }
 }
+
+interface SignupRouteChildren {
+  SignupVerifyRoute: typeof SignupVerifyRoute
+}
+
+const SignupRouteChildren: SignupRouteChildren = {
+  SignupVerifyRoute: SignupVerifyRoute,
+}
+
+const SignupRouteWithChildren =
+  SignupRoute._addFileChildren(SignupRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   AdminRoute: AdminRoute,
+  CaseloadRoute: CaseloadRoute,
   ContactRoute: ContactRoute,
   DashboardRoute: DashboardRoute,
+  DonateThankYouRoute: DonateThankYouRoute,
+  DonorsContributionsRoute: DonorsContributionsRoute,
+  HomeVisitationsRoute: HomeVisitationsRoute,
   LoginRoute: LoginRoute,
   PrivacyPolicyRoute: PrivacyPolicyRoute,
-  SignupRoute: SignupRoute,
+  ProcessRecordingsRoute: ProcessRecordingsRoute,
+  ReportsRoute: ReportsRoute,
+  SignupRoute: SignupRouteWithChildren,
   WorkRoute: WorkRoute,
 }
 export const routeTree = rootRouteImport

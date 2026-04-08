@@ -16,7 +16,7 @@ from app.config import girls_education_trajectory_pipeline_path
 TRAJ_NUMERIC_FEATURES = [
     "current_progress",
     "days_since_admission",
-    "days_to_next_record",
+    # days_to_next_record removed: future information not available at prediction time.
     "present_age_years",
     "age_upon_admission_years",
     "has_special_needs",

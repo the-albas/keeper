@@ -50,6 +50,7 @@ builder.Services.Configure<ResendClientOptions>(options =>
 builder.Services.AddTransient<IResend, ResendClient>();
 builder.Services.AddDataProtection();
 builder.Services.AddScoped<PendingSignupChallengeStore>();
+builder.Services.AddScoped<PendingLoginChallengeStore>();
 
 if (builder.Environment.IsDevelopment())
 {

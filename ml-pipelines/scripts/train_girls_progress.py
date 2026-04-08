@@ -31,7 +31,8 @@ from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 # ── Feature / target constants (must match app/services/girls_progress.py) ───
 GIRLS_NUMERIC_FEATURES = [
-    "safehouse_id",
+    # safehouse_id dropped: opaque integer ID, not a continuous number; region/province/status
+    # from the safehouse join already carry the location signal.
     "present_age_years",
     "length_stay_years",
     "age_upon_admission_years",
@@ -62,11 +63,15 @@ GIRLS_NUMERIC_FEATURES = [
     "hw_rate_medical_checkup_done",
     "hw_rate_dental_checkup_done",
     "hw_rate_psychological_checkup_done",
-    "n_education_records",
+    # n_education_records dropped: total count is an aggregate over the same records as the
+    # target (mean_progress) — length_stay_years already captures time-in-program.
     "n_intervention_plans",
     "n_home_visitations",
     "edu_earliest_progress",
-    "edu_mean_attendance_rate",
+    # edu_mean_attendance_rate replaced with edu_earliest_attendance_rate: mean across ALL
+    # records shares the same temporal scope as the target (mean_progress), which is leakage.
+    # The first record's attendance is known at admission and is leakage-free.
+    "edu_earliest_attendance_rate",
 ]
 GIRLS_CATEGORICAL_FEATURES = [
     "case_status",
@@ -81,7 +86,9 @@ GIRLS_CATEGORICAL_FEATURES = [
     "current_risk_level",
     "pwd_type",
     "special_needs_diagnosis",
-    "edu_latest_education_level",
+    # Renamed: was edu_latest_education_level but was actually from the EARLIEST record
+    # (drop_duplicates keep="first"). Name now matches the data.
+    "edu_earliest_education_level",
     "region",
     "province",
     "status",
@@ -122,18 +129,17 @@ def _build_frame(data_root: Path) -> pd.DataFrame:
         .mean().reset_index().rename(columns={"progress_percent": TARGET})
     )
     earliest_edu = edu_sorted.drop_duplicates(subset=["resident_id"], keep="first")
-    earliest_prog = earliest_edu[["resident_id", "progress_percent", "education_level"]].rename(
-        columns={"progress_percent": "edu_earliest_progress", "education_level": "edu_latest_education_level"}
-    )
-    mean_attend = (
-        edu.groupby("resident_id")["attendance_rate"]
-        .mean().reset_index().rename(columns={"attendance_rate": "edu_mean_attendance_rate"})
+    earliest_prog = earliest_edu[["resident_id", "progress_percent", "education_level", "attendance_rate"]].rename(
+        columns={
+            "progress_percent": "edu_earliest_progress",
+            "education_level": "edu_earliest_education_level",
+            "attendance_rate": "edu_earliest_attendance_rate",
+        }
     )
 
     base = res.drop(columns=[c for c in RESIDENT_DROP if c in res.columns], errors="ignore")
     base = base.merge(mean_prog, on="resident_id", how="left")
     base = base.merge(earliest_prog, on="resident_id", how="left")
-    base = base.merge(mean_attend, on="resident_id", how="left")
 
     base["present_age_years"] = base["present_age"].map(_parse_years_months)
     base["length_stay_years"] = base["length_of_stay"].map(_parse_years_months)
@@ -156,7 +162,7 @@ def _build_frame(data_root: Path) -> pd.DataFrame:
     base = base.merge(agg_num, on="resident_id", how="left")
     base = base.merge(agg_bool, on="resident_id", how="left")
 
-    for col, src_df in [("n_education_records", edu), ("n_intervention_plans", plans), ("n_home_visitations", visits)]:
+    for col, src_df in [("n_intervention_plans", plans), ("n_home_visitations", visits)]:
         counts = src_df.groupby("resident_id").size().reset_index(name=col)
         base = base.merge(counts, on="resident_id", how="left")
         base[col] = base[col].fillna(0).astype(int)

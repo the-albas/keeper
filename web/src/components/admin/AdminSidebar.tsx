@@ -22,16 +22,16 @@ interface NavItem {
   icon: LucideIcon;
   label: string;
   path: string;
-  search?: Record<string, string>;
+  search?: { tab?: string };
 }
 
 const navItems: NavItem[] = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/admin" },
-  { icon: HandCoins, label: "Donors & Contributions", path: "/admin", search: { tab: "donors" } },
-  { icon: Users, label: "Caseload Inventory", path: "/admin", search: { tab: "caseload" } },
-  { icon: FileText, label: "Process Recordings", path: "/admin", search: { tab: "recordings" } },
-  { icon: HomeIcon, label: "Home Visitations", path: "/admin", search: { tab: "visits" } },
-  { icon: BarChart3, label: "Reports & Analytics", path: "/admin", search: { tab: "reports" } },
+  { icon: HandCoins, label: "Donors & Contributions", path: "/donors-contributions" },
+  { icon: Users, label: "Caseload Inventory", path: "/caseload" },
+  { icon: FileText, label: "Process Recordings", path: "/process-recordings" },
+  { icon: HomeIcon, label: "Home Visitations", path: "/home-visitations" },
+  { icon: BarChart3, label: "Reports & Analytics", path: "/reports" },
 ];
 
 export default function AdminSidebar({ user }: { user: User | null }) {
@@ -62,12 +62,12 @@ export default function AdminSidebar({ user }: { user: User | null }) {
             ? `${item.path}?tab=${item.search.tab}`
             : item.path;
           const isActive = currentPath === itemFullPath ||
-            (!item.search && location.pathname === "/admin" && !location.searchStr);
+            (!item.search && item.path === "/admin" && location.pathname === "/admin" && !location.searchStr);
           return (
             <Link
               key={item.label}
               to={item.path}
-              search={item.search ?? {}}
+              search={item.search ? { tab: item.search.tab } as any : undefined}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-xl font-body text-sm transition-all duration-200 ${
                 isActive
                   ? "bg-sidebar-accent text-sidebar-primary font-semibold"

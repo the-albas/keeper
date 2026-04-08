@@ -40,8 +40,9 @@ GROWTH_NUMERIC_FEATURES = [
     "social_referral_count",
     "is_recurring_donor",
     "donor_tenure_days",
-    "gift_volatility",
-    "donation_type_diversity",
+    # gift_volatility and donation_type_diversity removed: both are computed from the same
+    # donation rows that sum to total_monetary_value (the target), making them circular.
+    # avg_monetary_value also excluded (= target / frequency exactly — direct reconstruction).
 ]
 GROWTH_CATEGORICAL_FEATURES = [
     "top_program_interest",
@@ -66,33 +67,6 @@ def _engineer_extra_features(eng_df: pd.DataFrame, data_root: Path) -> pd.DataFr
     sup["donor_tenure_days"] = (today - sup["created_at"]).dt.days.clip(lower=0)
     out = out.merge(sup[["supporter_id", "donor_tenure_days"]], on="supporter_id", how="left")
 
-    don = pd.read_csv(
-        data_root / "donations.csv",
-        usecols=["supporter_id", "estimated_value", "donation_type"],
-    )
-    don["estimated_value"] = pd.to_numeric(don["estimated_value"], errors="coerce")
-
-    gift_stats = (
-        don.groupby("supporter_id")["estimated_value"]
-        .agg(_mean="mean", _std="std", _count="count")
-        .reset_index()
-    )
-    gift_stats["gift_volatility"] = (
-        gift_stats["_std"] / gift_stats["_mean"].replace(0, float("nan"))
-    ).fillna(0.0)
-    gift_stats.loc[gift_stats["_count"] <= 1, "gift_volatility"] = 0.0
-
-    type_div = (
-        don.groupby("supporter_id")["donation_type"]
-        .nunique()
-        .reset_index()
-        .rename(columns={"donation_type": "donation_type_diversity"})
-    )
-
-    out = out.merge(gift_stats[["supporter_id", "gift_volatility"]], on="supporter_id", how="left")
-    out = out.merge(type_div, on="supporter_id", how="left")
-    out["gift_volatility"] = out["gift_volatility"].fillna(0.0)
-    out["donation_type_diversity"] = out["donation_type_diversity"].fillna(0.0)
     return out
 
 
@@ -102,8 +76,6 @@ def _clean(df: pd.DataFrame) -> pd.DataFrame:
     out.loc[out["recency_days"].isna(), "recency_days"] = float(max_recency or 0.0)
     out["social_referral_count"] = out["social_referral_count"].fillna(0.0)
     out["donor_tenure_days"] = out["donor_tenure_days"].fillna(0.0)
-    out["gift_volatility"] = out["gift_volatility"].fillna(0.0)
-    out["donation_type_diversity"] = out["donation_type_diversity"].fillna(0.0)
     out["top_program_interest"] = (
         out["top_program_interest"].fillna("Unknown").astype(str).str.strip()
     )

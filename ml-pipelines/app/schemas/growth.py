@@ -15,8 +15,7 @@ class GrowthFeatures(BaseModel):
 
     # Engineered from raw CSVs (caller should compute; defaults to 0 if unknown)
     donor_tenure_days: float = Field(0, ge=0, description="Days since supporter was created")
-    gift_volatility: float = Field(0, ge=0, description="Coefficient of variation of gift amounts (std/mean); 0 for <=1 gift")
-    donation_type_diversity: float = Field(0, ge=0, description="Count of distinct donation types made by this supporter")
+    # gift_volatility and donation_type_diversity removed (circular with target total_monetary_value)
 
     # Supporter demographics — already in prepared CSV
     top_program_interest: str | None = None

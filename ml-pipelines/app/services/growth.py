@@ -18,8 +18,9 @@ GROWTH_NUMERIC_FEATURES = [
     "social_referral_count",
     "is_recurring_donor",
     "donor_tenure_days",
-    "gift_volatility",
-    "donation_type_diversity",
+    # gift_volatility and donation_type_diversity removed: computed from the same donations
+    # as total_monetary_value (the target) — circular features that inflate R².
+    # avg_monetary_value also excluded (= target / frequency exactly).
 ]
 GROWTH_CATEGORICAL_FEATURES = [
     "top_program_interest",
@@ -56,8 +57,6 @@ def clean_growth_row(row: dict, *, recency_fallback: float | None = None) -> pd.
     out["social_referral_count"] = out["social_referral_count"].fillna(0.0)
     out["is_recurring_donor"] = out["is_recurring_donor"].fillna(0).astype(int)
     out["donor_tenure_days"] = out["donor_tenure_days"].fillna(0.0)
-    out["gift_volatility"] = out["gift_volatility"].fillna(0.0)
-    out["donation_type_diversity"] = out["donation_type_diversity"].fillna(0.0)
 
     out["top_program_interest"] = (
         out["top_program_interest"].fillna("Unknown").astype(str).str.strip()

@@ -56,7 +56,7 @@ export default function MoneyFlow() {
               initial={{ width: 0 }}
               whileInView={{ width: `${moneyFlow.operationsPct}%` }}
               transition={{ duration: 1, delay: 0.4, ease: "easeOut" }}
-              className="h-full bg-accent"
+              className="h-full bg-yellow-500"
               title={operationsLabel}
             />
             <motion.div
@@ -74,7 +74,7 @@ export default function MoneyFlow() {
               <span className="font-body text-sm font-medium text-foreground">{programsLabel}</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-accent" />
+              <div className="w-3 h-3 rounded-full bg-yellow-500" />
               <span className="font-body text-sm font-medium text-foreground">{operationsLabel}</span>
             </div>
             <div className="flex items-center gap-2">
