@@ -6,13 +6,9 @@ import { Heart } from "lucide-react";
 import logoImg from "@/assets/logo.png";
 import { getApiBaseUrl } from "../../lib/api";
 
-const apiBaseUrl = getApiBaseUrl();
-
-if (!apiBaseUrl) {
-  throw new Error("API base URL not configured");
-}
-
 async function fetchCurrentUser() {
+  const apiBaseUrl = getApiBaseUrl();
+  if (!apiBaseUrl) return null;
   const res = await fetch(`${apiBaseUrl}/api/auth/me`, {
     credentials: "include",
   });
@@ -21,6 +17,8 @@ async function fetchCurrentUser() {
 }
 
 async function logout() {
+  const apiBaseUrl = getApiBaseUrl();
+  if (!apiBaseUrl) return;
   const res = await fetch(`${apiBaseUrl}/api/auth/logout`, {
     method: "POST",
     credentials: "include",

@@ -1,5 +1,5 @@
 import { type FormEvent, useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { CodeChallengeForm } from "@/components/auth/code-challenge-form";
 import { Button } from "@/components/ui/button";
@@ -33,6 +33,7 @@ export const Route = createFileRoute("/signup")({
 
 function Signup() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -55,13 +56,18 @@ function Signup() {
         return;
       }
 
-      await navigate({ to: "/" });
+      await navigate({ to: "/donor" });
     },
   });
   const verifyMutation = useMutation({
     mutationFn: (code: string) => verifySignupCode(code),
-    onSuccess: async () => {
-      await navigate({ to: "/" });
+    onSuccess: async (user) => {
+      queryClient.setQueryData(["auth", "me"], {
+        email: user.email,
+        username: user.username,
+      });
+      await queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
+      await navigate({ to: "/donor" });
     },
   });
   const resendMutation = useMutation({

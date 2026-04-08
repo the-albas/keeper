@@ -24,7 +24,7 @@ function WorkPage() {
             together.
           </p>
         </div>
-        <ImpactStats />
+        <ImpactStats useDynamicData />
       </main>
       <LandingFooter />
     </div>

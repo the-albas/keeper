@@ -1,6 +1,25 @@
 import { motion } from "framer-motion";
+import { useMoneyFlowMetric } from "@/components/landing/useImpactMetrics";
+
+type MoneyFlowData = {
+  programsPct: number;
+  operationsPct: number;
+  administrationPct: number;
+};
+
+const fallbackMoneyFlow: MoneyFlowData = {
+  programsPct: 85,
+  operationsPct: 10,
+  administrationPct: 5,
+};
 
 export default function MoneyFlow() {
+  const moneyFlowMetric = useMoneyFlowMetric();
+  const moneyFlow = moneyFlowMetric.data ?? fallbackMoneyFlow;
+  const programsLabel = `${moneyFlow.programsPct}% Programs & Services`;
+  const operationsLabel = `${moneyFlow.operationsPct}% Operations`;
+  const administrationLabel = `${moneyFlow.administrationPct}% Administration`;
+
   return (
     <section className="py-24 bg-white">
       <div className="max-w-3xl mx-auto px-6 text-center">
@@ -13,47 +32,56 @@ export default function MoneyFlow() {
           <h2 className="font-heading text-2xl md:text-3xl font-bold text-foreground mb-8">
             Where Your Money Goes
           </h2>
-          
+          {moneyFlowMetric.isLoading ? (
+            <p className="mb-4 font-body text-sm text-muted-foreground">
+              Loading latest allocation mix...
+            </p>
+          ) : null}
+          {moneyFlowMetric.isError ? (
+            <p className="mb-4 font-body text-sm text-muted-foreground">
+              Showing fallback allocation while live data is unavailable.
+            </p>
+          ) : null}
+
           {/* Horizontal Stacked Bar */}
           <div className="h-4 md:h-6 w-full rounded-full overflow-hidden flex mb-6 shadow-inner">
-            <motion.div 
+            <motion.div
               initial={{ width: 0 }}
-              whileInView={{ width: "85%" }}
+              whileInView={{ width: `${moneyFlow.programsPct}%` }}
               transition={{ duration: 1, delay: 0.2, ease: "easeOut" }}
-              className="h-full bg-primary" 
-              title="85% Programs & Services" 
+              className="h-full bg-primary"
+              title={programsLabel}
             />
-            <motion.div 
+            <motion.div
               initial={{ width: 0 }}
-              whileInView={{ width: "10%" }}
+              whileInView={{ width: `${moneyFlow.operationsPct}%` }}
               transition={{ duration: 1, delay: 0.4, ease: "easeOut" }}
-              className="h-full bg-accent" 
-              title="10% Operations" 
+              className="h-full bg-accent"
+              title={operationsLabel}
             />
-            <motion.div 
+            <motion.div
               initial={{ width: 0 }}
-              whileInView={{ width: "5%" }}
+              whileInView={{ width: `${moneyFlow.administrationPct}%` }}
               transition={{ duration: 1, delay: 0.6, ease: "easeOut" }}
-              className="h-full bg-muted-foreground/30" 
-              title="5% Administration" 
+              className="h-full bg-muted-foreground/30"
+              title={administrationLabel}
             />
           </div>
 
           <div className="flex flex-wrap justify-center gap-6 mb-10">
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-primary" />
-              <span className="font-body text-sm font-medium text-foreground">85% Programs & Services</span>
+              <span className="font-body text-sm font-medium text-foreground">{programsLabel}</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-accent" />
-              <span className="font-body text-sm font-medium text-foreground">10% Operations</span>
+              <span className="font-body text-sm font-medium text-foreground">{operationsLabel}</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-muted-foreground/30" />
-              <span className="font-body text-sm font-medium text-foreground">5% Administration</span>
+              <span className="font-body text-sm font-medium text-foreground">{administrationLabel}</span>
             </div>
           </div>
-
         </motion.div>
       </div>
     </section>

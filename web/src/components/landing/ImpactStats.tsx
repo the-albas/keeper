@@ -67,6 +67,14 @@ export default function ImpactStats({
   const girlsServedMetric = useGirlsServedMetric();
   const safehousesMetric = useSafehousesMetric();
   const reintegrationMetric = useReintegrationRateMetric();
+  const isLoadingMetrics =
+    girlsServedMetric.isLoading ||
+    safehousesMetric.isLoading ||
+    reintegrationMetric.isLoading;
+  const hasMetricError =
+    girlsServedMetric.isError ||
+    safehousesMetric.isError ||
+    reintegrationMetric.isError;
 
   const resolvedStats: ImpactStatsData = {
     girlsServed: useDynamicData
@@ -90,6 +98,16 @@ export default function ImpactStats({
           <h2 className="font-heading text-3xl md:text-4xl font-bold text-foreground">
             Measurable Change, Real Lives
           </h2>
+          {useDynamicData && isLoadingMetrics ? (
+            <p className="mt-3 font-body text-sm text-muted-foreground">
+              Loading latest impact metrics...
+            </p>
+          ) : null}
+          {useDynamicData && hasMetricError ? (
+            <p className="mt-3 font-body text-sm text-muted-foreground">
+              Showing fallback values while live metrics are unavailable.
+            </p>
+          ) : null}
         </div>
 
         <div className="grid md:grid-cols-3 gap-8">

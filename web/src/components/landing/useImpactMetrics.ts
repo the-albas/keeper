@@ -6,6 +6,12 @@ export type PublicMetricDto = {
   displayValue: string;
 };
 
+export type PublicMoneyFlowDto = {
+  programsPct: number;
+  operationsPct: number;
+  administrationPct: number;
+};
+
 const staleTime = 5 * 60 * 1000;
 const refetchInterval = 60 * 1000;
 
@@ -42,6 +48,20 @@ export function useReintegrationRateMetric() {
     queryKey: ["public-impact", "reintegration-rate"],
     queryFn: () =>
       apiGetJson<PublicMetricDto>("/api/public/impact/reintegration-rate", {
+        cache: "no-store",
+      }),
+    staleTime,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
+    refetchInterval,
+  });
+}
+
+export function useMoneyFlowMetric() {
+  return useQuery({
+    queryKey: ["public-impact", "money-flow"],
+    queryFn: () =>
+      apiGetJson<PublicMoneyFlowDto>("/api/public/impact/money-flow", {
         cache: "no-store",
       }),
     staleTime,
