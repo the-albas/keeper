@@ -49,7 +49,7 @@ export default function AboutSection() {
             </span>
             <h2 className="font-heading text-3xl md:text-4xl font-bold text-foreground mb-6">
               Partnering Locally for{" "}
-              <span className="text-primary">Lasting Change</span>
+              <span className="text-yellow-600">Lasting Change</span>
             </h2>
             <p className="font-body text-base text-muted-foreground leading-relaxed mb-4">
               As a US-based 501(c)(3) nonprofit, we contract with vetted
@@ -69,7 +69,7 @@ export default function AboutSection() {
                   key={p.title}
                   className="flex items-start gap-3 p-3 rounded-xl bg-card border border-border"
                 >
-                  <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+                  <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-yellow-500/20 text-yellow-600 flex items-center justify-center">
                     <p.icon className="h-4 w-4" />
                   </div>
                   <div>

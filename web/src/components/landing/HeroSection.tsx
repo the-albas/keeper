@@ -27,7 +27,7 @@ export default function HeroSection() {
 
           <h1 className="font-heading text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6">
             A Safe Place to{" "}
-            <span className="text-white">Heal & Thrive</span>
+            <span className="text-yellow-500 text-glow">Heal & Thrive</span>
           </h1>
 
           <p className="font-body text-lg text-white/80 leading-relaxed max-w-xl text-balance mb-32">
@@ -40,7 +40,7 @@ export default function HeroSection() {
             <Link to="/" hash="donate">
               <Button
                 size="lg"
-                className="font-body text-base gap-2 bg-accent hover:bg-accent/90 text-accent-foreground px-8 h-12 rounded-lg shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:scale-105 transition-all duration-300"
+                className="font-body text-base gap-2 bg-yellow-500 hover:bg-yellow-600 text-black px-8 h-12 rounded-lg shadow-[0_0_20px_rgba(234,179,8,0.3)] hover:scale-105 transition-all duration-300"
               >
                 <Heart className="h-5 w-5" />
                 Donate Now

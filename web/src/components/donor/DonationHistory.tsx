@@ -1,4 +1,7 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Link } from "@tanstack/react-router";
+import { Heart } from "lucide-react";
 import { format } from "date-fns";
 import type { Donation } from "../admin/AdminMetrics";
 
@@ -20,23 +23,33 @@ export default function DonationHistory({ donations }: { donations: Donation[] }
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/50">
-              <TableHead className="font-body text-xs font-semibold uppercase tracking-wider text-muted-foreground">Date</TableHead>
-              <TableHead className="font-body text-xs font-semibold uppercase tracking-wider text-muted-foreground">Type</TableHead>
-              <TableHead className="font-body text-xs font-semibold uppercase tracking-wider text-muted-foreground">Campaign</TableHead>
-              <TableHead className="font-body text-xs font-semibold uppercase tracking-wider text-muted-foreground">Amount</TableHead>
-              <TableHead className="font-body text-xs font-semibold uppercase tracking-wider text-muted-foreground">Allocation</TableHead>
+              <TableHead className="font-body text-xs font-semibold uppercase tracking-wider text-yellow-600">Date</TableHead>
+              <TableHead className="font-body text-xs font-semibold uppercase tracking-wider text-yellow-600">Type</TableHead>
+              <TableHead className="font-body text-xs font-semibold uppercase tracking-wider text-yellow-600">Campaign</TableHead>
+              <TableHead className="font-body text-xs font-semibold uppercase tracking-wider text-yellow-600">Amount</TableHead>
+              <TableHead className="font-body text-xs font-semibold uppercase tracking-wider text-yellow-600">Allocation</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {donations.length === 0 && (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-12 text-muted-foreground font-body text-sm">
-                  No donations recorded yet
+                <TableCell colSpan={5} className="text-center py-16">
+                  <div className="flex flex-col items-center justify-center space-y-4">
+                    <p className="font-body text-base text-muted-foreground font-medium">
+                      Your donation history will appear here once you contribute.
+                    </p>
+                    <Link to="/" hash="donate">
+                      <Button className="font-body gap-2 bg-yellow-500 hover:bg-yellow-600 text-black px-6 h-10 rounded-lg shadow-sm">
+                        <Heart className="h-4 w-4" />
+                        Donate Now
+                      </Button>
+                    </Link>
+                  </div>
                 </TableCell>
               </TableRow>
             )}
             {donations.map((d) => (
-              <TableRow key={d.id} className="hover:bg-muted/30 transition-colors">
+              <TableRow key={d.id} className="hover:bg-muted/30 even:bg-muted/20 transition-colors">
                 <TableCell className="font-body text-sm text-foreground">
                   {format(new Date(d.created_date), "MMM d, yyyy")}
                 </TableCell>

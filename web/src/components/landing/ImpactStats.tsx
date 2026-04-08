@@ -39,9 +39,9 @@ function ImpactStatCard({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ delay: motionDelay, duration: 0.5 }}
-      className="relative bg-card rounded-2xl border border-border p-8 text-center group hover:shadow-lg hover:border-primary/20 transition-all duration-300"
+      className="relative bg-card rounded-2xl border border-border p-8 text-center group hover:shadow-lg hover:border-yellow-500/30 transition-all duration-300"
     >
-      <div className="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-primary/10 text-primary mb-5 group-hover:bg-primary group-hover:text-primary-foreground transition-colors duration-300">
+      <div className="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-yellow-500/20 text-yellow-600 mb-5 group-hover:bg-primary group-hover:text-primary-foreground transition-colors duration-300">
         <Icon className="h-6 w-6" />
       </div>
       <div className="font-heading text-4xl md:text-5xl font-bold text-foreground mb-2 min-h-[3rem] flex items-center justify-center">

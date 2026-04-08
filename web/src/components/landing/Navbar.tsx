@@ -64,25 +64,25 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-8">
             <Link
               to="/"
-              className="text-sm font-body font-medium text-muted-foreground hover:text-foreground transition-colors [&.active]:text-foreground [&.active]:font-semibold"
+              className="text-sm font-body font-medium text-muted-foreground hover:text-yellow-600 transition-colors [&.active]:text-yellow-600 [&.active]:font-semibold"
             >
               Home
             </Link>
             <Link
               to="/work"
-              className="text-sm font-body font-medium text-muted-foreground hover:text-foreground transition-colors [&.active]:text-foreground [&.active]:font-semibold"
+              className="text-sm font-body font-medium text-muted-foreground hover:text-yellow-600 transition-colors [&.active]:text-yellow-600 [&.active]:font-semibold"
             >
               Our Work
             </Link>
             <Link
               to="/about"
-              className="text-sm font-body font-medium text-muted-foreground hover:text-foreground transition-colors [&.active]:text-foreground [&.active]:font-semibold"
+              className="text-sm font-body font-medium text-muted-foreground hover:text-yellow-600 transition-colors [&.active]:text-yellow-600 [&.active]:font-semibold"
             >
               About
             </Link>
             <Link
               to="/contact"
-              className="text-sm font-body font-medium text-muted-foreground hover:text-foreground transition-colors [&.active]:text-foreground [&.active]:font-semibold"
+              className="text-sm font-body font-medium text-muted-foreground hover:text-yellow-600 transition-colors [&.active]:text-yellow-600 [&.active]:font-semibold"
             >
               Contact
             </Link>
@@ -106,17 +106,14 @@ export default function Navbar() {
               </Link>
             )}
             <Link to="/" hash="donate">
-              <Button
-                size="sm"
-                className="font-body text-sm gap-2 bg-primary hover:bg-primary/90"
-              >
+              <Button size="sm" className="font-body text-sm gap-2 bg-yellow-500 hover:bg-yellow-600 text-black">
                 <Heart className="h-4 w-4" />
                 Donate
               </Button>
             </Link>
           </div>
-        </div>
-      </nav>
-    </header>
+        </div >
+      </nav >
+    </header >
   );
 }

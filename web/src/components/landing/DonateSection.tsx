@@ -19,7 +19,7 @@ export default function DonateSection() {
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
         >
-          <span className="inline-block px-4 py-1.5 rounded-full bg-accent/20 text-primary text-xs font-body font-semibold tracking-widest uppercase mb-4">
+          <span className="inline-block px-4 py-1.5 rounded-full bg-yellow-500/20 text-yellow-600 text-xs font-body font-semibold tracking-widest uppercase mb-4">
             Make a Difference
           </span>
           <h2 className="font-heading text-3xl md:text-4xl font-bold text-foreground mb-4 text-balance mx-auto">
@@ -39,8 +39,8 @@ export default function DonateSection() {
                 onClick={() => setSelectedAmount(amt)}
                 className={`font-body font-semibold px-6 py-3 rounded-xl border-2 transition-all duration-200 ${
                   selectedAmount === amt
-                    ? "border-accent bg-accent text-accent-foreground shadow-sm"
-                    : "border-border hover:border-accent/50 hover:bg-accent/5 text-primary"
+                    ? "border-yellow-500 bg-yellow-500 text-black shadow-sm"
+                    : "border-border hover:border-yellow-500/50 hover:bg-yellow-500/5 text-primary"
                 }`}
               >
                 ${amt}
@@ -50,8 +50,8 @@ export default function DonateSection() {
               onClick={() => setSelectedAmount("custom")}
               className={`font-body text-base font-semibold px-6 py-3 rounded-xl border-2 transition-all duration-200 ${
                 selectedAmount === "custom"
-                  ? "border-accent bg-accent/10 text-primary shadow-sm"
-                  : "border-border hover:border-accent/50 hover:bg-accent/5 text-primary"
+                  ? "border-yellow-500 bg-yellow-500/10 text-yellow-600 shadow-sm"
+                  : "border-border hover:border-yellow-500/50 hover:bg-yellow-500/5 text-primary"
               }`}
             >
               Custom
@@ -60,7 +60,7 @@ export default function DonateSection() {
 
           <Button
             size="lg"
-            className="font-body text-base gap-2 bg-accent hover:bg-accent/90 text-accent-foreground px-12 h-14 rounded-xl shadow-lg text-lg"
+            className="font-body text-base gap-2 bg-yellow-500 hover:bg-yellow-600 text-black px-12 h-14 rounded-xl shadow-lg text-lg"
           >
             <Heart className="h-5 w-5" />
             Donate Now

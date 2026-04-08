@@ -30,16 +30,16 @@ export default function LandingFooter() {
                 href="mailto:info@keeper.org"
                 className="flex items-center gap-2 text-sm hover:text-white transition-colors"
               >
-                <Mail className="h-4 w-4 text-accent" /> info@keeper.org
+                <Mail className="h-4 w-4 text-yellow-500" /> info@keeper.org
               </a>
               <a
                 href="tel:+15551234567"
                 className="flex items-center gap-2 text-sm hover:text-white transition-colors"
               >
-                <Phone className="h-4 w-4 text-accent" /> +1 (555) 123-4567
+                <Phone className="h-4 w-4 text-yellow-500" /> +1 (555) 123-4567
               </a>
               <div className="flex items-center gap-2 text-sm">
-                <MapPin className="h-4 w-4 text-accent" /> Provo, UT 84064
+                <MapPin className="h-4 w-4 text-yellow-500" /> Provo, UT 84064
               </div>
             </div>
           </div>
