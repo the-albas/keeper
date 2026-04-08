@@ -102,7 +102,7 @@ function Login() {
 
         {/* Right — form panel */}
         <div className="flex w-full flex-col items-center justify-center bg-slate-100 px-8 lg:w-[55%]">
-          <div className="w-full max-w-xs rounded-2xl border border-border bg-background p-8 shadow-sm">
+          <div className="w-full max-w-sm rounded-2xl border border-border bg-background p-8 shadow-sm">
             {/* Logo */}
             <Link to="/" className="mb-6 flex items-center gap-2.5">
               <img

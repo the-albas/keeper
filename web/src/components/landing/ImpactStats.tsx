@@ -77,7 +77,7 @@ export default function ImpactStats() {
               transition={{ delay: i * 0.15, duration: 0.6, ease: "easeOut" }}
               className="relative p-6 text-center"
             >
-              <div className="font-heading text-6xl md:text-7xl font-bold text-accent mb-4 drop-shadow-sm">
+              <div className="font-heading text-6xl md:text-7xl font-bold text-primary mb-4 drop-shadow-sm">
                 <AnimatedCounter value={stat.value} suffix={stat.suffix} />
               </div>
               <div className="font-body text-lg font-semibold text-foreground mb-2">

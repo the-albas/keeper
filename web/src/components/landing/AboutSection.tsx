@@ -11,10 +11,26 @@ interface Pillar {
 }
 
 const pillars: Pillar[] = [
-  { icon: Shield, title: "Safe Shelter", desc: "24/7 protected housing with trained staff" },
-  { icon: Heart, title: "Trauma Recovery", desc: "Professional counseling and therapeutic care" },
-  { icon: GraduationCap, title: "Education", desc: "Academic and vocational training programs" },
-  { icon: Handshake, title: "Reintegration", desc: "Family reunification and community support" },
+  {
+    icon: Shield,
+    title: "Safe Shelter",
+    desc: "24/7 protected housing with trained staff",
+  },
+  {
+    icon: Heart,
+    title: "Trauma Recovery",
+    desc: "Professional counseling and therapeutic care",
+  },
+  {
+    icon: GraduationCap,
+    title: "Education",
+    desc: "Academic and vocational training programs",
+  },
+  {
+    icon: Handshake,
+    title: "Reintegration",
+    desc: "Family reunification and community support",
+  },
 ];
 
 export default function AboutSection() {
@@ -36,26 +52,33 @@ export default function AboutSection() {
               <span className="text-primary">Lasting Change</span>
             </h2>
             <p className="font-body text-base text-muted-foreground leading-relaxed mb-4">
-              As a US-based 501(c)(3) nonprofit, we contract with vetted in-country
-              partner organizations across the Philippines to operate safehouses and
-              deliver comprehensive rehabilitation services.
+              As a US-based 501(c)(3) nonprofit, we contract with vetted
+              in-country partner organizations across the Philippines to operate
+              safehouses and deliver comprehensive rehabilitation services.
             </p>
             <p className="font-body text-base text-muted-foreground leading-relaxed mb-8">
-              Our model ensures culturally sensitive care while maintaining the highest
-              standards of accountability. Every dollar donated goes directly to
-              providing shelter, education, counseling, and a path forward for each girl
-              in our care.
+              Our model ensures culturally sensitive care while maintaining the
+              highest standards of accountability. Every dollar donated goes
+              directly to providing shelter, education, counseling, and a path
+              forward for each girl in our care.
             </p>
-
+            <br />
             <div className="grid grid-cols-2 gap-4">
               {pillars.map((p) => (
-                <div key={p.title} className="flex items-start gap-3 p-3 rounded-xl bg-card border border-border">
+                <div
+                  key={p.title}
+                  className="flex items-start gap-3 p-3 rounded-xl bg-card border border-border"
+                >
                   <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
                     <p.icon className="h-4 w-4" />
                   </div>
                   <div>
-                    <div className="font-body text-sm font-semibold text-foreground">{p.title}</div>
-                    <div className="font-body text-xs text-muted-foreground">{p.desc}</div>
+                    <div className="font-body text-sm font-semibold text-foreground">
+                      {p.title}
+                    </div>
+                    <div className="font-body text-xs text-muted-foreground">
+                      {p.desc}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -76,7 +99,9 @@ export default function AboutSection() {
             />
             <div className="absolute -bottom-6 -left-6 bg-primary text-primary-foreground rounded-2xl p-6 shadow-xl">
               <div className="font-heading text-3xl font-bold">100%</div>
-              <div className="font-body text-sm opacity-90">Donation Funded</div>
+              <div className="font-body text-sm opacity-90">
+                Donation Funded
+              </div>
             </div>
           </motion.div>
         </div>
