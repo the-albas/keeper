@@ -265,7 +265,7 @@ def _find_repo() -> Path:
 if __name__ == "__main__":
     repo = _find_repo()
     data_root = repo / "Dataset" / "lighthouse_csv_v7"
-    artifact = repo / "pipelines" / "girls_progress_pipeline_v1.sav"
+    artifact = repo / "pipelines" / "girls_progress_pipeline_v2.sav"
     metrics = retrain(data_root, artifact)
     print(f"Saved to {artifact}")
     print(f"Model: {metrics['model']} | MAE: {metrics['mae']} | R²: {metrics['r2']} | Rows: {metrics['rows']}")

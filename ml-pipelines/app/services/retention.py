@@ -12,8 +12,7 @@ from app.config import max_recency_fallback, retention_pipeline_path
 NUMERIC_FEATURES = [
     "recency_days",
     "frequency",
-    "total_monetary_value",
-    "avg_monetary_value",
+    "avg_monetary_value",       # total_monetary_value dropped (≈ freq × avg, redundant)
     "social_referral_count",
     "is_recurring_donor",
 ]
@@ -53,7 +52,6 @@ def clean_engineered_row(row: dict, *, recency_fallback: float | None = None) ->
     out["avg_monetary_value"] = out["avg_monetary_value"].fillna(med_avg)
 
     out["social_referral_count"] = out["social_referral_count"].fillna(0.0)
-    out["total_monetary_value"] = out["total_monetary_value"].fillna(0.0)
     out["is_recurring_donor"] = out["is_recurring_donor"].fillna(0).astype(int)
 
     out["top_program_interest"] = (

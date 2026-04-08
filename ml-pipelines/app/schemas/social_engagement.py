@@ -6,7 +6,6 @@ class SocialEngagementFeatures(BaseModel):
 
     caption_length: float = Field(0, ge=0)
     num_hashtags: float = Field(0, ge=0)
-    mentions_count: float = Field(0, ge=0)
     boost_budget_php: float = Field(0, ge=0)
     follower_count_at_post: float = Field(0, ge=0)
     post_hour: int = Field(0, ge=0, le=23)
@@ -19,7 +18,6 @@ class SocialEngagementFeatures(BaseModel):
     sentiment_tone: str = Field("Unknown")
     post_dow: str = Field("Unknown", description="Day name, e.g. Monday (from post timestamp)")
     call_to_action_type: str = Field("Unknown")
-    campaign_name: str = Field("Unknown")
 
 
 class SocialEngagementPrediction(BaseModel):

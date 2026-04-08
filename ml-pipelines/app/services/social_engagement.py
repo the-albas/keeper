@@ -14,7 +14,6 @@ from app.config import social_engagement_pipeline_path
 SOCIAL_NUMERIC_FEATURES = [
     "caption_length",
     "num_hashtags",
-    "mentions_count",
     "boost_budget_php",
     "follower_count_at_post",
     "post_hour",
@@ -29,7 +28,6 @@ SOCIAL_CATEGORICAL_FEATURES = [
     "sentiment_tone",
     "post_dow",
     "call_to_action_type",
-    "campaign_name",
 ]
 SOCIAL_FEATURE_COLUMNS = SOCIAL_NUMERIC_FEATURES + SOCIAL_CATEGORICAL_FEATURES
 

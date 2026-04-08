@@ -10,27 +10,46 @@ public class RegisterRequest
     public string Username { get; set; } = string.Empty;
 
     [Required]
+    [EmailAddress]
+    [MaxLength(254)]
+    public string Email { get; set; } = string.Empty;
+
+    [Required]
     [MinLength(8)]
     [MaxLength(128)]
     public string Password { get; set; } = string.Empty;
+}
 
+public class CodeVerificationRequest
+{
     [Required]
-    public string Role { get; set; } = "donor";
+    [StringLength(6, MinimumLength = 6)]
+    public string Code { get; set; } = string.Empty;
 }
 
 public class LoginRequest
 {
     [Required]
-    public string Username { get; set; } = string.Empty;
+    [EmailAddress]
+    [MaxLength(254)]
+    public string Email { get; set; } = string.Empty;
 
     [Required]
+    [MinLength(8)]
+    [MaxLength(128)]
     public string Password { get; set; } = string.Empty;
 }
 
-public class AuthResponse
+public class AuthChallengeResponse
 {
-    public string Token { get; set; } = string.Empty;
+    public bool RequiresCode { get; set; }
+    public string Flow { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+}
+
+public class AuthUserResponse
+{
+    public string Email { get; set; } = string.Empty;
     public string Username { get; set; } = string.Empty;
-    public string Role { get; set; } = string.Empty;
-    public DateTime ExpiresAt { get; set; }
+    public string[] Roles { get; set; } = [];
 }

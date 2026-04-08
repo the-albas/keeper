@@ -10,6 +10,8 @@
 .venv/
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
 .DS_Store
 
 # Build results
@@ -84,6 +86,5 @@ dist/
 # Python / notebooks
 .ipynb_checkpoints/
 
-# Scan/report artifacts
-lighthouse/
+# IMPORTANT: DO NOT COMMIT OR DELETE THE LIGHTHOUSE CSV FILES
 lighthouse_csv_v7/

@@ -4,7 +4,11 @@ import react from "@vitejs/plugin-react";
 import { tanstackRouter } from "@tanstack/router-plugin/vite";
 
 export default defineConfig({
-  fmt: {},
+  fmt: {
+    options: {
+      ignorePath: ".oxfmtignore",
+    },
+  },
   lint: { options: { typeAware: true, typeCheck: true } },
   resolve: { tsconfigPaths: true },
   plugins: [
@@ -15,4 +19,13 @@ export default defineConfig({
     }),
     react(),
   ],
+  resolve: {
+    alias: {
+      "@": "/src",
+    },
+  },
+  server: {
+    host: "0.0.0.0",
+    allowedHosts: ["localhost", "127.0.0.1", ".test"],
+  },
 });

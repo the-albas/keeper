@@ -32,7 +32,6 @@ from sklearn.preprocessing import OneHotEncoder, StandardScaler
 SOCIAL_NUMERIC_FEATURES = [
     "caption_length",
     "num_hashtags",
-    "mentions_count",
     "boost_budget_php",
     "follower_count_at_post",
     "post_hour",
@@ -47,7 +46,6 @@ SOCIAL_CATEGORICAL_FEATURES = [
     "sentiment_tone",
     "post_dow",
     "call_to_action_type",
-    "campaign_name",
 ]
 TARGET = "engagement_rate"
 FEATURE_COLUMNS = SOCIAL_NUMERIC_FEATURES + SOCIAL_CATEGORICAL_FEATURES
@@ -105,13 +103,15 @@ def retrain(data_root: Path, artifact_path: Path) -> dict:
     cv = KFold(n_splits=5, shuffle=True, random_state=42)
     candidates = {
         "hist_gradient_boosting": HistGradientBoostingRegressor(
-            random_state=42, max_depth=4, max_iter=200, learning_rate=0.06, min_samples_leaf=3,
+            random_state=42, max_depth=4, max_iter=150, learning_rate=0.06,
+            min_samples_leaf=5, l2_regularization=0.1,
         ),
         "gradient_boosting": GradientBoostingRegressor(
-            random_state=42, max_depth=3, n_estimators=120, learning_rate=0.08, subsample=0.9,
+            random_state=42, max_depth=3, n_estimators=80, learning_rate=0.08,
+            subsample=0.8, min_samples_leaf=5,
         ),
         "random_forest": RandomForestRegressor(
-            random_state=42, n_estimators=200, max_depth=6, min_samples_leaf=3,
+            random_state=42, n_estimators=200, max_depth=6, min_samples_leaf=5,
         ),
         "ridge": Ridge(alpha=1.0),
     }

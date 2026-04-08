@@ -29,7 +29,6 @@ from sklearn.svm import SVC
 NUMERIC_FEATURES = [
     "recency_days",
     "frequency",
-    "total_monetary_value",
     "avg_monetary_value",
     "social_referral_count",
     "is_recurring_donor",
@@ -48,7 +47,6 @@ def _clean(df: pd.DataFrame) -> pd.DataFrame:
     med_avg = out["avg_monetary_value"].median(skipna=True)
     out["avg_monetary_value"] = out["avg_monetary_value"].fillna(float(med_avg or 0.0))
     out["social_referral_count"] = out["social_referral_count"].fillna(0.0)
-    out["total_monetary_value"] = out["total_monetary_value"].fillna(0.0)
     out["top_program_interest"] = (
         out["top_program_interest"].fillna("Unknown").astype(str).str.strip()
     )
@@ -134,7 +132,7 @@ def _find_repo() -> Path:
 if __name__ == "__main__":
     repo = _find_repo()
     data_root = repo / "Dataset" / "lighthouse_csv_v7"
-    artifact = repo / "pipelines" / "retention_pipeline_v2.sav"
+    artifact = repo / "pipelines" / "retention_pipeline_v3.sav"
     metrics = retrain(data_root, artifact)
     print(f"Saved to {artifact}")
     print(f"Model: {metrics['model']} | F1 macro: {metrics['f1_macro']} | ROC-AUC: {metrics['roc_auc']} | Rows: {metrics['rows']}")

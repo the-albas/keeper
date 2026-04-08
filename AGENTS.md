@@ -2,13 +2,18 @@
 
 - C# with Dotnet 10 hosted on Azure
   - Linq & Entity Framework Core for DB querying
+  - Identity for auth and user management
 - React + Vite hosted on Vercel
+  - Tanstack Router
+  - Tanstack Query
   - Shadcn components
-- Postgres 16 in Docker (dev) / AzureSQL (prod)
+- SQLServer in Docker (dev) / AzureSQL (prod)
 - FastAPI machine learning pipeline
+- check ml-pipelines/requirements.txt for packages used in the pipeline
 
 ## Important notes
 
+- All frontend styling must be desktop and mobile friendly
 - The machine learning pipeline must be available via FastAPI
 - Never trust frontend validation. Validate everything again in the .NET API
 - Use [Authorize] on protected endpoints and check roles/ownership explicitly
