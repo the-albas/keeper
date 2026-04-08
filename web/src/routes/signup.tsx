@@ -122,7 +122,7 @@ function Signup() {
                 className="h-8 w-8 rounded-lg object-cover"
               />
               <span className="font-heading text-lg font-semibold text-foreground">
-                Haven Shield
+                Keeper
               </span>
             </Link>
 
