@@ -1,13 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
+import html2canvas from "html2canvas";
+import { jsPDF } from "jspdf";
 import {
 	BookOpen,
 	FileText,
 	Heart,
 	Home,
+	Loader2,
 	TrendingUp,
 	Users,
 } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { PieLabelRenderProps } from "recharts";
 import {
 	Area,
@@ -177,8 +180,37 @@ function PieLabel({
 
 function ReportsPage() {
 	const [reportYear, setReportYear] = useState(2025);
+	const [exporting, setExporting] = useState(false);
+	const contentRef = useRef<HTMLElement>(null);
 
 	const { user } = useAuth();
+
+	async function handleExportPDF() {
+		if (!contentRef.current) return;
+		setExporting(true);
+		try {
+			const canvas = await html2canvas(contentRef.current, {
+				scale: 2,
+				useCORS: true,
+				backgroundColor: "#ffffff",
+			});
+			const imgData = canvas.toDataURL("image/png");
+			const pdf = new jsPDF({ orientation: "portrait", unit: "px", format: "a4" });
+			const pageWidth = pdf.internal.pageSize.getWidth();
+			const pageHeight = pdf.internal.pageSize.getHeight();
+			const imgWidth = pageWidth;
+			const imgHeight = (canvas.height * pageWidth) / canvas.width;
+			let y = 0;
+			while (y < imgHeight) {
+				if (y > 0) pdf.addPage();
+				pdf.addImage(imgData, "PNG", 0, -y, imgWidth, imgHeight);
+				y += pageHeight;
+			}
+			pdf.save(`keeper-report-${reportYear}.pdf`);
+		} finally {
+			setExporting(false);
+		}
+	}
 
 	const totalDonations = DONATION_TREND.reduce((s, d) => s + d.amount, 0);
 	const totalResidents = SAFEHOUSE_PERFORMANCE.reduce(
@@ -202,7 +234,7 @@ function ReportsPage() {
 		<div className="min-h-screen bg-background font-body">
 			<AdminSidebar user={user ?? null} />
 
-			<main className="ml-64 p-8">
+			<main ref={contentRef} className="ml-64 p-8">
 				{/* ── Page header ─────────────────────────────────────────────────── */}
 				<div className="flex items-start justify-between mb-8">
 					<div>
@@ -226,13 +258,18 @@ function ReportsPage() {
 								</option>
 							))}
 						</select>
-						{/* TODO: Wire to PDF export */}
 						<button
 							type="button"
-							className="inline-flex items-center gap-2 h-9 px-4 rounded-3xl border border-border bg-card text-sm font-body text-muted-foreground hover:text-foreground hover:border-primary/40 transition-colors"
+							onClick={handleExportPDF}
+							disabled={exporting}
+							className="inline-flex items-center gap-2 h-9 px-4 rounded-3xl border border-border bg-card text-sm font-body text-muted-foreground hover:text-foreground hover:border-primary/40 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
 						>
-							<FileText className="h-4 w-4" />
-							Export PDF
+							{exporting ? (
+								<Loader2 className="h-4 w-4 animate-spin" />
+							) : (
+								<FileText className="h-4 w-4" />
+							)}
+							{exporting ? "Exporting…" : "Export PDF"}
 						</button>
 					</div>
 				</div>
