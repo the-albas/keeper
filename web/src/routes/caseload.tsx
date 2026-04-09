@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import {
 	Activity,
@@ -23,6 +24,7 @@ import {
 } from "@/components/ui/table";
 import { useAuth } from "@/hooks/use-auth";
 import { requireRole } from "@/lib/auth";
+import { apiGetJson, getApiBaseUrl } from "@/lib/api";
 
 export const Route = createFileRoute("/caseload")({
 	beforeLoad: async ({ context }) => {
@@ -39,7 +41,8 @@ type CaseStatus =
 	| "Active Care"
 	| "Reintegration"
 	| "Closed"
-	| "Graduated";
+	| "Graduated"
+	| "Transferred";
 type RiskLevel = "Low" | "Medium" | "High" | "Critical";
 
 interface ResidentProfile {
@@ -50,10 +53,10 @@ interface ResidentProfile {
 	sex: string;
 	civil_status: string;
 	nationality: string;
-	case_status: CaseStatus;
+	case_status: CaseStatus | string;
 	case_category: string;
 	case_subcategories: string[];
-	risk_level: RiskLevel;
+	risk_level: RiskLevel | string;
 	has_disability: boolean;
 	disability_type: string;
 	is_4ps_beneficiary: boolean;
@@ -78,6 +81,7 @@ const CASE_STATUSES: CaseStatus[] = [
 	"Assessment",
 	"Active Care",
 	"Reintegration",
+	"Transferred",
 	"Closed",
 	"Graduated",
 ];
@@ -92,6 +96,8 @@ const CASE_CATEGORIES = [
 	"Economic Abuse",
 	"Neglected",
 	"Abandoned",
+	"Surrendered",
+	"Foundling",
 ];
 
 const SUBCATEGORIES: Record<string, string[]> = {
@@ -139,12 +145,6 @@ const REFERRAL_SOURCES = [
 	"Other",
 ];
 
-const SAFEHOUSES = [
-	{ id: "sh-001", name: "Tahanan ng Pag-asa" },
-	{ id: "sh-002", name: "Bagong Simula Center" },
-	{ id: "sh-003", name: "Kalayaan Shelter" },
-];
-
 // ─── Badge color maps ─────────────────────────────────────────────────────────
 
 const STATUS_COLORS: Record<CaseStatus, string> = {
@@ -152,6 +152,7 @@ const STATUS_COLORS: Record<CaseStatus, string> = {
 	Assessment: "bg-yellow-50 text-yellow-700 border-yellow-200",
 	"Active Care": "bg-primary/10 text-primary border-primary/20",
 	Reintegration: "bg-purple-50 text-purple-700 border-purple-200",
+	Transferred: "bg-orange-50 text-orange-800 border-orange-200",
 	Closed: "bg-muted text-muted-foreground border-border",
 	Graduated: "bg-green-50 text-green-700 border-green-200",
 };
@@ -164,181 +165,19 @@ const RISK_COLORS: Record<RiskLevel, string> = {
 	Critical: "bg-destructive/15 text-destructive border-destructive/20",
 };
 
-// ─── Mock data ────────────────────────────────────────────────────────────────
+const BADGE_FALLBACK =
+	"bg-muted text-muted-foreground border-border";
 
-const MOCK_RESIDENTS: ResidentProfile[] = [
-	{
-		id: "r-001",
-		resident_code: "KPR-2025-001",
-		full_name: "Ana Reyes",
-		date_of_birth: "1998-04-12",
-		sex: "Female",
-		civil_status: "Single",
-		nationality: "Filipino",
-		case_status: "Active Care",
-		case_category: "Trafficked",
-		case_subcategories: ["Labor Trafficking", "Debt Bondage"],
-		risk_level: "High",
-		has_disability: false,
-		disability_type: "",
-		is_4ps_beneficiary: true,
-		is_solo_parent: false,
-		is_indigenous: false,
-		is_informal_settler: true,
-		admission_date: "2025-01-15",
-		safehouse_id: "sh-001",
-		safehouse_name: "Tahanan ng Pag-asa",
-		referred_by: "DSWD Region IV-A",
-		referral_source: "Government Agency (DSWD)",
-		assigned_social_worker: "Maria Santos",
-		reintegration_plan:
-			"Vocational training enrollment, family mediation sessions, and housing assistance application.",
-		reintegration_target_date: "2025-09-15",
-		reintegration_status: "In Progress",
-	},
-	{
-		id: "r-002",
-		resident_code: "KPR-2025-002",
-		full_name: "Maria Cruz",
-		date_of_birth: "2003-08-22",
-		sex: "Female",
-		civil_status: "Single",
-		nationality: "Filipino",
-		case_status: "Assessment",
-		case_category: "Physical Abuse",
-		case_subcategories: ["Intimate Partner Violence"],
-		risk_level: "Critical",
-		has_disability: false,
-		disability_type: "",
-		is_4ps_beneficiary: false,
-		is_solo_parent: true,
-		is_indigenous: false,
-		is_informal_settler: true,
-		admission_date: "2025-03-02",
-		safehouse_id: "sh-002",
-		safehouse_name: "Bagong Simula Center",
-		referred_by: "PNP Women & Children Protection Desk",
-		referral_source: "Police / Law Enforcement",
-		assigned_social_worker: "Jose Reyes",
-		reintegration_plan: "",
-		reintegration_target_date: "",
-		reintegration_status: "",
-	},
-	{
-		id: "r-003",
-		resident_code: "KPR-2025-003",
-		full_name: "Liza Gomez",
-		date_of_birth: "1995-11-05",
-		sex: "Female",
-		civil_status: "Married",
-		nationality: "Filipino",
-		case_status: "Reintegration",
-		case_category: "Sexual Abuse",
-		case_subcategories: ["Rape", "Online Sexual Exploitation"],
-		risk_level: "Medium",
-		has_disability: true,
-		disability_type: "Post-Traumatic Stress Disorder (PTSD)",
-		is_4ps_beneficiary: true,
-		is_solo_parent: false,
-		is_indigenous: false,
-		is_informal_settler: false,
-		admission_date: "2024-10-18",
-		safehouse_id: "sh-001",
-		safehouse_name: "Tahanan ng Pag-asa",
-		referred_by: "Ospital ng Makati",
-		referral_source: "Hospital / Medical Facility",
-		assigned_social_worker: "Maria Santos",
-		reintegration_plan:
-			"Return to extended family with scheduled follow-up home visits. Outpatient psychosocial support continued.",
-		reintegration_target_date: "2025-06-30",
-		reintegration_status: "On Track",
-	},
-	{
-		id: "r-004",
-		resident_code: "KPR-2024-018",
-		full_name: "Rosa Dela Cruz",
-		date_of_birth: "2010-02-14",
-		sex: "Female",
-		civil_status: "Single",
-		nationality: "Filipino",
-		case_status: "Active Care",
-		case_category: "Neglected",
-		case_subcategories: ["Child Neglect", "Medical Neglect"],
-		risk_level: "High",
-		has_disability: false,
-		disability_type: "",
-		is_4ps_beneficiary: false,
-		is_solo_parent: false,
-		is_indigenous: true,
-		is_informal_settler: false,
-		admission_date: "2024-09-30",
-		safehouse_id: "sh-003",
-		safehouse_name: "Kalayaan Shelter",
-		referred_by: "Barangay Tanod, Brgy. 412",
-		referral_source: "Community / Barangay",
-		assigned_social_worker: "Ana Villanueva",
-		reintegration_plan: "",
-		reintegration_target_date: "",
-		reintegration_status: "",
-	},
-	{
-		id: "r-005",
-		resident_code: "KPR-2025-005",
-		full_name: "Carla Mendoza",
-		date_of_birth: "1990-06-30",
-		sex: "Female",
-		civil_status: "Separated",
-		nationality: "Filipino",
-		case_status: "Graduated",
-		case_category: "Economic Abuse",
-		case_subcategories: ["Financial Control", "Forced Economic Dependency"],
-		risk_level: "Low",
-		has_disability: false,
-		disability_type: "",
-		is_4ps_beneficiary: true,
-		is_solo_parent: true,
-		is_indigenous: false,
-		is_informal_settler: false,
-		admission_date: "2024-06-10",
-		safehouse_id: "sh-002",
-		safehouse_name: "Bagong Simula Center",
-		referred_by: "NGO Babae Muna",
-		referral_source: "NGO / Civil Society",
-		assigned_social_worker: "Jose Reyes",
-		reintegration_plan:
-			"Completed livelihood training program. Now employed at Marikina cooperative.",
-		reintegration_target_date: "2025-01-10",
-		reintegration_status: "Completed",
-	},
-	{
-		id: "r-006",
-		resident_code: "KPR-2025-007",
-		full_name: "Nena Bautista",
-		date_of_birth: "2005-09-17",
-		sex: "Female",
-		civil_status: "Single",
-		nationality: "Filipino",
-		case_status: "Intake",
-		case_category: "Abandoned",
-		case_subcategories: ["Child Abandonment"],
-		risk_level: "Medium",
-		has_disability: false,
-		disability_type: "",
-		is_4ps_beneficiary: false,
-		is_solo_parent: false,
-		is_indigenous: false,
-		is_informal_settler: true,
-		admission_date: "2025-04-01",
-		safehouse_id: "sh-003",
-		safehouse_name: "Kalayaan Shelter",
-		referred_by: "Hotline self-referral",
-		referral_source: "Self-Referral",
-		assigned_social_worker: "Ana Villanueva",
-		reintegration_plan: "",
-		reintegration_target_date: "",
-		reintegration_status: "",
-	},
-];
+function caseStatusBadgeClass(s: string): string {
+	return STATUS_COLORS[s as CaseStatus] ?? BADGE_FALLBACK;
+}
+
+function riskLevelBadgeClass(r: string): string {
+	return RISK_COLORS[r as RiskLevel] ?? BADGE_FALLBACK;
+}
+
+/** Phase 1: lists are live; create/update API is Phase 2+. */
+const CASELOAD_READ_ONLY = true;
 
 const EMPTY_FORM: ResidentProfile = {
 	id: "",
@@ -413,7 +252,37 @@ function textareaClass() {
 // ─── Main component ───────────────────────────────────────────────────────────
 
 function CaseloadPage() {
-	const [residents, setResidents] = useState<ResidentProfile[]>(MOCK_RESIDENTS);
+	const { data: residents = [], isLoading: residentsLoading } = useQuery<
+		ResidentProfile[]
+	>({
+		queryKey: ["admin", "caseload", "residents"],
+		queryFn: async () => {
+			if (!getApiBaseUrl()) return [];
+			return apiGetJson<ResidentProfile[]>(
+				"/api/admin/caseload/residents?take=5000",
+			);
+		},
+	});
+
+	const { data: safehouseRows = [], isLoading: safehousesLoading } = useQuery<
+		{ id: string; name: string }[]
+	>({
+		queryKey: ["admin", "safehouses"],
+		queryFn: async () => {
+			if (!getApiBaseUrl()) return [];
+			return apiGetJson<{ id: string; name: string }[]>(
+				"/api/admin/safehouses",
+			);
+		},
+	});
+
+	const safehouseList = useMemo(
+		() => safehouseRows.map((s) => ({ id: s.id, name: s.name })),
+		[safehouseRows],
+	);
+
+	const pageLoading = residentsLoading || safehousesLoading;
+
 	const [filters, setFilters] = useState({
 		search: "",
 		status: "",
@@ -468,7 +337,8 @@ function CaseloadPage() {
 		(r) => r.case_status === "Active Care",
 	).length;
 	const reintegrationCount = residents.filter(
-		(r) => r.case_status === "Reintegration",
+		(r) =>
+			r.case_status === "Reintegration" || r.case_status === "Transferred",
 	).length;
 	const criticalCount = residents.filter(
 		(r) => r.risk_level === "Critical",
@@ -508,7 +378,7 @@ function CaseloadPage() {
 			if (key === "case_category") next.case_subcategories = [];
 			// Sync safehouse name when id changes
 			if (key === "safehouse_id") {
-				const sh = SAFEHOUSES.find((s) => s.id === value);
+				const sh = safehouseList.find((s) => s.id === value);
 				next.safehouse_name = sh?.name ?? "";
 			}
 			return next;
@@ -526,23 +396,7 @@ function CaseloadPage() {
 
 	function handleSave(e: React.FormEvent) {
 		e.preventDefault();
-		if (panelMode === "add") {
-			const newResident: ResidentProfile = {
-				...formData,
-				id: `r-${Date.now()}`,
-				resident_code:
-					formData.resident_code ||
-					`KPR-${new Date().getFullYear()}-${String(residents.length + 1).padStart(3, "0")}`,
-			};
-			// TODO: POST to your C# API endpoint
-			setResidents((prev) => [newResident, ...prev]);
-		} else if (panelMode === "edit") {
-			// TODO: PUT to your C# API endpoint
-			setResidents((prev) =>
-				prev.map((r) => (r.id === formData.id ? formData : r)),
-			);
-			setPanelResident(formData);
-			setPanelMode("view");
+		if (CASELOAD_READ_ONLY) {
 			return;
 		}
 		closePanel();
@@ -585,7 +439,7 @@ function CaseloadPage() {
 						label="Case Status"
 						value={
 							<span
-								className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-body font-medium border ${STATUS_COLORS[r.case_status]}`}
+								className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-body font-medium border ${caseStatusBadgeClass(r.case_status)}`}
 							>
 								{r.case_status}
 							</span>
@@ -595,7 +449,7 @@ function CaseloadPage() {
 						label="Risk Level"
 						value={
 							<span
-								className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-body font-medium border ${RISK_COLORS[r.risk_level]}`}
+								className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-body font-medium border ${riskLevelBadgeClass(r.risk_level)}`}
 							>
 								{r.risk_level}
 							</span>
@@ -956,7 +810,7 @@ function CaseloadPage() {
 							className={selectClass()}
 						>
 							<option value="">Select safehouse…</option>
-							{SAFEHOUSES.map((s) => (
+							{safehouseList.map((s) => (
 								<option key={s.id} value={s.id}>
 									{s.name}
 								</option>
@@ -1067,6 +921,17 @@ function CaseloadPage() {
 
 	// ── Render ─────────────────────────────────────────────────────────────────
 
+	if (pageLoading) {
+		return (
+			<div className="min-h-screen bg-background font-body">
+				<AdminSidebar user={user ?? null} />
+				<main className="ml-64 p-8 flex items-center justify-center min-h-[50vh]">
+					<div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+				</main>
+			</div>
+		);
+	}
+
 	return (
 		<div className="min-h-screen bg-background font-body">
 			<AdminSidebar user={user ?? null} />
@@ -1082,10 +947,22 @@ function CaseloadPage() {
 							Resident case management following Philippine social welfare
 							standards.
 						</p>
+						{CASELOAD_READ_ONLY && (
+							<p className="font-body text-sm text-muted-foreground mt-3 max-w-2xl">
+								Resident records load from the database. Saving new or edited
+								records from this page will be enabled in a later release.
+							</p>
+						)}
 					</div>
 					<Button
+						disabled={CASELOAD_READ_ONLY}
+						title={
+							CASELOAD_READ_ONLY
+								? "Saving to the database is not available yet"
+								: undefined
+						}
 						onClick={openAdd}
-						className="font-body gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-5 h-10 rounded-xl shadow-sm mt-1"
+						className="font-body gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-5 h-10 rounded-xl shadow-sm mt-1 disabled:opacity-50 disabled:pointer-events-none"
 					>
 						<Plus className="h-4 w-4" />
 						Add Resident
@@ -1113,7 +990,7 @@ function CaseloadPage() {
 							icon: RefreshCw,
 							label: "Reintegration",
 							value: reintegrationCount,
-							sub: "Transition phase",
+							sub: "Reintegration or transferred",
 							color: "bg-purple-100 text-purple-700",
 						},
 						{
@@ -1187,7 +1064,7 @@ function CaseloadPage() {
 							className="h-9 rounded-3xl border border-transparent bg-input/50 px-3 text-sm font-body text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30 min-w-[150px]"
 						>
 							<option value="">All Safehouses</option>
-							{SAFEHOUSES.map((s) => (
+							{safehouseList.map((s) => (
 								<option key={s.id} value={s.id}>
 									{s.name}
 								</option>
@@ -1266,14 +1143,14 @@ function CaseloadPage() {
 										</TableCell>
 										<TableCell>
 											<span
-												className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-body font-medium border ${STATUS_COLORS[r.case_status]}`}
+												className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-body font-medium border ${caseStatusBadgeClass(r.case_status)}`}
 											>
 												{r.case_status}
 											</span>
 										</TableCell>
 										<TableCell>
 											<span
-												className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-body font-medium border ${RISK_COLORS[r.risk_level]}`}
+												className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-body font-medium border ${riskLevelBadgeClass(r.risk_level)}`}
 											>
 												{r.risk_level}
 											</span>
@@ -1378,8 +1255,14 @@ function CaseloadPage() {
 										Close
 									</Button>
 									<Button
+										disabled={CASELOAD_READ_ONLY}
+										title={
+											CASELOAD_READ_ONLY
+												? "Editing will be available in a later release"
+												: undefined
+										}
 										onClick={() => panelResident && openEdit(panelResident)}
-										className="font-body gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-5 h-9 rounded-xl"
+										className="font-body gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-5 h-9 rounded-xl disabled:opacity-50"
 									>
 										<Pencil className="h-4 w-4" />
 										Edit
@@ -1403,7 +1286,8 @@ function CaseloadPage() {
 									<Button
 										type="submit"
 										form="resident-form"
-										className="font-body bg-primary hover:bg-primary/90 text-primary-foreground px-5 h-9 rounded-xl"
+										disabled={CASELOAD_READ_ONLY}
+										className="font-body bg-primary hover:bg-primary/90 text-primary-foreground px-5 h-9 rounded-xl disabled:opacity-50"
 									>
 										{panelMode === "edit" ? "Save Changes" : "Add Resident"}
 									</Button>

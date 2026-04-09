@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import {
 	DollarSign,
@@ -24,6 +25,7 @@ import {
 } from "@/components/ui/table";
 import { useAuth } from "@/hooks/use-auth";
 import { requireRole } from "@/lib/auth";
+import { apiGetJson, getApiBaseUrl } from "@/lib/api";
 
 export const Route = createFileRoute("/donors-contributions")({
 	beforeLoad: async ({ context }) => {
@@ -56,19 +58,26 @@ interface Supporter {
 	name: string;
 	email: string;
 	phone: string;
-	supporter_type: SupporterType;
-	status: SupporterStatus;
+	supporter_type: SupporterType | string;
+	status: SupporterStatus | string;
 	organization: string;
 	is_anonymous: boolean;
 	joined_date: string;
 	notes: string;
 }
 
+/** API: GET /api/admin/lookups/donor-ui */
+interface DonorUiLookups {
+	safehouses: { id: string; name: string }[];
+	programs: string[];
+	campaigns: string[];
+}
+
 interface Contribution {
 	id: string;
 	supporter_id: string;
 	supporter_name: string;
-	contribution_type: ContributionType;
+	contribution_type: ContributionType | string;
 	date: string;
 	// Monetary
 	amount: number;
@@ -126,30 +135,6 @@ const PAYMENT_METHODS = [
 	"Other",
 ];
 
-const SAFEHOUSES = [
-	"Tahanan ng Pag-asa",
-	"Bagong Simula Center",
-	"Kalayaan Shelter",
-];
-
-const PROGRAMS = [
-	"General Operations",
-	"Legal Aid Program",
-	"Livelihood Program",
-	"Psychosocial Services",
-	"Community Outreach",
-	"Emergency Response",
-	"Educational Support",
-];
-
-const CAMPAIGNS = [
-	"Annual Giving",
-	"Year-End Campaign",
-	"Emergency Appeal",
-	"Livelihood Fund",
-	"General Fund",
-];
-
 const SOCIAL_PLATFORMS = [
 	"Facebook",
 	"Instagram",
@@ -184,269 +169,23 @@ const CONTRIBUTION_TYPE_COLORS: Record<ContributionType, string> = {
 	"Social Media": "bg-pink-50 text-pink-700 border-pink-200",
 };
 
-// ─── Mock data ────────────────────────────────────────────────────────────────
+const BADGE_FALLBACK =
+	"bg-muted text-muted-foreground border-border";
 
-const MOCK_SUPPORTERS: Supporter[] = [
-	{
-		id: "s-001",
-		name: "Juana dela Fuente",
-		email: "juana.fuente@gmail.com",
-		phone: "+63 917 555 0101",
-		supporter_type: "Monetary Donor",
-		status: "Active",
-		organization: "",
-		is_anonymous: false,
-		joined_date: "2023-06-15",
-		notes: "Long-time supporter. Prefers email acknowledgments.",
-	},
-	{
-		id: "s-002",
-		name: "BDO Foundation",
-		email: "csr@bdofoundation.org",
-		phone: "+63 2 8888 0000",
-		supporter_type: "Corporate Partner",
-		status: "Active",
-		organization: "BDO Unibank",
-		is_anonymous: false,
-		joined_date: "2022-11-01",
-		notes: "Annual corporate partnership. Funds livelihood programs.",
-	},
-	{
-		id: "s-003",
-		name: "Carlos Manalo",
-		email: "c.manalo@lawfirm.ph",
-		phone: "+63 918 234 5678",
-		supporter_type: "Skills Contributor",
-		status: "Active",
-		organization: "Manalo & Associates Law",
-		is_anonymous: false,
-		joined_date: "2024-02-20",
-		notes:
-			"Pro-bono legal services for residents undergoing court proceedings.",
-	},
-	{
-		id: "s-004",
-		name: "Anonymous Donor",
-		email: "",
-		phone: "",
-		supporter_type: "Monetary Donor",
-		status: "Active",
-		organization: "",
-		is_anonymous: true,
-		joined_date: "2024-09-10",
-		notes: "Prefers full anonymity. Regular monthly giving via bank transfer.",
-	},
-	{
-		id: "s-005",
-		name: "Sofia Reyes",
-		email: "sofia.reyes@volunteer.org",
-		phone: "+63 912 876 5432",
-		supporter_type: "Volunteer",
-		status: "Active",
-		organization: "",
-		is_anonymous: false,
-		joined_date: "2024-01-08",
-		notes: "Leads weekly livelihood skills workshops at Tahanan ng Pag-asa.",
-	},
-	{
-		id: "s-006",
-		name: "GMA Kapuso Foundation",
-		email: "outreach@gmakapuso.org",
-		phone: "+63 2 7777 1234",
-		supporter_type: "Social Media Advocate",
-		status: "Active",
-		organization: "GMA Network",
-		is_anonymous: false,
-		joined_date: "2025-01-15",
-		notes: "Partnered for social media awareness campaigns.",
-	},
-	{
-		id: "s-007",
-		name: "Pedro Lim",
-		email: "pedrolim@inkindonor.ph",
-		phone: "+63 920 333 4444",
-		supporter_type: "In-Kind Donor",
-		status: "Inactive",
-		organization: "Lim Family Enterprises",
-		is_anonymous: false,
-		joined_date: "2023-03-22",
-		notes: "Donated school supplies and hygiene kits. Not active since 2024.",
-	},
-];
+function supporterTypeClass(t: string): string {
+	return SUPPORTER_TYPE_COLORS[t as SupporterType] ?? BADGE_FALLBACK;
+}
 
-const MOCK_CONTRIBUTIONS: Contribution[] = [
-	{
-		id: "c-001",
-		supporter_id: "s-001",
-		supporter_name: "Juana dela Fuente",
-		contribution_type: "Monetary",
-		date: "2025-03-01",
-		amount: 25000,
-		currency: "PHP",
-		payment_method: "Bank Transfer",
-		campaign: "Livelihood Fund",
-		item_description: "",
-		estimated_value: 0,
-		hours: 0,
-		skill_description: "",
-		platform: "",
-		reach: "",
-		allocation_safehouse: "Tahanan ng Pag-asa",
-		allocation_program: "Livelihood Program",
-		receipt_number: "REC-2025-0031",
-		notes: "",
-	},
-	{
-		id: "c-002",
-		supporter_id: "s-002",
-		supporter_name: "BDO Foundation",
-		contribution_type: "Monetary",
-		date: "2025-01-10",
-		amount: 150000,
-		currency: "PHP",
-		payment_method: "Bank Transfer",
-		campaign: "Annual Giving",
-		item_description: "",
-		estimated_value: 0,
-		hours: 0,
-		skill_description: "",
-		platform: "",
-		reach: "",
-		allocation_safehouse: "",
-		allocation_program: "Livelihood Program",
-		receipt_number: "REC-2025-0001",
-		notes: "Corporate annual pledge. First installment.",
-	},
-	{
-		id: "c-003",
-		supporter_id: "s-003",
-		supporter_name: "Carlos Manalo",
-		contribution_type: "Skills",
-		date: "2025-02-14",
-		amount: 0,
-		currency: "PHP",
-		payment_method: "",
-		campaign: "",
-		item_description: "",
-		estimated_value: 18000,
-		hours: 6,
-		skill_description:
-			"Legal consultation and documentation support for 3 residents pursuing protection orders.",
-		platform: "",
-		reach: "",
-		allocation_safehouse: "",
-		allocation_program: "Legal Aid Program",
-		receipt_number: "",
-		notes: "Estimated value based on pro-bono rate of ₱3,000/hour.",
-	},
-	{
-		id: "c-004",
-		supporter_id: "s-004",
-		supporter_name: "Anonymous Donor",
-		contribution_type: "Monetary",
-		date: "2025-04-01",
-		amount: 5000,
-		currency: "PHP",
-		payment_method: "Bank Transfer",
-		campaign: "General Fund",
-		item_description: "",
-		estimated_value: 0,
-		hours: 0,
-		skill_description: "",
-		platform: "",
-		reach: "",
-		allocation_safehouse: "Bagong Simula Center",
-		allocation_program: "General Operations",
-		receipt_number: "REC-2025-0044",
-		notes: "Monthly recurring contribution.",
-	},
-	{
-		id: "c-005",
-		supporter_id: "s-005",
-		supporter_name: "Sofia Reyes",
-		contribution_type: "Time / Volunteer",
-		date: "2025-03-15",
-		amount: 0,
-		currency: "PHP",
-		payment_method: "",
-		campaign: "",
-		item_description: "",
-		estimated_value: 0,
-		hours: 12,
-		skill_description:
-			"Facilitated 3 livelihood skills workshops (sewing, beadwork, soap-making).",
-		platform: "",
-		reach: "",
-		allocation_safehouse: "Tahanan ng Pag-asa",
-		allocation_program: "Livelihood Program",
-		receipt_number: "",
-		notes: "",
-	},
-	{
-		id: "c-006",
-		supporter_id: "s-006",
-		supporter_name: "GMA Kapuso Foundation",
-		contribution_type: "Social Media",
-		date: "2025-02-28",
-		amount: 0,
-		currency: "PHP",
-		payment_method: "",
-		campaign: "Year-End Campaign",
-		item_description: "",
-		estimated_value: 0,
-		hours: 0,
-		skill_description: "",
-		platform: "Facebook",
-		reach: "~120,000 users",
-		allocation_safehouse: "",
-		allocation_program: "Community Outreach",
-		receipt_number: "",
-		notes: "Featured story campaign across GMA's social channels.",
-	},
-	{
-		id: "c-007",
-		supporter_id: "s-007",
-		supporter_name: "Pedro Lim",
-		contribution_type: "In-Kind",
-		date: "2024-12-10",
-		amount: 0,
-		currency: "PHP",
-		payment_method: "",
-		campaign: "",
-		item_description:
-			"60 school supply kits (notebooks, pens, pencils, rulers) and 40 hygiene kits (shampoo, soap, toothbrush, toothpaste).",
-		estimated_value: 22000,
-		hours: 0,
-		skill_description: "",
-		platform: "",
-		reach: "",
-		allocation_safehouse: "Kalayaan Shelter",
-		allocation_program: "Educational Support",
-		receipt_number: "ACK-2024-0112",
-		notes: "Items delivered to Kalayaan Shelter on December 12.",
-	},
-	{
-		id: "c-008",
-		supporter_id: "s-001",
-		supporter_name: "Juana dela Fuente",
-		contribution_type: "Monetary",
-		date: "2025-01-05",
-		amount: 25000,
-		currency: "PHP",
-		payment_method: "Bank Transfer",
-		campaign: "Livelihood Fund",
-		item_description: "",
-		estimated_value: 0,
-		hours: 0,
-		skill_description: "",
-		platform: "",
-		reach: "",
-		allocation_safehouse: "Tahanan ng Pag-asa",
-		allocation_program: "Livelihood Program",
-		receipt_number: "REC-2025-0002",
-		notes: "",
-	},
-];
+function supporterStatusClass(s: string): string {
+	return STATUS_COLORS[s as SupporterStatus] ?? BADGE_FALLBACK;
+}
+
+function contributionTypeClass(t: string): string {
+	return CONTRIBUTION_TYPE_COLORS[t as ContributionType] ?? BADGE_FALLBACK;
+}
+
+/** Phase 1: lists are live; creating/editing/syncing to the API is Phase 2+. */
+const CONTRIBUTIONS_READ_ONLY = true;
 
 // ─── Empty forms ──────────────────────────────────────────────────────────────
 
@@ -546,8 +285,43 @@ function DonorsPage() {
 		"supporters",
 	);
 
-	// Supporter state
-	const [supporters, setSupporters] = useState<Supporter[]>(MOCK_SUPPORTERS);
+	const { data: supporters = [], isLoading: supportersLoading } = useQuery<
+		Supporter[]
+	>({
+		queryKey: ["admin", "supporters"],
+		queryFn: async () => {
+			if (!getApiBaseUrl()) return [];
+			return apiGetJson<Supporter[]>("/api/admin/supporters");
+		},
+	});
+
+	const { data: contributions = [], isLoading: contributionsLoading } = useQuery<
+		Contribution[]
+	>({
+		queryKey: ["admin", "contributions"],
+		queryFn: async () => {
+			if (!getApiBaseUrl()) return [];
+			return apiGetJson<Contribution[]>("/api/admin/contributions?take=5000");
+		},
+	});
+
+	const { data: lookups, isLoading: lookupsLoading } = useQuery<DonorUiLookups>({
+		queryKey: ["admin", "lookups", "donor-ui"],
+		queryFn: async () => {
+			if (!getApiBaseUrl()) {
+				return { safehouses: [], programs: [], campaigns: [] };
+			}
+			return apiGetJson<DonorUiLookups>("/api/admin/lookups/donor-ui");
+		},
+	});
+
+	const safehouseNames = useMemo(
+		() => lookups?.safehouses.map((s) => s.name) ?? [],
+		[lookups?.safehouses],
+	);
+	const programOptions = lookups?.programs ?? [];
+	const campaignOptions = lookups?.campaigns ?? [];
+
 	const [supporterFilters, setSupporterFilters] = useState({
 		search: "",
 		type: "",
@@ -560,9 +334,6 @@ function DonorsPage() {
 	const [supporterForm, setSupporterForm] =
 		useState<Supporter>(EMPTY_SUPPORTER);
 
-	// Contribution state
-	const [contributions, setContributions] =
-		useState<Contribution[]>(MOCK_CONTRIBUTIONS);
 	const [contribFilters, setContribFilters] = useState({
 		search: "",
 		type: "",
@@ -574,6 +345,9 @@ function DonorsPage() {
 		useState<Contribution>(EMPTY_CONTRIBUTION);
 
 	const { user } = useAuth();
+
+	const pageLoading =
+		supportersLoading || contributionsLoading || lookupsLoading;
 
 	// ── Computed ───────────────────────────────────────────────────────────────
 
@@ -640,7 +414,10 @@ function DonorsPage() {
 			.map(([label, amount]) => ({
 				label,
 				amount,
-				pct: Math.round((amount / totalMonetary) * 100),
+				pct:
+					totalMonetary > 0
+						? Math.round((amount / totalMonetary) * 100)
+						: 0,
 			}));
 	}, [contributions, totalMonetary]);
 
@@ -687,18 +464,8 @@ function DonorsPage() {
 
 	function handleSupporterSave(e: React.FormEvent) {
 		e.preventDefault();
-		if (panelMode === "add") {
-			const s: Supporter = { ...supporterForm, id: `s-${Date.now()}` };
-			// TODO: POST to your C# API endpoint
-			setSupporters((prev) => [s, ...prev]);
-			closePanel();
-		} else {
-			// TODO: PUT to your C# API endpoint
-			setSupporters((prev) =>
-				prev.map((s) => (s.id === supporterForm.id ? supporterForm : s)),
-			);
-			setPanelSupporter(supporterForm);
-			setPanelMode("view");
+		if (CONTRIBUTIONS_READ_ONLY) {
+			return;
 		}
 	}
 
@@ -713,11 +480,9 @@ function DonorsPage() {
 
 	function handleContribSave(e: React.FormEvent) {
 		e.preventDefault();
-		const c: Contribution = { ...contribForm, id: `c-${Date.now()}` };
-		// TODO: POST to your C# API endpoint
-		setContributions((prev) => [c, ...prev]);
-		setContribForm(EMPTY_CONTRIBUTION);
-		setShowContribForm(false);
+		if (CONTRIBUTIONS_READ_ONLY) {
+			return;
+		}
 	}
 
 	// ── Supporter view content ─────────────────────────────────────────────────
@@ -742,7 +507,7 @@ function DonorsPage() {
 						label="Type"
 						value={
 							<span
-								className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium border ${SUPPORTER_TYPE_COLORS[s.supporter_type]}`}
+								className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium border ${supporterTypeClass(s.supporter_type)}`}
 							>
 								{s.supporter_type}
 							</span>
@@ -752,7 +517,7 @@ function DonorsPage() {
 						label="Status"
 						value={
 							<span
-								className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium border ${STATUS_COLORS[s.status]}`}
+								className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium border ${supporterStatusClass(s.status)}`}
 							>
 								{s.status}
 							</span>
@@ -800,7 +565,7 @@ function DonorsPage() {
 										{formatDate(c.date)}
 									</p>
 									<span
-										className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium border flex-shrink-0 ${CONTRIBUTION_TYPE_COLORS[c.contribution_type]}`}
+										className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium border flex-shrink-0 ${contributionTypeClass(c.contribution_type)}`}
 									>
 										{c.contribution_type}
 									</span>
@@ -1136,7 +901,7 @@ function DonorsPage() {
 									className={selectClass()}
 								>
 									<option value="">Select…</option>
-									{CAMPAIGNS.map((c) => (
+									{campaignOptions.map((c) => (
 										<option key={c}>{c}</option>
 									))}
 								</select>
@@ -1230,7 +995,7 @@ function DonorsPage() {
 								className={selectClass()}
 							>
 								<option value="">None / General</option>
-								{SAFEHOUSES.map((s) => (
+								{safehouseNames.map((s) => (
 									<option key={s}>{s}</option>
 								))}
 							</select>
@@ -1247,7 +1012,7 @@ function DonorsPage() {
 								className={selectClass()}
 							>
 								<option value="">None / General</option>
-								{PROGRAMS.map((p) => (
+								{programOptions.map((p) => (
 									<option key={p}>{p}</option>
 								))}
 							</select>
@@ -1296,7 +1061,8 @@ function DonorsPage() {
 						</Button>
 						<Button
 							type="submit"
-							className="font-body bg-primary hover:bg-primary/90 text-primary-foreground px-5 h-10 rounded-xl"
+							disabled={CONTRIBUTIONS_READ_ONLY}
+							className="font-body bg-primary hover:bg-primary/90 text-primary-foreground px-5 h-10 rounded-xl disabled:opacity-50"
 						>
 							Save Contribution
 						</Button>
@@ -1327,6 +1093,17 @@ function DonorsPage() {
 
 	// ── Render ─────────────────────────────────────────────────────────────────
 
+	if (pageLoading) {
+		return (
+			<div className="min-h-screen bg-background font-body">
+				<AdminSidebar user={user ?? null} />
+				<main className="ml-64 p-8 flex items-center justify-center min-h-[50vh]">
+					<div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+				</main>
+			</div>
+		);
+	}
+
 	return (
 		<div className="min-h-screen bg-background font-body">
 			<AdminSidebar user={user ?? null} />
@@ -1341,14 +1118,27 @@ function DonorsPage() {
 						<p className="font-body text-base text-muted-foreground mt-1">
 							Manage supporter profiles and track all contribution types.
 						</p>
+						{CONTRIBUTIONS_READ_ONLY && (
+							<p className="font-body text-sm text-muted-foreground mt-3 max-w-2xl">
+								Supporter and contribution lists load from the database.
+								Saving new or edited records from this page will be enabled in
+								a later release.
+							</p>
+						)}
 					</div>
 					<Button
+						disabled={CONTRIBUTIONS_READ_ONLY}
+						title={
+							CONTRIBUTIONS_READ_ONLY
+								? "Saving to the database is not available yet"
+								: undefined
+						}
 						onClick={
 							activeTab === "supporters"
 								? openAdd
 								: () => setShowContribForm((v) => !v)
 						}
-						className="font-body gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-5 h-10 rounded-xl shadow-sm mt-1"
+						className="font-body gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-5 h-10 rounded-xl shadow-sm mt-1 disabled:opacity-50 disabled:pointer-events-none"
 					>
 						<Plus className="h-4 w-4" />
 						{activeTab === "supporters" ? "Add Supporter" : "Log Contribution"}
@@ -1535,14 +1325,14 @@ function DonorsPage() {
 												</TableCell>
 												<TableCell>
 													<span
-														className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium border ${SUPPORTER_TYPE_COLORS[s.supporter_type]}`}
+														className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium border ${supporterTypeClass(s.supporter_type)}`}
 													>
 														{s.supporter_type}
 													</span>
 												</TableCell>
 												<TableCell>
 													<span
-														className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium border ${STATUS_COLORS[s.status]}`}
+														className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium border ${supporterStatusClass(s.status)}`}
 													>
 														{s.status}
 													</span>
@@ -1682,7 +1472,7 @@ function DonorsPage() {
 									className="h-9 rounded-3xl border border-transparent bg-input/50 px-3 text-sm font-body text-foreground outline-none focus-visible:border-ring min-w-[160px]"
 								>
 									<option value="">All Safehouses</option>
-									{SAFEHOUSES.map((s) => (
+									{safehouseNames.map((s) => (
 										<option key={s}>{s}</option>
 									))}
 								</select>
@@ -1697,7 +1487,7 @@ function DonorsPage() {
 									className="h-9 rounded-3xl border border-transparent bg-input/50 px-3 text-sm font-body text-foreground outline-none focus-visible:border-ring min-w-[160px]"
 								>
 									<option value="">All Programs</option>
-									{PROGRAMS.map((p) => (
+									{programOptions.map((p) => (
 										<option key={p}>{p}</option>
 									))}
 								</select>
@@ -1770,7 +1560,7 @@ function DonorsPage() {
 												</TableCell>
 												<TableCell>
 													<span
-														className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium border ${CONTRIBUTION_TYPE_COLORS[c.contribution_type]}`}
+														className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium border ${contributionTypeClass(c.contribution_type)}`}
 													>
 														{c.contribution_type}
 													</span>
@@ -1827,7 +1617,7 @@ function DonorsPage() {
 								</h2>
 								{panelMode !== "add" && (
 									<span
-										className={`inline-flex mt-1 px-2.5 py-0.5 rounded-full text-xs font-medium border ${SUPPORTER_TYPE_COLORS[(panelMode === "edit" ? supporterForm : panelSupporter)?.supporter_type ?? "Monetary Donor"]}`}
+										className={`inline-flex mt-1 px-2.5 py-0.5 rounded-full text-xs font-medium border ${supporterTypeClass((panelMode === "edit" ? supporterForm : panelSupporter)?.supporter_type ?? "Monetary Donor")}`}
 									>
 										{
 											(panelMode === "edit" ? supporterForm : panelSupporter)
@@ -1862,8 +1652,14 @@ function DonorsPage() {
 										Close
 									</Button>
 									<Button
+										disabled={CONTRIBUTIONS_READ_ONLY}
+										title={
+											CONTRIBUTIONS_READ_ONLY
+												? "Editing will be available in a later release"
+												: undefined
+										}
 										onClick={() => panelSupporter && openEdit(panelSupporter)}
-										className="font-body gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-5 h-9 rounded-xl"
+										className="font-body gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-5 h-9 rounded-xl disabled:opacity-50"
 									>
 										<Pencil className="h-4 w-4" /> Edit
 									</Button>
@@ -1882,7 +1678,8 @@ function DonorsPage() {
 									<Button
 										type="submit"
 										form="supporter-form"
-										className="font-body bg-primary hover:bg-primary/90 text-primary-foreground px-5 h-9 rounded-xl"
+										disabled={CONTRIBUTIONS_READ_ONLY}
+										className="font-body bg-primary hover:bg-primary/90 text-primary-foreground px-5 h-9 rounded-xl disabled:opacity-50"
 									>
 										{panelMode === "edit" ? "Save Changes" : "Add Supporter"}
 									</Button>

@@ -174,6 +174,53 @@ public class AdminController : ControllerBase
         return Ok(list);
     }
 
+    /// <summary>All supporters for Donors & Contributions (read-only Phase 1).</summary>
+    [HttpGet("supporters")]
+    public async Task<ActionResult<IReadOnlyList<AdminSupporterListDto>>> GetSupporters(
+        CancellationToken cancellationToken
+    )
+    {
+        var list = await AdminDonorQueries.ListSupportersAsync(_db, cancellationToken);
+        return Ok(list);
+    }
+
+    /// <summary>Enriched donation rows for the Contributions tab (amounts in PHP).</summary>
+    [HttpGet("contributions")]
+    public async Task<ActionResult<IReadOnlyList<AdminContributionListDto>>> GetContributions(
+        [FromQuery] int take = 5000,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var list = await AdminDonorQueries.ListContributionsAsync(_db, take, cancellationToken);
+        return Ok(list);
+    }
+
+    /// <summary>Safehouse ids/names, distinct program areas, and distinct campaign names.</summary>
+    [HttpGet("lookups/donor-ui")]
+    public async Task<ActionResult<AdminDonorUiLookupsDto>> GetDonorUiLookups(
+        CancellationToken cancellationToken
+    )
+    {
+        var dto = await AdminDonorQueries.GetDonorUiLookupsAsync(_db, cancellationToken);
+        return Ok(dto);
+    }
+
+    /// <summary>Full caseload rows for <c>/caseload</c> (read-only). Does not expose restricted notes.</summary>
+    [HttpGet("caseload/residents")]
+    public async Task<ActionResult<IReadOnlyList<AdminCaseloadResidentDto>>> GetCaseloadResidents(
+        [FromQuery] int take = 5000,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var list = await AdminCaseloadQueries.ListResidentsAsync(
+            _db,
+            take,
+            _logger,
+            cancellationToken
+        );
+        return Ok(list);
+    }
+
     private static string BuildLocation(string? city, string? region, string? province, string? country)
     {
         var parts = new[] { city, region, province, country }

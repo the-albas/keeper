@@ -9,7 +9,7 @@ This document tracks the next slice of analytics and UX for the admin dashboard 
 **Improvements to consider:**
 
 - **Dedicated time series API** — e.g. `GET /api/admin/donations/by-month?from=…&to=…` returning `{ month, totalAmount, count }` so the chart does not depend on pulling hundreds of raw rows and the UI can show consistent windows (FY, calendar year, trailing 12 months).
-- **Currency and in-kind** — clarify whether `donations.amount` mixes cash and estimated in-kind value; split series or label tooltips if needed.
+- **In-kind vs cash in charts** — monetary totals are **PHP (pesos)** site-wide; still clarify whether series should separate cash `amount` from in-kind `estimated_value` where both appear; split series or label tooltips if needed.
 - **Compare to prior period** — optional second series or delta for “vs last month / vs last year.”
 - **Empty states** — explicit copy when there are no donations in range.
 
