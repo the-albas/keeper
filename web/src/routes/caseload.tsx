@@ -48,29 +48,63 @@ interface ResidentProfile {
 	id: string;
 	resident_code: string;
 	full_name: string;
+	case_control_no: string;
+	internal_code: string;
+	// Demographics
 	date_of_birth: string;
 	sex: string;
-	civil_status: string;
-	nationality: string;
+	birth_status: string;
+	place_of_birth: string;
+	religion: string;
+	// Case
 	case_status: CaseStatus | string;
 	case_category: string;
-	case_subcategories: string[];
-	risk_level: RiskLevel | string;
-	has_disability: boolean;
-	disability_type: string;
-	is_4ps_beneficiary: boolean;
-	is_solo_parent: boolean;
-	is_indigenous: boolean;
-	is_informal_settler: boolean;
-	admission_date: string;
+	// Sub-categories (boolean flags per CSV)
+	sub_cat_orphaned: boolean;
+	sub_cat_trafficked: boolean;
+	sub_cat_child_labor: boolean;
+	sub_cat_physical_abuse: boolean;
+	sub_cat_sexual_abuse: boolean;
+	sub_cat_osaec: boolean;
+	sub_cat_cicl: boolean;
+	sub_cat_at_risk: boolean;
+	sub_cat_street_child: boolean;
+	sub_cat_child_with_hiv: boolean;
+	// PWD / Special needs
+	is_pwd: boolean;
+	pwd_type: string;
+	has_special_needs: boolean;
+	special_needs_diagnosis: string;
+	// Family socio-demographic
+	family_is_4ps: boolean;
+	family_solo_parent: boolean;
+	family_indigenous: boolean;
+	family_parent_pwd: boolean;
+	family_informal_settler: boolean;
+	// Admission
+	date_of_admission: string;
 	safehouse_id: string;
 	safehouse_name: string;
-	referred_by: string;
+	// Referral
 	referral_source: string;
+	referring_agency_person: string;
+	// COLB
+	date_colb_registered: string;
+	date_colb_obtained: string;
+	// Case work
 	assigned_social_worker: string;
-	reintegration_plan: string;
-	reintegration_target_date: string;
+	initial_case_assessment: string;
+	date_case_study_prepared: string;
+	// Risk
+	initial_risk_level: RiskLevel | string;
+	current_risk_level: RiskLevel | string;
+	// Reintegration
+	reintegration_type: string;
 	reintegration_status: string;
+	// Timeline
+	date_enrolled: string;
+	date_closed: string;
+	notes_restricted: string;
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -88,50 +122,34 @@ const CASE_STATUSES: CaseStatus[] = [
 const RISK_LEVELS: RiskLevel[] = ["Low", "Medium", "High", "Critical"];
 
 const CASE_CATEGORIES = [
-	"Trafficked",
-	"Physical Abuse",
-	"Sexual Abuse",
-	"Psychological Abuse",
-	"Economic Abuse",
-	"Neglected",
 	"Abandoned",
+	"Neglected",
 	"Surrendered",
 	"Foundling",
+	"Orphaned",
+	"Trafficked",
+	"Child Labor",
+	"Physically Abused",
+	"Sexually Abused",
+	"OSAEC",
+	"CICL",
+	"At Risk",
+	"Street Child",
+	"Child with HIV",
 ];
 
-const SUBCATEGORIES: Record<string, string[]> = {
-	Trafficked: [
-		"Labor Trafficking",
-		"Sex Trafficking",
-		"Domestic Servitude",
-		"Debt Bondage",
-	],
-	"Physical Abuse": [
-		"Intimate Partner Violence",
-		"Child Physical Abuse",
-		"Elder Abuse",
-		"Assault by Stranger",
-	],
-	"Sexual Abuse": [
-		"Rape",
-		"Sexual Harassment",
-		"Child Sexual Abuse (CSAM)",
-		"Online Sexual Exploitation",
-	],
-	"Psychological Abuse": [
-		"Emotional Manipulation",
-		"Coercion & Control",
-		"Isolation",
-		"Threats & Intimidation",
-	],
-	"Economic Abuse": [
-		"Financial Control",
-		"Destruction of Property",
-		"Forced Economic Dependency",
-	],
-	Neglected: ["Child Neglect", "Elder Neglect", "Medical Neglect"],
-	Abandoned: ["Child Abandonment", "Spousal Abandonment"],
-};
+const SUB_CAT_FIELDS: { key: keyof ResidentProfile; label: string }[] = [
+	{ key: "sub_cat_orphaned", label: "Orphaned" },
+	{ key: "sub_cat_trafficked", label: "Trafficked" },
+	{ key: "sub_cat_child_labor", label: "Child Labor" },
+	{ key: "sub_cat_physical_abuse", label: "Physical Abuse" },
+	{ key: "sub_cat_sexual_abuse", label: "Sexual Abuse" },
+	{ key: "sub_cat_osaec", label: "OSAEC" },
+	{ key: "sub_cat_cicl", label: "CICL" },
+	{ key: "sub_cat_at_risk", label: "At Risk" },
+	{ key: "sub_cat_street_child", label: "Street Child" },
+	{ key: "sub_cat_child_with_hiv", label: "Child with HIV" },
+];
 
 const REFERRAL_SOURCES = [
 	"Government Agency (DSWD)",
@@ -167,66 +185,81 @@ const RISK_COLORS: Record<RiskLevel, string> = {
 // ─── Mock data ────────────────────────────────────────────────────────────────
 
 type ResidentApi = {
-	id: string;
-	resident_code: string;
-	full_name?: string;
-	date_of_birth?: string;
-	sex?: string;
-	civil_status?: string;
-	nationality?: string;
-	case_status?: string;
-	case_category?: string;
-	case_subcategories?: string[];
-	risk_level?: string;
-	has_disability?: boolean;
-	disability_type?: string;
-	is_4ps_beneficiary?: boolean;
-	is_solo_parent?: boolean;
-	is_indigenous?: boolean;
-	is_informal_settler?: boolean;
-	admission_date?: string;
-	safehouse_id?: string;
-	safehouse_name?: string;
-	referred_by?: string;
-	referral_source?: string;
-	assigned_social_worker?: string;
-	reintegration_plan?: string;
-	reintegration_target_date?: string;
-	reintegration_status?: string;
-};
-
-type SafehouseApi = {
-	id: string;
-	name: string;
+  id: string;
+  resident_code?: string;
+  full_name?: string;
+  case_control_no?: string;
+  internal_code?: string;
+  date_of_birth?: string;
+  sex?: string;
+  birth_status?: string;
+  place_of_birth?: string;
+  religion?: string;
+  case_status?: string;
+  case_category?: string;
+  current_risk_level?: string;
+  initial_risk_level?: string;
+  safehouse_id?: string;
+  safehouse_name?: string;
+  assigned_social_worker?: string;
+  date_of_admission?: string;
+  referral_source?: string;
+  referring_agency_person?: string;
+  reintegration_type?: string;
+  reintegration_status?: string;
+  date_enrolled?: string;
+  date_closed?: string;
 };
 
 const EMPTY_FORM: ResidentProfile = {
 	id: "",
 	resident_code: "",
 	full_name: "",
+	case_control_no: "",
+	internal_code: "",
 	date_of_birth: "",
 	sex: "",
-	civil_status: "",
-	nationality: "Filipino",
+	birth_status: "",
+	place_of_birth: "",
+	religion: "",
 	case_status: "Intake",
 	case_category: "",
-	case_subcategories: [],
-	risk_level: "Medium",
-	has_disability: false,
-	disability_type: "",
-	is_4ps_beneficiary: false,
-	is_solo_parent: false,
-	is_indigenous: false,
-	is_informal_settler: false,
-	admission_date: "",
+	sub_cat_orphaned: false,
+	sub_cat_trafficked: false,
+	sub_cat_child_labor: false,
+	sub_cat_physical_abuse: false,
+	sub_cat_sexual_abuse: false,
+	sub_cat_osaec: false,
+	sub_cat_cicl: false,
+	sub_cat_at_risk: false,
+	sub_cat_street_child: false,
+	sub_cat_child_with_hiv: false,
+	is_pwd: false,
+	pwd_type: "",
+	has_special_needs: false,
+	special_needs_diagnosis: "",
+	family_is_4ps: false,
+	family_solo_parent: false,
+	family_indigenous: false,
+	family_parent_pwd: false,
+	family_informal_settler: false,
+	date_of_admission: "",
 	safehouse_id: "",
 	safehouse_name: "",
-	referred_by: "",
 	referral_source: "",
+	referring_agency_person: "",
+	date_colb_registered: "",
+	date_colb_obtained: "",
 	assigned_social_worker: "",
-	reintegration_plan: "",
-	reintegration_target_date: "",
+	initial_case_assessment: "",
+	date_case_study_prepared: "",
+	initial_risk_level: "Medium",
+	current_risk_level: "Medium",
+	reintegration_type: "",
 	reintegration_status: "",
+	date_enrolled: "",
+	date_closed: "",
+	notes_restricted: "",
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -393,6 +426,78 @@ function CaseloadPage() {
 		await queryClient.invalidateQueries({ queryKey: ["admin", "caseload", "residents"] });
 	},
   });
+  const SAFEHOUSES = lookupsData?.safehouses ?? [];
+
+  useEffect(() => {
+    const normalizeCaseStatus = (value?: string): CaseStatus => {
+      const v = (value ?? "").toLowerCase();
+      if (v === "intake") return "Intake";
+      if (v === "assessment") return "Assessment";
+      if (v === "reintegration") return "Reintegration";
+      if (v === "closed") return "Closed";
+      if (v === "graduated") return "Graduated";
+      return "Active Care";
+    };
+    const normalizeRisk = (value?: string): RiskLevel => {
+      const v = (value ?? "").toLowerCase();
+      if (v === "low") return "Low";
+      if (v === "high") return "High";
+      if (v === "critical") return "Critical";
+      return "Medium";
+    };
+    setResidents(
+      residentsFromApi.map((r) => ({
+        id: r.id,
+        resident_code: r.resident_code || `RES-${r.id}`,
+        full_name: r.full_name || `Resident ${r.id}`,
+        case_control_no: r.case_control_no || "",
+        internal_code: r.internal_code || "",
+        date_of_birth: r.date_of_birth || "",
+        sex: r.sex || "",
+        birth_status: r.birth_status || "",
+        place_of_birth: r.place_of_birth || "",
+        religion: r.religion || "",
+        case_status: normalizeCaseStatus(r.case_status),
+        case_category: r.case_category || "",
+        sub_cat_orphaned: false,
+        sub_cat_trafficked: false,
+        sub_cat_child_labor: false,
+        sub_cat_physical_abuse: false,
+        sub_cat_sexual_abuse: false,
+        sub_cat_osaec: false,
+        sub_cat_cicl: false,
+        sub_cat_at_risk: false,
+        sub_cat_street_child: false,
+        sub_cat_child_with_hiv: false,
+        is_pwd: false,
+        pwd_type: "",
+        has_special_needs: false,
+        special_needs_diagnosis: "",
+        family_is_4ps: false,
+        family_solo_parent: false,
+        family_indigenous: false,
+        family_parent_pwd: false,
+        family_informal_settler: false,
+        date_of_admission: r.date_of_admission || "",
+        safehouse_id: r.safehouse_id || "",
+        safehouse_name: r.safehouse_name || "",
+        referral_source: r.referral_source || "",
+        referring_agency_person: r.referring_agency_person || "",
+        date_colb_registered: "",
+        date_colb_obtained: "",
+        assigned_social_worker: r.assigned_social_worker || "",
+        initial_case_assessment: "",
+        date_case_study_prepared: "",
+        initial_risk_level: normalizeRisk(r.initial_risk_level),
+        current_risk_level: normalizeRisk(r.current_risk_level),
+        reintegration_type: r.reintegration_type || "",
+        reintegration_status: r.reintegration_status || "",
+        date_enrolled: r.date_enrolled || "",
+        date_closed: r.date_closed || "",
+        notes_restricted: "",
+      }))
+    );
+  }, [residentsFromApi]);
 
   // ── Filtering ──────────────────────────────────────────────────────────────
 
@@ -404,7 +509,7 @@ function CaseloadPage() {
       if (filters.status && r.case_status !== filters.status) return false;
       if (filters.category && r.case_category !== filters.category) return false;
       if (filters.safehouse && r.safehouse_id !== filters.safehouse) return false;
-      if (filters.riskLevel && r.risk_level !== filters.riskLevel) return false;
+      if (filters.riskLevel && r.current_risk_level !== filters.riskLevel) return false;
       return true;
     });
   }, [residents, filters]);
@@ -424,7 +529,7 @@ function CaseloadPage() {
   const totalCount = residents.length;
   const activeCareCount = residents.filter((r) => r.case_status === "Active Care").length;
   const reintegrationCount = residents.filter((r) => r.case_status === "Reintegration").length;
-  const criticalCount = residents.filter((r) => r.risk_level === "Critical").length;
+  const criticalCount = residents.filter((r) => r.current_risk_level === "Critical").length;
 
   // ── Panel handlers ─────────────────────────────────────────────────────────
 
@@ -453,8 +558,6 @@ function CaseloadPage() {
   function handleField<K extends keyof ResidentProfile>(key: K, value: ResidentProfile[K]) {
     setFormData((prev) => {
       const next = { ...prev, [key]: value };
-      // Clear subcategories when category changes
-      if (key === "case_category") next.case_subcategories = [];
       // Sync safehouse name when id changes
       if (key === "safehouse_id") {
         const sh = safehouses.find((s) => s.id === value);
@@ -464,50 +567,51 @@ function CaseloadPage() {
     });
   }
 
-  function toggleSubcategory(sub: string) {
-    setFormData((prev) => ({
-      ...prev,
-      case_subcategories: prev.case_subcategories.includes(sub)
-        ? prev.case_subcategories.filter((s) => s !== sub)
-        : [...prev.case_subcategories, sub],
-    }));
-  }
-
-  async function handleSave(e: React.FormEvent) {
-	e.preventDefault();
-	if (panelMode !== "add" && panelMode !== "edit") return;
-
-	await saveMutation.mutateAsync({ mode: panelMode, data: formData });
-	closePanel();
-  }
-
-  async function handleDelete() {
-	if (!panelResident) return;
-	const ok = window.confirm(`Delete resident ${panelResident.full_name}? This cannot be undone.`);
-	if (!ok) return;
-	await deleteMutation.mutateAsync(panelResident.id);
-	closePanel();
+  function handleSave(e: React.FormEvent) {
+    e.preventDefault();
+    if (panelMode === "add") {
+      const newResident: ResidentProfile = {
+        ...formData,
+        id: `r-${Date.now()}`,
+        resident_code: formData.resident_code || `KPR-${new Date().getFullYear()}-${String(residents.length + 1).padStart(3, "0")}`,
+      };
+      // TODO: POST to your C# API endpoint
+      setResidents((prev) => [newResident, ...prev]);
+    } else if (panelMode === "edit") {
+      // TODO: PUT to your C# API endpoint
+      setResidents((prev) => prev.map((r) => (r.id === formData.id ? formData : r)));
+      setPanelResident(formData);
+      setPanelMode("view");
+      return;
+    }
+    closePanel();
   }
 
   // ── Panel: view content ────────────────────────────────────────────────────
 
   function renderViewContent(r: ResidentProfile) {
+    const activeSubs = SUB_CAT_FIELDS.filter((f) => r[f.key] as boolean).map((f) => f.label);
     const socioFlags = [
-      r.is_4ps_beneficiary && "4Ps Beneficiary",
-      r.is_solo_parent && "Solo Parent",
-      r.is_indigenous && "Indigenous Group",
-      r.is_informal_settler && "Informal Settler",
+      r.family_is_4ps && "4Ps Beneficiary",
+      r.family_solo_parent && "Solo Parent",
+      r.family_indigenous && "Indigenous Group",
+      r.family_parent_pwd && "Parent with Disability",
+      r.family_informal_settler && "Informal Settler",
     ].filter(Boolean) as string[];
+
+    const fmtDate = (d: string) =>
+      d ? new Date(d + "T00:00:00").toLocaleDateString("en-PH", { year: "numeric", month: "long", day: "numeric" }) : undefined;
 
     return (
       <div className="space-y-1 pb-6">
         <SectionDivider label="Identity & Demographics" />
         <div className="grid grid-cols-2 gap-x-6 gap-y-3 pt-1 pb-3">
           <ViewField label="Full Name" value={r.full_name} />
-          <ViewField label="Date of Birth" value={r.date_of_birth ? new Date(r.date_of_birth + "T00:00:00").toLocaleDateString("en-PH", { year: "numeric", month: "long", day: "numeric" }) : undefined} />
+          <ViewField label="Date of Birth" value={fmtDate(r.date_of_birth)} />
           <ViewField label="Sex" value={r.sex} />
-          <ViewField label="Civil Status" value={r.civil_status} />
-          <ViewField label="Nationality" value={r.nationality} />
+          <ViewField label="Birth Status" value={r.birth_status} />
+          <ViewField label="Place of Birth" value={r.place_of_birth} />
+          <ViewField label="Religion" value={r.religion} />
         </div>
 
         <SectionDivider label="Case Information" />
@@ -521,20 +625,30 @@ function CaseloadPage() {
             }
           />
           <ViewField
-            label="Risk Level"
+            label="Current Risk Level"
             value={
-              <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-body font-medium border ${RISK_COLORS[r.risk_level as RiskLevel]}`}>
-                {r.risk_level}
+              <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-body font-medium border ${RISK_COLORS[r.current_risk_level as RiskLevel]}`}>
+                {r.current_risk_level}
               </span>
+            }
+          />
+          <ViewField
+            label="Initial Risk Level"
+            value={
+              r.initial_risk_level ? (
+                <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-body font-medium border ${RISK_COLORS[r.initial_risk_level as RiskLevel]}`}>
+                  {r.initial_risk_level}
+                </span>
+              ) : undefined
             }
           />
           <ViewField label="Case Category" value={r.case_category} />
           <ViewField
             label="Sub-categories"
             value={
-              r.case_subcategories.length > 0 ? (
+              activeSubs.length > 0 ? (
                 <div className="flex flex-wrap gap-1 mt-0.5">
-                  {r.case_subcategories.map((s) => (
+                  {activeSubs.map((s) => (
                     <span key={s} className="inline-flex px-2 py-0.5 rounded-full text-xs font-body bg-muted text-muted-foreground border border-border">
                       {s}
                     </span>
@@ -545,10 +659,12 @@ function CaseloadPage() {
           />
         </div>
 
-        <SectionDivider label="Disability Information" />
+        <SectionDivider label="PWD & Special Needs" />
         <div className="grid grid-cols-2 gap-x-6 gap-y-3 pt-1 pb-3">
-          <ViewField label="Has Disability" value={r.has_disability ? "Yes" : "No"} />
-          {r.has_disability && <ViewField label="Disability Type" value={r.disability_type} />}
+          <ViewField label="Person with Disability (PWD)" value={r.is_pwd ? "Yes" : "No"} />
+          {r.is_pwd && <ViewField label="PWD Type" value={r.pwd_type} />}
+          <ViewField label="Has Special Needs" value={r.has_special_needs ? "Yes" : "No"} />
+          {r.has_special_needs && <ViewField label="Diagnosis" value={r.special_needs_diagnosis} />}
         </div>
 
         <SectionDivider label="Family Socio-Demographic Profile" />
@@ -568,29 +684,47 @@ function CaseloadPage() {
 
         <SectionDivider label="Admission & Safehouse" />
         <div className="grid grid-cols-2 gap-x-6 gap-y-3 pt-1 pb-3">
-          <ViewField label="Admission Date" value={r.admission_date ? new Date(r.admission_date + "T00:00:00").toLocaleDateString("en-PH", { year: "numeric", month: "long", day: "numeric" }) : undefined} />
+          <ViewField label="Date of Admission" value={fmtDate(r.date_of_admission)} />
           <ViewField label="Safehouse" value={r.safehouse_name} />
+          <ViewField label="Date Enrolled" value={fmtDate(r.date_enrolled)} />
+          <ViewField label="Date Closed" value={fmtDate(r.date_closed)} />
         </div>
 
         <SectionDivider label="Referral Information" />
         <div className="grid grid-cols-2 gap-x-6 gap-y-3 pt-1 pb-3">
-          <ViewField label="Referred By" value={r.referred_by} />
+          <ViewField label="Referring Agency / Person" value={r.referring_agency_person} />
           <ViewField label="Referral Source" value={r.referral_source} />
         </div>
 
-        <SectionDivider label="Assigned Social Worker" />
-        <div className="pt-1 pb-3">
-          <ViewField label="Social Worker" value={r.assigned_social_worker} />
+        <SectionDivider label="Certificate of Live Birth" />
+        <div className="grid grid-cols-2 gap-x-6 gap-y-3 pt-1 pb-3">
+          <ViewField label="Date COLB Registered" value={fmtDate(r.date_colb_registered)} />
+          <ViewField label="Date COLB Obtained" value={fmtDate(r.date_colb_obtained)} />
         </div>
 
-        <SectionDivider label="Reintegration Tracking" />
+        <SectionDivider label="Case Work" />
         <div className="grid grid-cols-2 gap-x-6 gap-y-3 pt-1 pb-3">
-          <ViewField label="Status" value={r.reintegration_status} />
-          <ViewField label="Target Date" value={r.reintegration_target_date ? new Date(r.reintegration_target_date + "T00:00:00").toLocaleDateString("en-PH", { year: "numeric", month: "long", day: "numeric" }) : undefined} />
+          <ViewField label="Assigned Social Worker" value={r.assigned_social_worker} />
+          <ViewField label="Date Case Study Prepared" value={fmtDate(r.date_case_study_prepared)} />
           <div className="col-span-2">
-            <ViewField label="Plan" value={r.reintegration_plan} />
+            <ViewField label="Initial Case Assessment" value={r.initial_case_assessment} />
           </div>
         </div>
+
+        <SectionDivider label="Reintegration" />
+        <div className="grid grid-cols-2 gap-x-6 gap-y-3 pt-1 pb-3">
+          <ViewField label="Type" value={r.reintegration_type} />
+          <ViewField label="Status" value={r.reintegration_status} />
+        </div>
+
+        {r.notes_restricted && (
+          <>
+            <SectionDivider label="Restricted Notes" />
+            <div className="pt-1 pb-3">
+              <ViewField label="Notes" value={r.notes_restricted} />
+            </div>
+          </>
+        )}
       </div>
     );
   }
@@ -598,7 +732,6 @@ function CaseloadPage() {
   // ── Panel: form content ────────────────────────────────────────────────────
 
   function renderFormContent() {
-    const subcategoryOptions = SUBCATEGORIES[formData.case_category] ?? [];
     return (
       <form id="resident-form" onSubmit={handleSave} className="space-y-1 pb-6">
         <SectionDivider label="Identity & Demographics" />
@@ -612,6 +745,10 @@ function CaseloadPage() {
             <Input value={formData.resident_code} onChange={(e) => handleField("resident_code", e.target.value)} placeholder="Auto-generated if blank" />
           </div>
           <div className="space-y-1.5">
+            <Label className="font-body text-xs font-semibold uppercase tracking-wide text-muted-foreground">Case Control No.</Label>
+            <Input value={formData.case_control_no} onChange={(e) => handleField("case_control_no", e.target.value)} placeholder="e.g. CC-2025-001" />
+          </div>
+          <div className="space-y-1.5">
             <Label className="font-body text-xs font-semibold uppercase tracking-wide text-muted-foreground">Date of Birth <span className="text-red-500">*</span></Label>
             <Input required type="date" value={formData.date_of_birth} onChange={(e) => handleField("date_of_birth", e.target.value)} />
           </div>
@@ -619,19 +756,23 @@ function CaseloadPage() {
             <Label className="font-body text-xs font-semibold uppercase tracking-wide text-muted-foreground">Sex</Label>
             <select aria-label="Sex" value={formData.sex} onChange={(e) => handleField("sex", e.target.value)} className={selectClass()}>
               <option value="">Select…</option>
-              {["Female", "Male", "Intersex", "Prefer not to say"].map((s) => <option key={s}>{s}</option>)}
+              {["Female", "Male", "Intersex"].map((s) => <option key={s}>{s}</option>)}
             </select>
           </div>
           <div className="space-y-1.5">
-            <Label className="font-body text-xs font-semibold uppercase tracking-wide text-muted-foreground">Civil Status</Label>
-            <select aria-label="Civil status" value={formData.civil_status} onChange={(e) => handleField("civil_status", e.target.value)} className={selectClass()}>
+            <Label className="font-body text-xs font-semibold uppercase tracking-wide text-muted-foreground">Birth Status</Label>
+            <select aria-label="Birth status" value={formData.birth_status} onChange={(e) => handleField("birth_status", e.target.value)} className={selectClass()}>
               <option value="">Select…</option>
-              {["Single", "Married", "Separated", "Widowed", "Cohabiting"].map((s) => <option key={s}>{s}</option>)}
+              {["Legitimate", "Illegitimate", "Legitimated", "Unknown"].map((s) => <option key={s}>{s}</option>)}
             </select>
           </div>
           <div className="space-y-1.5">
-            <Label className="font-body text-xs font-semibold uppercase tracking-wide text-muted-foreground">Nationality</Label>
-            <Input value={formData.nationality} onChange={(e) => handleField("nationality", e.target.value)} placeholder="e.g. Filipino" />
+            <Label className="font-body text-xs font-semibold uppercase tracking-wide text-muted-foreground">Place of Birth</Label>
+            <Input value={formData.place_of_birth} onChange={(e) => handleField("place_of_birth", e.target.value)} placeholder="City / Municipality" />
+          </div>
+          <div className="space-y-1.5">
+            <Label className="font-body text-xs font-semibold uppercase tracking-wide text-muted-foreground">Religion</Label>
+            <Input value={formData.religion} onChange={(e) => handleField("religion", e.target.value)} placeholder="e.g. Roman Catholic" />
           </div>
         </div>
 
@@ -644,62 +785,84 @@ function CaseloadPage() {
             </select>
           </div>
           <div className="space-y-1.5">
-            <Label className="font-body text-xs font-semibold uppercase tracking-wide text-muted-foreground">Risk Level <span className="text-red-500">*</span></Label>
-            <select required aria-label="Risk level" value={formData.risk_level} onChange={(e) => handleField("risk_level", e.target.value as RiskLevel)} className={selectClass()}>
-              {RISK_LEVELS.map((s) => <option key={s}>{s}</option>)}
-            </select>
-          </div>
-          <div className="col-span-2 space-y-1.5">
             <Label className="font-body text-xs font-semibold uppercase tracking-wide text-muted-foreground">Case Category <span className="text-red-500">*</span></Label>
             <select required aria-label="Case category" value={formData.case_category} onChange={(e) => handleField("case_category", e.target.value)} className={selectClass()}>
               <option value="">Select category…</option>
               {CASE_CATEGORIES.map((c) => <option key={c}>{c}</option>)}
             </select>
           </div>
-          {subcategoryOptions.length > 0 && (
-            <div className="col-span-2 space-y-2">
-              <Label className="font-body text-xs font-semibold uppercase tracking-wide text-muted-foreground">Sub-categories</Label>
-              <div className="flex flex-wrap gap-2">
-                {subcategoryOptions.map((sub) => {
-                  const checked = formData.case_subcategories.includes(sub);
-                  return (
-                    <button
-                      key={sub}
-                      type="button"
-                      onClick={() => toggleSubcategory(sub)}
-                      className={`px-3 py-1 rounded-full text-xs font-body border transition-all ${
-                        checked
-                          ? "bg-primary/10 text-primary border-primary/30 font-semibold"
-                          : "bg-muted text-muted-foreground border-border hover:border-primary/30"
-                      }`}
-                    >
-                      {sub}
-                    </button>
-                  );
-                })}
-              </div>
+          <div className="space-y-1.5">
+            <Label className="font-body text-xs font-semibold uppercase tracking-wide text-muted-foreground">Initial Risk Level <span className="text-red-500">*</span></Label>
+            <select required aria-label="Initial risk level" value={formData.initial_risk_level} onChange={(e) => handleField("initial_risk_level", e.target.value as RiskLevel)} className={selectClass()}>
+              {RISK_LEVELS.map((s) => <option key={s}>{s}</option>)}
+            </select>
+          </div>
+          <div className="space-y-1.5">
+            <Label className="font-body text-xs font-semibold uppercase tracking-wide text-muted-foreground">Current Risk Level <span className="text-red-500">*</span></Label>
+            <select required aria-label="Current risk level" value={formData.current_risk_level} onChange={(e) => handleField("current_risk_level", e.target.value as RiskLevel)} className={selectClass()}>
+              {RISK_LEVELS.map((s) => <option key={s}>{s}</option>)}
+            </select>
+          </div>
+          <div className="col-span-2 space-y-2">
+            <Label className="font-body text-xs font-semibold uppercase tracking-wide text-muted-foreground">Sub-categories</Label>
+            <div className="flex flex-wrap gap-2">
+              {SUB_CAT_FIELDS.map(({ key, label }) => {
+                const checked = formData[key] as boolean;
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => handleField(key, !checked as ResidentProfile[typeof key])}
+                    className={`px-3 py-1 rounded-full text-xs font-body border transition-all ${
+                      checked
+                        ? "bg-primary/10 text-primary border-primary/30 font-semibold"
+                        : "bg-muted text-muted-foreground border-border hover:border-primary/30"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
             </div>
-          )}
+          </div>
         </div>
 
-        <SectionDivider label="Disability Information" />
+        <SectionDivider label="PWD & Special Needs" />
         <div className="pt-1 pb-3 space-y-3">
           <div className="flex items-center gap-3">
             <input
               type="checkbox"
-              id="has_disability"
-              checked={formData.has_disability}
-              onChange={(e) => handleField("has_disability", e.target.checked)}
+              id="is_pwd"
+              checked={formData.is_pwd}
+              onChange={(e) => handleField("is_pwd", e.target.checked)}
               className="h-4 w-4 rounded accent-primary"
             />
-            <Label htmlFor="has_disability" className="font-body text-sm text-foreground cursor-pointer">
-              Resident has a disability
+            <Label htmlFor="is_pwd" className="font-body text-sm text-foreground cursor-pointer">
+              Person with Disability (PWD)
             </Label>
           </div>
-          {formData.has_disability && (
+          {formData.is_pwd && (
             <div className="space-y-1.5">
-              <Label className="font-body text-xs font-semibold uppercase tracking-wide text-muted-foreground">Disability Type</Label>
-              <Input value={formData.disability_type} onChange={(e) => handleField("disability_type", e.target.value)} placeholder="Describe the disability" />
+              <Label className="font-body text-xs font-semibold uppercase tracking-wide text-muted-foreground">PWD Type</Label>
+              <Input value={formData.pwd_type} onChange={(e) => handleField("pwd_type", e.target.value)} placeholder="e.g. Visual, Hearing, Physical" />
+            </div>
+          )}
+          <div className="flex items-center gap-3">
+            <input
+              type="checkbox"
+              id="has_special_needs"
+              checked={formData.has_special_needs}
+              onChange={(e) => handleField("has_special_needs", e.target.checked)}
+              className="h-4 w-4 rounded accent-primary"
+            />
+            <Label htmlFor="has_special_needs" className="font-body text-sm text-foreground cursor-pointer">
+              Has Special Needs
+            </Label>
+          </div>
+          {formData.has_special_needs && (
+            <div className="space-y-1.5">
+              <Label className="font-body text-xs font-semibold uppercase tracking-wide text-muted-foreground">Diagnosis / Description</Label>
+              <Input value={formData.special_needs_diagnosis} onChange={(e) => handleField("special_needs_diagnosis", e.target.value)} placeholder="e.g. Autism Spectrum Disorder" />
             </div>
           )}
         </div>
@@ -708,10 +871,11 @@ function CaseloadPage() {
         <div className="pt-1 pb-3 space-y-2">
           {(
             [
-              ["is_4ps_beneficiary", "4Ps Beneficiary (Pantawid Pamilya)"],
-              ["is_solo_parent", "Solo Parent"],
-              ["is_indigenous", "Member of Indigenous Group"],
-              ["is_informal_settler", "Informal Settler"],
+              ["family_is_4ps", "4Ps Beneficiary (Pantawid Pamilya)"],
+              ["family_solo_parent", "Solo Parent"],
+              ["family_indigenous", "Member of Indigenous Group"],
+              ["family_parent_pwd", "Parent with Disability"],
+              ["family_informal_settler", "Informal Settler"],
             ] as [keyof ResidentProfile, string][]
           ).map(([key, label]) => (
             <div key={key} className="flex items-center gap-3">
@@ -732,8 +896,8 @@ function CaseloadPage() {
         <SectionDivider label="Admission & Safehouse" />
         <div className="grid grid-cols-2 gap-x-4 gap-y-3 pt-1 pb-3">
           <div className="space-y-1.5">
-            <Label className="font-body text-xs font-semibold uppercase tracking-wide text-muted-foreground">Admission Date <span className="text-red-500">*</span></Label>
-            <Input required type="date" value={formData.admission_date} onChange={(e) => handleField("admission_date", e.target.value)} />
+            <Label className="font-body text-xs font-semibold uppercase tracking-wide text-muted-foreground">Date of Admission <span className="text-red-500">*</span></Label>
+            <Input required type="date" value={formData.date_of_admission} onChange={(e) => handleField("date_of_admission", e.target.value)} />
           </div>
           <div className="space-y-1.5">
             <Label className="font-body text-xs font-semibold uppercase tracking-wide text-muted-foreground">Safehouse <span className="text-red-500">*</span></Label>
@@ -742,13 +906,21 @@ function CaseloadPage() {
               {safehouses.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
             </select>
           </div>
+          <div className="space-y-1.5">
+            <Label className="font-body text-xs font-semibold uppercase tracking-wide text-muted-foreground">Date Enrolled</Label>
+            <Input type="date" value={formData.date_enrolled} onChange={(e) => handleField("date_enrolled", e.target.value)} />
+          </div>
+          <div className="space-y-1.5">
+            <Label className="font-body text-xs font-semibold uppercase tracking-wide text-muted-foreground">Date Closed</Label>
+            <Input type="date" value={formData.date_closed} onChange={(e) => handleField("date_closed", e.target.value)} />
+          </div>
         </div>
 
         <SectionDivider label="Referral Information" />
         <div className="grid grid-cols-2 gap-x-4 gap-y-3 pt-1 pb-3">
           <div className="space-y-1.5">
-            <Label className="font-body text-xs font-semibold uppercase tracking-wide text-muted-foreground">Referred By</Label>
-            <Input value={formData.referred_by} onChange={(e) => handleField("referred_by", e.target.value)} placeholder="Person or agency name" />
+            <Label className="font-body text-xs font-semibold uppercase tracking-wide text-muted-foreground">Referring Agency / Person</Label>
+            <Input value={formData.referring_agency_person} onChange={(e) => handleField("referring_agency_person", e.target.value)} placeholder="Name or organization" />
           </div>
           <div className="space-y-1.5">
             <Label className="font-body text-xs font-semibold uppercase tracking-wide text-muted-foreground">Referral Source</Label>
@@ -759,14 +931,49 @@ function CaseloadPage() {
           </div>
         </div>
 
-        <SectionDivider label="Assigned Social Worker" />
-        <div className="pt-1 pb-3 space-y-1.5">
-          <Label className="font-body text-xs font-semibold uppercase tracking-wide text-muted-foreground">Social Worker <span className="text-red-500">*</span></Label>
-          <Input required value={formData.assigned_social_worker} onChange={(e) => handleField("assigned_social_worker", e.target.value)} placeholder="Full name" />
+        <SectionDivider label="Certificate of Live Birth (COLB)" />
+        <div className="grid grid-cols-2 gap-x-4 gap-y-3 pt-1 pb-3">
+          <div className="space-y-1.5">
+            <Label className="font-body text-xs font-semibold uppercase tracking-wide text-muted-foreground">Date COLB Registered</Label>
+            <Input type="date" value={formData.date_colb_registered} onChange={(e) => handleField("date_colb_registered", e.target.value)} />
+          </div>
+          <div className="space-y-1.5">
+            <Label className="font-body text-xs font-semibold uppercase tracking-wide text-muted-foreground">Date COLB Obtained</Label>
+            <Input type="date" value={formData.date_colb_obtained} onChange={(e) => handleField("date_colb_obtained", e.target.value)} />
+          </div>
         </div>
 
-        <SectionDivider label="Reintegration Tracking" />
+        <SectionDivider label="Case Work" />
         <div className="grid grid-cols-2 gap-x-4 gap-y-3 pt-1 pb-3">
+          <div className="space-y-1.5">
+            <Label className="font-body text-xs font-semibold uppercase tracking-wide text-muted-foreground">Assigned Social Worker <span className="text-red-500">*</span></Label>
+            <Input required value={formData.assigned_social_worker} onChange={(e) => handleField("assigned_social_worker", e.target.value)} placeholder="Full name" />
+          </div>
+          <div className="space-y-1.5">
+            <Label className="font-body text-xs font-semibold uppercase tracking-wide text-muted-foreground">Date Case Study Prepared</Label>
+            <Input type="date" value={formData.date_case_study_prepared} onChange={(e) => handleField("date_case_study_prepared", e.target.value)} />
+          </div>
+          <div className="col-span-2 space-y-1.5">
+            <Label className="font-body text-xs font-semibold uppercase tracking-wide text-muted-foreground">Initial Case Assessment</Label>
+            <textarea
+              rows={3}
+              value={formData.initial_case_assessment}
+              onChange={(e) => handleField("initial_case_assessment", e.target.value)}
+              placeholder="Summary of initial assessment…"
+              className={textareaClass()}
+            />
+          </div>
+        </div>
+
+        <SectionDivider label="Reintegration" />
+        <div className="grid grid-cols-2 gap-x-4 gap-y-3 pt-1 pb-3">
+          <div className="space-y-1.5">
+            <Label className="font-body text-xs font-semibold uppercase tracking-wide text-muted-foreground">Reintegration Type</Label>
+            <select aria-label="Reintegration type" value={formData.reintegration_type} onChange={(e) => handleField("reintegration_type", e.target.value)} className={selectClass()}>
+              <option value="">Select…</option>
+              {["Family Reunification", "Adoption", "Foster Care", "Independent Living", "Institutional Care", "Other"].map((s) => <option key={s}>{s}</option>)}
+            </select>
+          </div>
           <div className="space-y-1.5">
             <Label className="font-body text-xs font-semibold uppercase tracking-wide text-muted-foreground">Reintegration Status</Label>
             <select aria-label="Reintegration status" value={formData.reintegration_status} onChange={(e) => handleField("reintegration_status", e.target.value)} className={selectClass()}>
@@ -774,20 +981,18 @@ function CaseloadPage() {
               {["Not Started", "In Progress", "On Track", "Delayed", "Completed"].map((s) => <option key={s}>{s}</option>)}
             </select>
           </div>
-          <div className="space-y-1.5">
-            <Label className="font-body text-xs font-semibold uppercase tracking-wide text-muted-foreground">Target Date</Label>
-            <Input type="date" value={formData.reintegration_target_date} onChange={(e) => handleField("reintegration_target_date", e.target.value)} />
-          </div>
-          <div className="col-span-2 space-y-1.5">
-            <Label className="font-body text-xs font-semibold uppercase tracking-wide text-muted-foreground">Reintegration Plan</Label>
-            <textarea
-              rows={3}
-              value={formData.reintegration_plan}
-              onChange={(e) => handleField("reintegration_plan", e.target.value)}
-              placeholder="Describe the plan for reintegration…"
-              className={textareaClass()}
-            />
-          </div>
+        </div>
+
+        <SectionDivider label="Restricted Notes" />
+        <div className="pt-1 pb-3 space-y-1.5">
+          <Label className="font-body text-xs font-semibold uppercase tracking-wide text-muted-foreground">Notes (Restricted)</Label>
+          <textarea
+            rows={3}
+            value={formData.notes_restricted}
+            onChange={(e) => handleField("notes_restricted", e.target.value)}
+            placeholder="Confidential notes visible only to authorized staff…"
+            className={textareaClass()}
+          />
         </div>
       </form>
     );
@@ -939,8 +1144,8 @@ function CaseloadPage() {
                       </span>
                     </TableCell>
                     <TableCell>
-                      <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-body font-medium border ${RISK_COLORS[r.risk_level as RiskLevel]}`}>
-                        {r.risk_level}
+                      <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-body font-medium border ${RISK_COLORS[r.current_risk_level as RiskLevel]}`}>
+                        {r.current_risk_level}
                       </span>
                     </TableCell>
                     <TableCell className="font-body text-sm text-muted-foreground">
@@ -950,8 +1155,8 @@ function CaseloadPage() {
                       {r.assigned_social_worker}
                     </TableCell>
                     <TableCell className="font-body text-sm text-muted-foreground">
-                      {r.admission_date
-                        ? new Date(r.admission_date + "T00:00:00").toLocaleDateString("en-PH", { year: "numeric", month: "short", day: "numeric" })
+                      {r.date_of_admission
+                        ? new Date(r.date_of_admission + "T00:00:00").toLocaleDateString("en-PH", { year: "numeric", month: "short", day: "numeric" })
                         : "—"}
                     </TableCell>
                     <TableCell onClick={(e) => e.stopPropagation()}>

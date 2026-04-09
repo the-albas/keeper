@@ -51,7 +51,7 @@ export default function Navbar() {
             </Link>
             <Link
               to={user ? "/dashboard" : "/login"}
-              className="font-body text-sm font-medium text-muted-foreground transition-colors hover:text-yellow-600 [&.active]:font-semibold [&.active]:text-yellow-600"
+              className={`font-body text-sm font-medium text-muted-foreground transition-colors hover:text-yellow-600${user ? " [&.active]:font-semibold [&.active]:text-yellow-600" : ""}`}
             >
               Dashboard
             </Link>
