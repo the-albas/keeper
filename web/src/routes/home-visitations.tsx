@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+import { ChevronUp, Clock, Home, Plus, Users } from "lucide-react";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import { apiGetJson, getApiBaseUrl, type AuthMeResponse } from "@/lib/api";
 import { Button } from "@/components/ui/button";

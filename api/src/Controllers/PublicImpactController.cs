@@ -90,7 +90,7 @@ public class PublicImpactController : ControllerBase
             var girlsServed = await _db
                 .Database.SqlQuery<int>(
                     $"""
-                    SELECT COUNT(1)
+                    SELECT COUNT(1) AS [Value]
                     FROM dbo.residents
                     """
                 )

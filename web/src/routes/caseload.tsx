@@ -1,6 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
+import {
+	Activity,
+	Pencil,
+	Plus,
+	RefreshCw,
+	ShieldAlert,
+	Users,
+	X,
+} from "lucide-react";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import { Activity, Pencil, Plus, RefreshCw, ShieldAlert, Users, X } from "lucide-react";
 import { apiGetJson, type AuthMeResponse } from "@/lib/api";
@@ -134,6 +143,12 @@ const REFERRAL_SOURCES = [
 	"Self-Referral",
 	"Family or Friend",
 	"Other",
+];
+
+const SAFEHOUSES = [
+	{ id: "SH-001", name: "Tahanan ng Pag-asa" },
+	{ id: "SH-002", name: "Bagong Simula Center" },
+	{ id: "SH-003", name: "Kalayaan Shelter" },
 ];
 
 // ─── Badge color maps ─────────────────────────────────────────────────────────
