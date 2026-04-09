@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import { apiDelete, apiGetJson, apiPostJson, apiPutJson, type AuthMeResponse } from "@/lib/api";
+import { requireRole } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

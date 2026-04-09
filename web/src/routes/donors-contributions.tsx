@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { DollarSign, Gift, Heart, Pencil, Plus, TrendingUp, Users, X } from "lucide-react";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import { apiDelete, apiGetJson, apiPostJson, apiPutJson, type AuthMeResponse } from "@/lib/api";
+import { requireRole } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -302,6 +303,17 @@ function DonorsPage() {
     queryKey: ["admin-data", "donations"],
     queryFn: () => apiGetJson<DonationApi[]>("/api/admin-data/donations"),
   });
+  const { data: donorUiLookups } = useQuery<DonorUiLookups>({
+    queryKey: ["admin", "lookups", "donor-ui"],
+    queryFn: () => apiGetJson<DonorUiLookups>("/api/admin/lookups/donor-ui"),
+  });
+
+  const SAFEHOUSES = useMemo(
+    () => donorUiLookups?.safehouses.map((safehouse) => safehouse.name) ?? [],
+    [donorUiLookups]
+  );
+  const PROGRAMS = donorUiLookups?.programs ?? [];
+  const CAMPAIGNS = donorUiLookups?.campaigns ?? [];
 
   const saveSupporterMutation = useMutation({
     mutationFn: async (payload: { mode: "add" | "edit"; supporter: Supporter }) => {
