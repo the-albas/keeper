@@ -59,6 +59,13 @@ export default function Navbar() {
 								</Button>
 							</Link>
 						)}
+						{isStaffOrAdmin && (
+							<Link to="/admin" className="md:hidden">
+								<Button variant="ghost" size="sm" className="font-body text-sm">
+									Admin
+								</Button>
+							</Link>
+						)}
 						<Link to="/" hash="donate">
 							<Button
 								size="sm"
