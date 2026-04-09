@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { ChevronUp, Clock, Home, Plus, Users } from "lucide-react";
+import { ChevronUp, Clock, Home, Pencil, Plus, Trash2, Users } from "lucide-react";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import { apiGetJson, getApiBaseUrl, type AuthMeResponse } from "@/lib/api";
 import { Button } from "@/components/ui/button";
@@ -84,9 +84,6 @@ type HomeVisitApi = {
   visit_date: string;
   social_worker: string;
   visit_type: string;
-  location_visited: string;
-  family_members_present: string;
-  purpose: string;
   observations: string;
   family_cooperation_level: string;
   safety_concerns_noted: boolean;
@@ -280,6 +277,8 @@ function HomeVisitationsPage() {
 
   const [showVisitForm, setShowVisitForm] = useState(false);
   const [visitForm, setVisitForm] = useState(EMPTY_VISIT);
+  const [editingVisitId, setEditingVisitId] = useState<number | null>(null);
+  const [editVisitForm, setEditVisitForm] = useState(EMPTY_VISIT);
 
   const [showConferenceForm, setShowConferenceForm] = useState(false);
   const [conferenceForm, setConferenceForm] = useState(EMPTY_CONFERENCE);
@@ -328,9 +327,9 @@ function HomeVisitationsPage() {
         visitDate: v.visit_date,
         socialWorker: v.social_worker,
         visitType: normalizeVisitType(v.visit_type),
-        locationVisited: v.location_visited,
-        familyMembersPresent: v.family_members_present,
-        purpose: v.purpose,
+        locationVisited: "",
+        familyMembersPresent: "",
+        purpose: "",
         observations: v.observations,
         familyCooperationLevel: normalizeCooperation(v.family_cooperation_level),
         safetyConcernsNoted: v.safety_concerns_noted,
@@ -366,6 +365,50 @@ function HomeVisitationsPage() {
         body: JSON.stringify(payload),
       });
       if (!response.ok) throw new Error("Failed to save visit");
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["home-visitations"] });
+    },
+  });
+
+  const updateVisitMutation = useMutation({
+    mutationFn: async ({ id, payload }: { id: number; payload: typeof EMPTY_VISIT }) => {
+      const apiBaseUrl = getApiBaseUrl();
+      if (!apiBaseUrl) throw new Error("API base URL not configured");
+      const response = await fetch(`${apiBaseUrl}/api/admin-data/home-visitations/${id}`, {
+        method: "PUT",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          visit_date: payload.visitDate,
+          social_worker: payload.socialWorker,
+          visit_type: payload.visitType,
+          observations: payload.observations,
+          family_cooperation_level: payload.familyCooperationLevel,
+          safety_concerns_noted: payload.safetyConcernsNoted,
+          follow_up_needed: payload.followUpNeeded,
+          follow_up_notes: payload.followUpNotes,
+          visit_outcome: payload.visitOutcome,
+        }),
+      });
+      if (!response.ok) throw new Error("Failed to update visit");
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["home-visitations"] });
+      setEditingVisitId(null);
+      setEditVisitForm(EMPTY_VISIT);
+    },
+  });
+
+  const deleteVisitMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const apiBaseUrl = getApiBaseUrl();
+      if (!apiBaseUrl) throw new Error("API base URL not configured");
+      const response = await fetch(`${apiBaseUrl}/api/admin-data/home-visitations/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (!response.ok) throw new Error("Failed to delete visit");
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["home-visitations"] });
@@ -411,6 +454,38 @@ function HomeVisitationsPage() {
     setShowConferenceForm(false);
     setVisitForm(EMPTY_VISIT);
     setConferenceForm(EMPTY_CONFERENCE);
+    setEditingVisitId(null);
+    setEditVisitForm(EMPTY_VISIT);
+  }
+
+  function handleEditVisit(v: HomeVisit) {
+    setEditingVisitId(v.id);
+    setEditVisitForm({
+      visitDate: v.visitDate,
+      socialWorker: v.socialWorker,
+      visitType: v.visitType,
+      locationVisited: v.locationVisited,
+      familyMembersPresent: v.familyMembersPresent,
+      purpose: v.purpose,
+      observations: v.observations,
+      familyCooperationLevel: v.familyCooperationLevel,
+      safetyConcernsNoted: v.safetyConcernsNoted,
+      followUpNeeded: v.followUpNeeded,
+      followUpNotes: v.followUpNotes,
+      visitOutcome: v.visitOutcome,
+    });
+    setShowVisitForm(false);
+  }
+
+  async function handleEditVisitSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (editingVisitId === null) return;
+    await updateVisitMutation.mutateAsync({ id: editingVisitId, payload: editVisitForm });
+  }
+
+  async function handleDeleteVisit(id: number) {
+    if (!window.confirm("Delete this home visit record? This cannot be undone.")) return;
+    await deleteVisitMutation.mutateAsync(id);
   }
 
   async function handleVisitSubmit(e: React.FormEvent) {
@@ -685,6 +760,77 @@ function HomeVisitationsPage() {
     );
   }
 
+  // ── Edit visit form ──────────────────────────────────────────────────────────
+
+  function renderEditVisitForm(v: HomeVisit) {
+    return (
+      <div className="mt-3 bg-muted/30 rounded-xl border border-border p-4">
+        <h4 className="font-heading text-sm font-bold text-foreground mb-3">Edit Visit</h4>
+        <form onSubmit={handleEditVisitSubmit} className="space-y-3">
+          <div className="grid sm:grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <Label className="font-body text-xs font-medium text-foreground">Visit Date</Label>
+              <Input type="date" required value={editVisitForm.visitDate} onChange={(e) => setEditVisitForm((f) => ({ ...f, visitDate: e.target.value }))} />
+            </div>
+            <div className="space-y-1">
+              <Label className="font-body text-xs font-medium text-foreground">Social Worker</Label>
+              <Input required value={editVisitForm.socialWorker} onChange={(e) => setEditVisitForm((f) => ({ ...f, socialWorker: e.target.value }))} />
+            </div>
+          </div>
+          <div className="grid sm:grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <Label className="font-body text-xs font-medium text-foreground">Visit Type</Label>
+              <select aria-label="Visit type" value={editVisitForm.visitType} onChange={(e) => setEditVisitForm((f) => ({ ...f, visitType: e.target.value as VisitType }))} className={selectClass()}>
+                {VISIT_TYPES.map((t) => <option key={t}>{t}</option>)}
+              </select>
+            </div>
+            <div className="space-y-1">
+              <Label className="font-body text-xs font-medium text-foreground">Family Cooperation</Label>
+              <select aria-label="Family cooperation level" value={editVisitForm.familyCooperationLevel} onChange={(e) => setEditVisitForm((f) => ({ ...f, familyCooperationLevel: e.target.value as FamilyCooperation }))} className={selectClass()}>
+                {COOPERATION_LEVELS.map((c) => <option key={c}>{c}</option>)}
+              </select>
+            </div>
+          </div>
+          <div className="space-y-1">
+            <Label className="font-body text-xs font-medium text-foreground">Observations</Label>
+            <textarea required rows={3} value={editVisitForm.observations} onChange={(e) => setEditVisitForm((f) => ({ ...f, observations: e.target.value }))} className={textareaClass()} />
+          </div>
+          <div className="grid sm:grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <Label className="font-body text-xs font-medium text-foreground">Visit Outcome</Label>
+              <select aria-label="Visit outcome" value={editVisitForm.visitOutcome} onChange={(e) => setEditVisitForm((f) => ({ ...f, visitOutcome: e.target.value }))} className={selectClass()}>
+                <option value="">Select…</option>
+                {["Favorable", "Partially Favorable", "Unfavorable", "Inconclusive", "Pending Follow-up"].map((o) => <option key={o}>{o}</option>)}
+              </select>
+            </div>
+            <div className="space-y-1 flex flex-col justify-end">
+              <div className="flex flex-col gap-1">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" checked={editVisitForm.safetyConcernsNoted} onChange={(e) => setEditVisitForm((f) => ({ ...f, safetyConcernsNoted: e.target.checked }))} className="h-4 w-4 rounded accent-primary" />
+                  <span className="font-body text-xs text-foreground">Safety Concerns Noted</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" checked={editVisitForm.followUpNeeded} onChange={(e) => setEditVisitForm((f) => ({ ...f, followUpNeeded: e.target.checked }))} className="h-4 w-4 rounded accent-primary" />
+                  <span className="font-body text-xs text-foreground">Follow-up Needed</span>
+                </label>
+              </div>
+            </div>
+          </div>
+          <div className="space-y-1">
+            <Label className="font-body text-xs font-medium text-foreground">Follow-up Notes</Label>
+            <textarea rows={2} value={editVisitForm.followUpNotes} onChange={(e) => setEditVisitForm((f) => ({ ...f, followUpNotes: e.target.value }))} className={textareaClass()} />
+          </div>
+          <div className="flex gap-2 justify-end">
+            <Button type="button" variant="outline" onClick={() => { setEditingVisitId(null); setEditVisitForm(EMPTY_VISIT); }} className="font-body px-4 h-8 rounded-xl text-sm">Cancel</Button>
+            <Button type="submit" disabled={updateVisitMutation.isPending} className="font-body bg-primary hover:bg-primary/90 text-primary-foreground px-4 h-8 rounded-xl text-sm">
+              {updateVisitMutation.isPending ? "Saving…" : "Save Changes"}
+            </Button>
+          </div>
+        </form>
+      </div>
+    );
+  }
+
   // ── Visit history ────────────────────────────────────────────────────────────
 
   function renderVisitHistory() {
@@ -715,15 +861,11 @@ function HomeVisitationsPage() {
                           {v.locationVisited && <> &mdash; {v.locationVisited}</>}
                         </p>
                       </div>
-                      <div className="flex gap-2 flex-wrap">
-                        <span
-                          className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-body font-medium border ${VISIT_TYPE_COLORS[v.visitType]}`}
-                        >
+                      <div className="flex gap-2 flex-wrap items-center">
+                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-body font-medium border ${VISIT_TYPE_COLORS[v.visitType]}`}>
                           {v.visitType}
                         </span>
-                        <span
-                          className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-body font-medium border ${COOPERATION_COLORS[v.familyCooperationLevel]}`}
-                        >
+                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-body font-medium border ${COOPERATION_COLORS[v.familyCooperationLevel]}`}>
                           {v.familyCooperationLevel}
                         </span>
                         {v.visitOutcome && (
@@ -736,6 +878,21 @@ function HomeVisitationsPage() {
                             Safety Concerns
                           </span>
                         )}
+                        <button
+                          onClick={() => handleEditVisit(v)}
+                          className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                          aria-label="Edit visit"
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteVisit(v.id)}
+                          disabled={deleteVisitMutation.isPending}
+                          className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                          aria-label="Delete visit"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
                       </div>
                     </div>
                     <div className="space-y-3">
@@ -758,6 +915,7 @@ function HomeVisitationsPage() {
                         </div>
                       )}
                     </div>
+                    {editingVisitId === v.id && renderEditVisitForm(v)}
                   </div>
                 </div>
               ))}

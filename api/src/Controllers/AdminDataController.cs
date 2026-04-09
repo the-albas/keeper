@@ -1,3 +1,4 @@
+using System.Globalization;
 using api.Data;
 using api.Security;
 using Microsoft.AspNetCore.Authorization;
@@ -156,6 +157,153 @@ public class AdminDataController : ControllerBase
         {
             _logger.LogError(ex, "Failed to load admin donations.");
             return Ok(Array.Empty<DonationRow>());
+        }
+    }
+
+    [HttpPost("donations")]
+    public async Task<IActionResult> CreateDonation(
+        [FromBody] CreateDonationRequest body,
+        CancellationToken ct
+    )
+    {
+        try
+        {
+            int? supporterId = string.IsNullOrWhiteSpace(body.supporter_id)
+                ? null
+                : (int?)int.Parse(body.supporter_id, CultureInfo.InvariantCulture);
+
+            await using var tx = await _db.Database.BeginTransactionAsync(ct);
+
+            var newId = await _db.Database.SqlQuery<int>(
+                $"""SELECT ISNULL(MAX(donation_id), 0) + 1 AS [Value] FROM donations WITH (UPDLOCK, HOLDLOCK)"""
+            ).SingleAsync(ct);
+
+            await _db.Database.ExecuteSqlInterpolatedAsync(
+                $"""
+                INSERT INTO donations
+                (donation_id, supporter_id, amount, estimated_value, donation_date,
+                 donation_type, campaign_name, notes, currency_code, is_recurring, channel_source)
+                VALUES
+                ({newId}, {supporterId}, {body.amount}, {body.amount}, {body.donation_date},
+                 {body.donation_type}, {body.campaign}, {body.notes}, 'PHP', 0, 'Manual Entry')
+                """,
+                ct
+            );
+
+            if (!string.IsNullOrWhiteSpace(body.allocation_program))
+            {
+                var allocId = await _db.Database.SqlQuery<int>(
+                    $"""SELECT ISNULL(MAX(allocation_id), 0) + 1 AS [Value] FROM donation_allocations WITH (UPDLOCK, HOLDLOCK)"""
+                ).SingleAsync(ct);
+
+                await _db.Database.ExecuteSqlInterpolatedAsync(
+                    $"""
+                    INSERT INTO donation_allocations
+                    (allocation_id, donation_id, program_area, amount_allocated, allocation_date)
+                    VALUES ({allocId}, {newId}, {body.allocation_program}, {body.amount}, {body.donation_date})
+                    """,
+                    ct
+                );
+            }
+
+            await tx.CommitAsync(ct);
+            return StatusCode(StatusCodes.Status201Created);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to create donation.");
+            return StatusCode(
+                StatusCodes.Status500InternalServerError,
+                new { error = "Failed to save donation." }
+            );
+        }
+    }
+
+    [HttpPut("donations/{id:int}")]
+    public async Task<IActionResult> UpdateDonation(
+        [FromRoute] int id,
+        [FromBody] UpdateDonationRequest body,
+        CancellationToken ct
+    )
+    {
+        try
+        {
+            var rowsAffected = await _db.Database.ExecuteSqlInterpolatedAsync(
+                $"""
+                UPDATE donations
+                SET
+                    amount = {body.amount},
+                    estimated_value = {body.amount},
+                    donation_date = {body.donation_date},
+                    donation_type = {body.donation_type},
+                    campaign_name = {body.campaign},
+                    notes = {body.notes}
+                WHERE donation_id = {id}
+                """,
+                ct
+            );
+
+            if (rowsAffected == 0)
+                return NotFound(new { error = "Donation not found." });
+
+            if (!string.IsNullOrWhiteSpace(body.allocation_program))
+            {
+                await _db.Database.ExecuteSqlInterpolatedAsync(
+                    $"""
+                    IF EXISTS (SELECT 1 FROM donation_allocations WHERE donation_id = {id})
+                        UPDATE donation_allocations
+                        SET program_area = {body.allocation_program}, amount_allocated = {body.amount}
+                        WHERE donation_id = {id}
+                    ELSE
+                    BEGIN
+                        DECLARE @allocId INT = (SELECT ISNULL(MAX(allocation_id), 0) + 1 FROM donation_allocations)
+                        INSERT INTO donation_allocations (allocation_id, donation_id, program_area, amount_allocated, allocation_date)
+                        VALUES (@allocId, {id}, {body.allocation_program}, {body.amount}, CAST(GETUTCDATE() AS date))
+                    END
+                    """,
+                    ct
+                );
+            }
+
+            return NoContent();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to update donation {Id}.", id);
+            return StatusCode(
+                StatusCodes.Status500InternalServerError,
+                new { error = "Failed to update donation." }
+            );
+        }
+    }
+
+    [HttpDelete("donations/{id:int}")]
+    public async Task<IActionResult> DeleteDonation([FromRoute] int id, CancellationToken ct)
+    {
+        try
+        {
+            await _db.Database.ExecuteSqlInterpolatedAsync(
+                $"DELETE FROM donation_allocations WHERE donation_id = {id}",
+                ct
+            );
+
+            var rowsAffected = await _db.Database.ExecuteSqlInterpolatedAsync(
+                $"DELETE FROM donations WHERE donation_id = {id}",
+                ct
+            );
+
+            if (rowsAffected == 0)
+                return NotFound(new { error = "Donation not found." });
+
+            return NoContent();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to delete donation {Id}.", id);
+            return StatusCode(
+                StatusCodes.Status500InternalServerError,
+                new { error = "Failed to delete donation." }
+            );
         }
     }
 
@@ -451,15 +599,14 @@ public class AdminDataController : ControllerBase
                             CAST(hv.visitation_id AS int) AS id,
                             CAST(hv.resident_id AS int) AS resident_id,
                             CONVERT(varchar(10), hv.visit_date, 23) AS visit_date,
-                            ISNULL(hv.social_worker, '') AS staff_name,
+                            ISNULL(hv.social_worker, '') AS social_worker,
                             ISNULL(hv.visit_type, 'Routine Follow-up') AS visit_type,
-                            ISNULL(hv.observations, '') AS home_environment_observations,
-                            ISNULL(hv.family_cooperation_level, 'Cooperative') AS family_cooperation,
-                            CASE
-                                WHEN hv.safety_concerns_noted = 1 THEN ISNULL(hv.visit_outcome, 'Safety concerns noted.')
-                                ELSE ''
-                            END AS safety_concerns,
-                            ISNULL(hv.follow_up_notes, '') AS follow_up_actions
+                            ISNULL(hv.observations, '') AS observations,
+                            ISNULL(hv.family_cooperation_level, 'Cooperative') AS family_cooperation_level,
+                            CAST(ISNULL(hv.safety_concerns_noted, 0) AS bit) AS safety_concerns_noted,
+                            CAST(ISNULL(hv.follow_up_needed, 0) AS bit) AS follow_up_needed,
+                            ISNULL(hv.follow_up_notes, '') AS follow_up_notes,
+                            ISNULL(hv.visit_outcome, '') AS visit_outcome
                         FROM home_visitations hv
                         WHERE hv.resident_id = {residentId.Value}
                         ORDER BY hv.visit_date DESC, hv.visitation_id DESC
@@ -473,15 +620,14 @@ public class AdminDataController : ControllerBase
                             CAST(hv.visitation_id AS int) AS id,
                             CAST(hv.resident_id AS int) AS resident_id,
                             CONVERT(varchar(10), hv.visit_date, 23) AS visit_date,
-                            ISNULL(hv.social_worker, '') AS staff_name,
+                            ISNULL(hv.social_worker, '') AS social_worker,
                             ISNULL(hv.visit_type, 'Routine Follow-up') AS visit_type,
-                            ISNULL(hv.observations, '') AS home_environment_observations,
-                            ISNULL(hv.family_cooperation_level, 'Cooperative') AS family_cooperation,
-                            CASE
-                                WHEN hv.safety_concerns_noted = 1 THEN ISNULL(hv.visit_outcome, 'Safety concerns noted.')
-                                ELSE ''
-                            END AS safety_concerns,
-                            ISNULL(hv.follow_up_notes, '') AS follow_up_actions
+                            ISNULL(hv.observations, '') AS observations,
+                            ISNULL(hv.family_cooperation_level, 'Cooperative') AS family_cooperation_level,
+                            CAST(ISNULL(hv.safety_concerns_noted, 0) AS bit) AS safety_concerns_noted,
+                            CAST(ISNULL(hv.follow_up_needed, 0) AS bit) AS follow_up_needed,
+                            ISNULL(hv.follow_up_notes, '') AS follow_up_notes,
+                            ISNULL(hv.visit_outcome, '') AS visit_outcome
                         FROM home_visitations hv
                         ORDER BY hv.visit_date DESC, hv.visitation_id DESC
                         """
@@ -524,14 +670,14 @@ public class AdminDataController : ControllerBase
                 (
                    {body.resident_id},
                    {body.visit_date},
-                   {body.staff_name},
+                   {body.social_worker},
                    {body.visit_type},
-                   {body.home_environment_observations},
-                   {body.family_cooperation},
-                   {(!string.IsNullOrWhiteSpace(body.safety_concerns))},
-                   {body.follow_up_actions},
-                   {true},
-                   {body.safety_concerns}
+                   {body.observations},
+                   {body.family_cooperation_level},
+                   {body.safety_concerns_noted},
+                   {body.follow_up_notes},
+                   {body.follow_up_needed},
+                   {body.visit_outcome}
                 )
                 """,
                 ct
@@ -545,6 +691,73 @@ public class AdminDataController : ControllerBase
             return StatusCode(
                 StatusCodes.Status500InternalServerError,
                 new { error = "Failed to save home visitation." }
+            );
+        }
+    }
+
+    [HttpPut("home-visitations/{id:int}")]
+    public async Task<IActionResult> UpdateHomeVisitation(
+        [FromRoute] int id,
+        [FromBody] UpdateHomeVisitationRequest body,
+        CancellationToken ct
+    )
+    {
+        try
+        {
+            var rowsAffected = await _db.Database.ExecuteSqlInterpolatedAsync(
+                $"""
+                UPDATE home_visitations
+                SET
+                    visit_date = {body.visit_date},
+                    social_worker = {body.social_worker},
+                    visit_type = {body.visit_type},
+                    observations = {body.observations},
+                    family_cooperation_level = {body.family_cooperation_level},
+                    safety_concerns_noted = {body.safety_concerns_noted},
+                    follow_up_needed = {body.follow_up_needed},
+                    follow_up_notes = {body.follow_up_notes},
+                    visit_outcome = {body.visit_outcome}
+                WHERE visitation_id = {id}
+                """,
+                ct
+            );
+
+            if (rowsAffected == 0)
+                return NotFound(new { error = "Home visitation not found." });
+
+            return NoContent();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to update home visitation {Id}.", id);
+            return StatusCode(
+                StatusCodes.Status500InternalServerError,
+                new { error = "Failed to update home visitation." }
+            );
+        }
+    }
+
+    [HttpDelete("home-visitations/{id:int}")]
+    public async Task<IActionResult> DeleteHomeVisitation([FromRoute] int id, CancellationToken ct)
+    {
+        try
+        {
+            var rowsAffected = await _db.Database.ExecuteSqlInterpolatedAsync(
+                $"DELETE FROM home_visitations WHERE visitation_id = {id}",
+                ct
+            );
+
+            if (rowsAffected == 0)
+                return NotFound(new { error = "Home visitation not found." });
+
+            return NoContent();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to delete home visitation {Id}.", id);
+            return StatusCode(
+                StatusCodes.Status500InternalServerError,
+                new { error = "Failed to delete home visitation." }
             );
         }
     }
@@ -824,24 +1037,62 @@ public class AdminDataController : ControllerBase
         public int id { get; set; }
         public int resident_id { get; set; }
         public string visit_date { get; set; } = string.Empty;
-        public string staff_name { get; set; } = string.Empty;
+        public string social_worker { get; set; } = string.Empty;
         public string visit_type { get; set; } = "Routine Follow-up";
-        public string home_environment_observations { get; set; } = string.Empty;
-        public string family_cooperation { get; set; } = "Cooperative";
-        public string safety_concerns { get; set; } = string.Empty;
-        public string follow_up_actions { get; set; } = string.Empty;
+        public string observations { get; set; } = string.Empty;
+        public string family_cooperation_level { get; set; } = "Cooperative";
+        public bool safety_concerns_noted { get; set; }
+        public bool follow_up_needed { get; set; }
+        public string follow_up_notes { get; set; } = string.Empty;
+        public string visit_outcome { get; set; } = string.Empty;
     }
 
     public sealed class CreateHomeVisitationRequest
     {
         public int resident_id { get; set; }
         public string visit_date { get; set; } = string.Empty;
-        public string staff_name { get; set; } = string.Empty;
+        public string social_worker { get; set; } = string.Empty;
         public string visit_type { get; set; } = "Routine Follow-up";
-        public string home_environment_observations { get; set; } = string.Empty;
-        public string family_cooperation { get; set; } = "Cooperative";
-        public string safety_concerns { get; set; } = string.Empty;
-        public string follow_up_actions { get; set; } = string.Empty;
+        public string observations { get; set; } = string.Empty;
+        public string family_cooperation_level { get; set; } = "Cooperative";
+        public bool safety_concerns_noted { get; set; }
+        public bool follow_up_needed { get; set; }
+        public string follow_up_notes { get; set; } = string.Empty;
+        public string visit_outcome { get; set; } = string.Empty;
+    }
+
+    public sealed class UpdateHomeVisitationRequest
+    {
+        public string visit_date { get; set; } = string.Empty;
+        public string social_worker { get; set; } = string.Empty;
+        public string visit_type { get; set; } = "Routine Follow-up";
+        public string observations { get; set; } = string.Empty;
+        public string family_cooperation_level { get; set; } = "Cooperative";
+        public bool safety_concerns_noted { get; set; }
+        public bool follow_up_needed { get; set; }
+        public string follow_up_notes { get; set; } = string.Empty;
+        public string visit_outcome { get; set; } = string.Empty;
+    }
+
+    public sealed class CreateDonationRequest
+    {
+        public string? supporter_id { get; set; }
+        public decimal amount { get; set; }
+        public string donation_date { get; set; } = string.Empty;
+        public string donation_type { get; set; } = "Monetary";
+        public string campaign { get; set; } = string.Empty;
+        public string? allocation_program { get; set; }
+        public string? notes { get; set; }
+    }
+
+    public sealed class UpdateDonationRequest
+    {
+        public decimal amount { get; set; }
+        public string donation_date { get; set; } = string.Empty;
+        public string donation_type { get; set; } = "Monetary";
+        public string campaign { get; set; } = string.Empty;
+        public string? allocation_program { get; set; }
+        public string? notes { get; set; }
     }
 
     public sealed class ReportsSummaryResponse

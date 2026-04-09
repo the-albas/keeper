@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { DollarSign, Gift, Heart, Pencil, Plus, TrendingUp, Users, X } from "lucide-react";
+import { DollarSign, Gift, Heart, Pencil, Plus, Trash2, TrendingUp, Users, X } from "lucide-react";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import { apiDelete, apiGetJson, apiPostJson, apiPutJson, type AuthMeResponse } from "@/lib/api";
 import { requireRole } from "@/lib/auth";
@@ -282,6 +282,7 @@ function DonorsPage() {
   const [contribFilters, setContribFilters] = useState({ search: "", type: "", safehouse: "", program: "" });
   const [showContribForm, setShowContribForm] = useState(false);
   const [contribForm, setContribForm] = useState<Contribution>(EMPTY_CONTRIBUTION);
+  const [editingContribId, setEditingContribId] = useState<string | null>(null);
 
   const { data: user } = useQuery({
     queryKey: ["auth", "me"],
@@ -347,6 +348,45 @@ function DonorsPage() {
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["admin-data", "supporters"] });
       await queryClient.invalidateQueries({ queryKey: ["admin", "supporters"] });
+      await queryClient.invalidateQueries({ queryKey: ["admin-data", "donations"] });
+    },
+  });
+
+  const saveContribMutation = useMutation({
+    mutationFn: async (c: Contribution) => {
+      const body = {
+        supporter_id: c.supporter_id || null,
+        amount: c.amount || c.estimated_value || 0,
+        donation_date: c.date,
+        donation_type: c.contribution_type === "Time / Volunteer" ? "Volunteer" : c.contribution_type,
+        campaign: c.campaign || "",
+        allocation_program: c.allocation_program || c.allocation_safehouse || null,
+        notes: [
+          c.item_description,
+          c.skill_description,
+          c.platform && c.reach ? `${c.platform}: ${c.reach}` : c.platform || c.reach,
+          c.receipt_number ? `Receipt: ${c.receipt_number}` : "",
+          c.notes,
+        ]
+          .filter(Boolean)
+          .join(" | ") || null,
+      };
+      if (editingContribId) {
+        await apiPutJson(`/api/admin-data/donations/${editingContribId}`, body);
+      } else {
+        await apiPostJson("/api/admin-data/donations", body);
+      }
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["admin-data", "donations"] });
+    },
+  });
+
+  const deleteContribMutation = useMutation({
+    mutationFn: async (id: string) => {
+      await apiDelete(`/api/admin-data/donations/${id}`);
+    },
+    onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["admin-data", "donations"] });
     },
   });
@@ -493,13 +533,23 @@ function DonorsPage() {
     setContribForm((f) => ({ ...f, [key]: val }));
   }
 
-  function handleContribSave(e: React.FormEvent) {
+  async function handleContribSave(e: React.FormEvent) {
     e.preventDefault();
-    const c: Contribution = { ...contribForm, id: `c-${Date.now()}` };
-    // TODO: POST to your C# API endpoint
-    setContributions((prev) => [c, ...prev]);
+    await saveContribMutation.mutateAsync(contribForm);
     setContribForm(EMPTY_CONTRIBUTION);
+    setEditingContribId(null);
     setShowContribForm(false);
+  }
+
+  function openEditContrib(c: Contribution) {
+    setContribForm({ ...c });
+    setEditingContribId(c.id);
+    setShowContribForm(true);
+  }
+
+  async function handleDeleteContrib(id: string) {
+    if (!window.confirm("Delete this contribution? This cannot be undone.")) return;
+    await deleteContribMutation.mutateAsync(id);
   }
 
   // ── Supporter view content ─────────────────────────────────────────────────
@@ -654,7 +704,9 @@ function DonorsPage() {
     const type = contribForm.contribution_type;
     return (
       <div className="bg-card rounded-2xl border border-border shadow-sm p-6">
-        <h3 className="font-heading text-lg font-bold text-foreground mb-5">Log Contribution</h3>
+        <h3 className="font-heading text-lg font-bold text-foreground mb-5">
+          {editingContribId ? "Edit Contribution" : "Log Contribution"}
+        </h3>
         <form onSubmit={handleContribSave} className="space-y-4">
           <div className="grid sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
@@ -779,8 +831,10 @@ function DonorsPage() {
           </div>
 
           <div className="flex gap-3 justify-end pt-1">
-            <Button type="button" variant="outline" onClick={() => { setShowContribForm(false); setContribForm(EMPTY_CONTRIBUTION); }} className="font-body px-5 h-10 rounded-xl">Cancel</Button>
-            <Button type="submit" className="font-body bg-primary hover:bg-primary/90 text-primary-foreground px-5 h-10 rounded-xl">Save Contribution</Button>
+            <Button type="button" variant="outline" onClick={() => { setShowContribForm(false); setContribForm(EMPTY_CONTRIBUTION); setEditingContribId(null); }} className="font-body px-5 h-10 rounded-xl">Cancel</Button>
+            <Button type="submit" disabled={saveContribMutation.isPending} className="font-body bg-primary hover:bg-primary/90 text-primary-foreground px-5 h-10 rounded-xl">
+              {saveContribMutation.isPending ? "Saving…" : editingContribId ? "Update Contribution" : "Save Contribution"}
+            </Button>
           </div>
         </form>
       </div>
@@ -813,7 +867,7 @@ function DonorsPage() {
             </p>
           </div>
           <Button
-            onClick={activeTab === "supporters" ? openAdd : () => setShowContribForm((v) => !v)}
+            onClick={activeTab === "supporters" ? openAdd : () => { setEditingContribId(null); setContribForm(EMPTY_CONTRIBUTION); setShowContribForm((v) => !v); }}
             className="font-body gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-5 h-10 rounded-xl shadow-sm mt-1"
           >
             <Plus className="h-4 w-4" />
@@ -987,7 +1041,7 @@ function DonorsPage() {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-muted/50">
-                    {["Date", "Supporter", "Type", "Amount / Description", "Allocation", "Receipt #", ""].map((h) => (
+                    {["Date", "Supporter", "Type", "Amount / Description", "Allocation", "Receipt #", "Actions"].map((h) => (
                       <TableHead key={h} className="font-body text-xs font-semibold uppercase tracking-wider text-muted-foreground">{h}</TableHead>
                     ))}
                   </TableRow>
@@ -1008,7 +1062,25 @@ function DonorsPage() {
                           {[c.allocation_safehouse, c.allocation_program].filter(Boolean).join(" / ") || "—"}
                         </TableCell>
                         <TableCell className="font-body text-xs text-muted-foreground font-mono">{c.receipt_number || "—"}</TableCell>
-                        <TableCell />
+                        <TableCell>
+                          <div className="flex items-center gap-1">
+                            <button
+                              onClick={() => openEditContrib(c)}
+                              className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                              aria-label="Edit contribution"
+                            >
+                              <Pencil className="h-3.5 w-3.5" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteContrib(c.id)}
+                              disabled={deleteContribMutation.isPending}
+                              className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                              aria-label="Delete contribution"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        </TableCell>
                       </TableRow>
                     ))
                   )}

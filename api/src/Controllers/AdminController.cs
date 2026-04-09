@@ -747,7 +747,7 @@ public class AdminController : ControllerBase
                 ORDER BY b.ResidentId
                 """
             )
-            .ToListAsync(cancellationToken);
+            .ToListAsync(ct);
 
         var result = rows.Select(r => new AdminResidentMlFeaturesDto
             {
