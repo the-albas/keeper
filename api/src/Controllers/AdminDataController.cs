@@ -113,43 +113,135 @@ public class AdminDataController : ControllerBase
     }
 
     [HttpGet("donations")]
-    public async Task<ActionResult<IReadOnlyList<DonationRow>>> GetDonations(CancellationToken ct)
+    public async Task<ActionResult<IReadOnlyList<DonationRow>>> GetDonations(
+        [FromQuery] int? take,
+        [FromQuery] string? from,
+        [FromQuery] string? to,
+        CancellationToken ct
+    )
     {
         try
         {
-            var rows = await _db
-                .Database.SqlQuery<DonationRow>(
-                    $"""
-                    SELECT TOP 500
-                        CAST(d.donation_id AS varchar(40)) AS id,
-                        ISNULL(CAST(d.supporter_id AS varchar(40)), '') AS supporter_id,
-                        LTRIM(RTRIM(
-                            COALESCE(
-                                NULLIF(s.display_name, ''),
-                                NULLIF(s.organization_name, ''),
-                                NULLIF(CONCAT(ISNULL(s.first_name, ''), ' ', ISNULL(s.last_name, '')), ''),
-                                CASE
-                                    WHEN d.supporter_id IS NULL THEN 'Guest donor'
-                                    ELSE CONCAT('Supporter #', CAST(d.supporter_id AS varchar(20)))
-                                END
-                            )
-                        )) AS supporter_name,
-                        CAST(d.amount AS decimal(18,2)) AS amount,
-                        CONVERT(varchar(10), d.donation_date, 23) AS created_date,
-                        d.donation_type AS type,
-                        d.campaign_name AS campaign,
-                        (
-                           SELECT TOP 1 da.program_area
-                           FROM donation_allocations da
-                           WHERE da.donation_id = d.donation_id
-                           ORDER BY da.allocation_id ASC
-                        ) AS allocation
-                    FROM donations d
-                    LEFT JOIN supporters s ON s.supporter_id = d.supporter_id
-                    ORDER BY d.donation_date DESC, d.donation_id DESC
-                    """
-                )
-                .ToListAsync(ct);
+            var hasFrom = DateOnly.TryParse(
+                from,
+                CultureInfo.InvariantCulture,
+                DateTimeStyles.None,
+                out var fromDate
+            );
+            var hasTo = DateOnly.TryParse(
+                to,
+                CultureInfo.InvariantCulture,
+                DateTimeStyles.None,
+                out var toDate
+            );
+            var hasRange = hasFrom && hasTo && fromDate <= toDate;
+
+            var topN = take is > 0 ? Math.Clamp(take.Value, 1, 500) : (int?)null;
+
+            var rows =
+                topN is int n
+                    ? await _db
+                        .Database.SqlQuery<DonationRow>(
+                            $"""
+                            SELECT TOP ({n})
+                                CAST(d.donation_id AS varchar(40)) AS id,
+                                ISNULL(CAST(d.supporter_id AS varchar(40)), '') AS supporter_id,
+                                LTRIM(RTRIM(
+                                    COALESCE(
+                                        NULLIF(s.display_name, ''),
+                                        NULLIF(s.organization_name, ''),
+                                        NULLIF(CONCAT(ISNULL(s.first_name, ''), ' ', ISNULL(s.last_name, '')), ''),
+                                        CASE
+                                            WHEN d.supporter_id IS NULL THEN 'Guest donor'
+                                            ELSE CONCAT('Supporter #', CAST(d.supporter_id AS varchar(20)))
+                                        END
+                                    )
+                                )) AS supporter_name,
+                                CAST(d.amount AS decimal(18,2)) AS amount,
+                                CONVERT(varchar(10), d.donation_date, 23) AS created_date,
+                                d.donation_type AS type,
+                                d.campaign_name AS campaign,
+                                (
+                                   SELECT TOP 1 da.program_area
+                                   FROM donation_allocations da
+                                   WHERE da.donation_id = d.donation_id
+                                   ORDER BY da.allocation_id ASC
+                                ) AS allocation
+                            FROM donations d
+                            LEFT JOIN supporters s ON s.supporter_id = d.supporter_id
+                            ORDER BY d.donation_date DESC, d.donation_id DESC
+                            """
+                        )
+                        .ToListAsync(ct)
+                : hasRange
+                    ? await _db
+                        .Database.SqlQuery<DonationRow>(
+                            $"""
+                            SELECT
+                                CAST(d.donation_id AS varchar(40)) AS id,
+                                ISNULL(CAST(d.supporter_id AS varchar(40)), '') AS supporter_id,
+                                LTRIM(RTRIM(
+                                    COALESCE(
+                                        NULLIF(s.display_name, ''),
+                                        NULLIF(s.organization_name, ''),
+                                        NULLIF(CONCAT(ISNULL(s.first_name, ''), ' ', ISNULL(s.last_name, '')), ''),
+                                        CASE
+                                            WHEN d.supporter_id IS NULL THEN 'Guest donor'
+                                            ELSE CONCAT('Supporter #', CAST(d.supporter_id AS varchar(20)))
+                                        END
+                                    )
+                                )) AS supporter_name,
+                                CAST(d.amount AS decimal(18,2)) AS amount,
+                                CONVERT(varchar(10), d.donation_date, 23) AS created_date,
+                                d.donation_type AS type,
+                                d.campaign_name AS campaign,
+                                (
+                                   SELECT TOP 1 da.program_area
+                                   FROM donation_allocations da
+                                   WHERE da.donation_id = d.donation_id
+                                   ORDER BY da.allocation_id ASC
+                                ) AS allocation
+                            FROM donations d
+                            LEFT JOIN supporters s ON s.supporter_id = d.supporter_id
+                            WHERE CAST(d.donation_date AS date) >= {fromDate}
+                              AND CAST(d.donation_date AS date) <= {toDate}
+                            ORDER BY d.donation_date ASC, d.donation_id ASC
+                            """
+                        )
+                        .ToListAsync(ct)
+                : await _db
+                    .Database.SqlQuery<DonationRow>(
+                        $"""
+                        SELECT TOP 500
+                            CAST(d.donation_id AS varchar(40)) AS id,
+                            ISNULL(CAST(d.supporter_id AS varchar(40)), '') AS supporter_id,
+                            LTRIM(RTRIM(
+                                COALESCE(
+                                    NULLIF(s.display_name, ''),
+                                    NULLIF(s.organization_name, ''),
+                                    NULLIF(CONCAT(ISNULL(s.first_name, ''), ' ', ISNULL(s.last_name, '')), ''),
+                                    CASE
+                                        WHEN d.supporter_id IS NULL THEN 'Guest donor'
+                                        ELSE CONCAT('Supporter #', CAST(d.supporter_id AS varchar(20)))
+                                    END
+                                )
+                            )) AS supporter_name,
+                            CAST(d.amount AS decimal(18,2)) AS amount,
+                            CONVERT(varchar(10), d.donation_date, 23) AS created_date,
+                            d.donation_type AS type,
+                            d.campaign_name AS campaign,
+                            (
+                               SELECT TOP 1 da.program_area
+                               FROM donation_allocations da
+                               WHERE da.donation_id = d.donation_id
+                               ORDER BY da.allocation_id ASC
+                            ) AS allocation
+                        FROM donations d
+                        LEFT JOIN supporters s ON s.supporter_id = d.supporter_id
+                        ORDER BY d.donation_date DESC, d.donation_id DESC
+                        """
+                    )
+                    .ToListAsync(ct);
 
             return Ok(rows);
         }

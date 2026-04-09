@@ -1,4 +1,4 @@
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import {
 	Area,
 	AreaChart,
@@ -10,16 +10,17 @@ import {
 } from "recharts";
 import type { Donation } from "./AdminMetrics";
 
-export default function DonationTrends({
-	donations,
-}: {
-	donations: Donation[];
-}) {
+/** Monthly totals from the given rows (e.g. 25 most recent gifts from the API). */
+export default function DonationTrends({ donations }: { donations: Donation[] }) {
 	const monthly: Record<string, number> = {};
-	donations.forEach((d) => {
-		const key = format(new Date(d.created_date), "MMM yy");
-		monthly[key] = (monthly[key] || 0) + (d.amount || 0);
-	});
+	for (const d of donations) {
+		try {
+			const key = format(parseISO(d.created_date), "MMM yy");
+			monthly[key] = (monthly[key] || 0) + (d.amount || 0);
+		} catch {
+			/* skip bad dates */
+		}
+	}
 
 	const data = Object.entries(monthly)
 		.map(([name, amount]) => ({ name, amount }))
@@ -28,10 +29,14 @@ export default function DonationTrends({
 	return (
 		<div className="bg-card rounded-2xl border border-border p-6">
 			<h3 className="font-heading text-lg font-semibold text-foreground mb-1">
-				Donation Trends
+				Donation trends
 			</h3>
+			<p className="font-body text-xs text-muted-foreground mb-1">
+				Based on your 25 most recent gifts
+			</p>
 			<p className="font-body text-xs text-muted-foreground mb-6">
-				Monthly donations over time
+				Amounts grouped by calendar month (same month labels may span the chart
+				if those gifts fell in different years)
 			</p>
 			<ResponsiveContainer width="100%" height={260}>
 				<AreaChart data={data}>

@@ -38,12 +38,30 @@ function AdminDashboard() {
     queryFn: () => apiGetJson<Donation[]>("/api/admin-data/donations"),
   });
 
+  const { data: donationsForTrend = [], isLoading: donationsTrendLoading } = useQuery<
+    Donation[]
+  >({
+    queryKey: ["donations", "dashboard", "last-25"],
+    staleTime: 60_000,
+    queryFn: () => apiGetJson<Donation[]>("/api/admin-data/donations?take=25"),
+  });
+
   const { data: safehouses = [], isLoading: safehousesLoading } = useQuery<Safehouse[]>({
     queryKey: ["safehouses"],
     queryFn: () => apiGetJson<Safehouse[]>("/api/admin-data/safehouses"),
   });
 
-	const loading = residentsLoading || donationsLoading || safehousesLoading;
+  const { data: activities = [], isLoading: activitiesLoading } = useQuery<Activity[]>({
+    queryKey: ["activities"],
+    queryFn: () => apiGetJson<Activity[]>("/api/admin-data/activities"),
+  });
+
+	const loading =
+		residentsLoading ||
+		donationsLoading ||
+		donationsTrendLoading ||
+		safehousesLoading ||
+		activitiesLoading;
 
 	if (loading) {
 		return (
@@ -75,7 +93,14 @@ function AdminDashboard() {
 				/>
 
 				<div className="grid lg:grid-cols-3 gap-6 mt-8">
-					<div className="lg:col-span-2 flex flex-col gap-6">
+					<div className="lg:col-span-2">
+						<DonationTrends donations={donationsForTrend} />
+					</div>
+					<OccupancyList safehouses={safehouses} />
+				</div>
+
+				<div className="grid lg:grid-cols-3 gap-6 mt-6">
+					<div className="lg:col-span-2">
 						<CasesTable residents={residents} />
 						<DonationTrends donations={donations} />
 					</div>
