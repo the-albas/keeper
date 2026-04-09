@@ -8,6 +8,7 @@ using api.Security;
 using api.Services.Ml;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 
 namespace api.Controllers;
@@ -341,21 +342,38 @@ public class AdminController : ControllerBase
         var displayName = body.IsAnonymous ? "Anonymous Donor" : body.Name.Trim();
         var status = string.IsNullOrWhiteSpace(body.Status) ? "Active" : body.Status.Trim();
 
-        var affected = await _db.Database.ExecuteSqlInterpolatedAsync(
-            $"""
-            UPDATE dbo.supporters
-            SET
-                supporter_type = {dbSupporterType},
-                display_name = {displayName},
-                organization_name = {NullIfWhiteSpace(body.Organization)},
-                email = {NullIfWhiteSpace(body.Email)},
-                phone = {NullIfWhiteSpace(body.Phone)},
-                status = {status},
-                created_at = {createdAt}
-            WHERE supporter_id = {supporterId};
-            """,
-            cancellationToken
-        );
+        int affected;
+        try
+        {
+            affected = await _db.Database.ExecuteSqlInterpolatedAsync(
+                $"""
+                UPDATE dbo.supporters
+                SET
+                    supporter_type = {dbSupporterType},
+                    display_name = {displayName},
+                    organization_name = {NullIfWhiteSpace(body.Organization)},
+                    email = {NullIfWhiteSpace(body.Email)},
+                    phone = {NullIfWhiteSpace(body.Phone)},
+                    status = {status},
+                    created_at = {createdAt}
+                WHERE supporter_id = {supporterId};
+                """,
+                cancellationToken
+            );
+        }
+        catch (SqlException ex) when (ex.Number == 2627 || ex.Number == 2601)
+        {
+            return Conflict(new { error = "A supporter with that email already exists." });
+        }
+        catch (SqlException ex) when (ex.Number == 8152)
+        {
+            return BadRequest(new { error = "One or more fields exceed the maximum allowed length." });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to update supporter {SupporterId}.", supporterId);
+            return StatusCode(500, new { error = "Failed to save supporter." });
+        }
 
         if (affected == 0)
         {
@@ -372,20 +390,47 @@ public class AdminController : ControllerBase
         CancellationToken cancellationToken
     )
     {
-        var affected = await _db.Database.ExecuteSqlInterpolatedAsync(
-            $"""
-            DELETE FROM dbo.supporters
-            WHERE supporter_id = {supporterId};
-            """,
-            cancellationToken
-        );
-
-        if (affected == 0)
+        try
         {
-            return NotFound(new { error = "Supporter not found." });
-        }
+            // Delete donation allocations for this supporter's donations first, then donations, then supporter.
+            await _db.Database.ExecuteSqlInterpolatedAsync(
+                $"""
+                DELETE da
+                FROM dbo.donation_allocations da
+                INNER JOIN dbo.donations d ON d.donation_id = da.donation_id
+                WHERE d.supporter_id = {supporterId};
+                """,
+                cancellationToken
+            );
 
-        return NoContent();
+            await _db.Database.ExecuteSqlInterpolatedAsync(
+                $"""
+                DELETE FROM dbo.donations
+                WHERE supporter_id = {supporterId};
+                """,
+                cancellationToken
+            );
+
+            var affected = await _db.Database.ExecuteSqlInterpolatedAsync(
+                $"""
+                DELETE FROM dbo.supporters
+                WHERE supporter_id = {supporterId};
+                """,
+                cancellationToken
+            );
+
+            if (affected == 0)
+            {
+                return NotFound(new { error = "Supporter not found." });
+            }
+
+            return NoContent();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to delete supporter {SupporterId}.", supporterId);
+            return StatusCode(500, new { error = "Failed to delete supporter." });
+        }
     }
 
     /// <summary>Enriched donation rows for the Contributions tab (amounts in PHP).</summary>
