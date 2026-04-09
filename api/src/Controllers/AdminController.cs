@@ -857,20 +857,25 @@ public class AdminController : ControllerBase
     {
         const int maxRows = 2000;
 
-        List<AdminDonorMlFeaturesDto> donors;
-        List<AdminResidentMlFeaturesDto> residents;
+        List<AdminDonorMlFeaturesDto> donors = [];
+        List<AdminResidentMlFeaturesDto> residents = [];
+
         try
         {
-            var donorsTask = FetchDonorMlFeaturesAsync(maxRows, ct);
-            var residentsTask = FetchResidentMlFeaturesAsync(maxRows, ct);
-            await Task.WhenAll(donorsTask, residentsTask);
-            donors = await donorsTask;
-            residents = await residentsTask;
+            donors = await FetchDonorMlFeaturesAsync(maxRows, ct);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Database error fetching ML feature rows for reports aggregate.");
-            return StatusCode(500, new { error = "Failed to load data for ML reports." });
+            _logger.LogError(ex, "Failed to fetch donor ML features for reports aggregate.");
+        }
+
+        try
+        {
+            residents = await FetchResidentMlFeaturesAsync(maxRows, ct);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to fetch resident ML features for reports aggregate.");
         }
 
         var agg = new ReportsMlAggregateDto
