@@ -1,3 +1,4 @@
+using System.Globalization;
 using api.Data;
 using api.DTOs;
 using Microsoft.AspNetCore.Authorization;
@@ -48,9 +49,9 @@ public class DonorController : ControllerBase
             .ThenByDescending(d => d.DonationId)
             .Select(d => new DonorDonationDto
             {
-                Id = d.DonationId.ToString(),
+                Id = d.DonationId.ToString(CultureInfo.InvariantCulture),
                 Amount = d.Amount,
-                CreatedDate = d.DonationDate.ToString("yyyy-MM-dd"),
+                CreatedDate = d.DonationDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
                 Type = d.DonationType,
                 Campaign = d.CampaignName,
                 Allocation = _db.DonationAllocations

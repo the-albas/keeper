@@ -19,7 +19,6 @@ import { Route as HomeVisitationsRouteImport } from './routes/home-visitations'
 import { Route as DonorsContributionsRouteImport } from './routes/donors-contributions'
 import { Route as DonateThankYouRouteImport } from './routes/donate-thank-you'
 import { Route as DashboardRouteImport } from './routes/dashboard'
-import { Route as ContactRouteImport } from './routes/contact'
 import { Route as CaseloadRouteImport } from './routes/caseload'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AboutRouteImport } from './routes/about'
@@ -76,11 +75,6 @@ const DashboardRoute = DashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ContactRoute = ContactRouteImport.update({
-  id: '/contact',
-  path: '/contact',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const CaseloadRoute = CaseloadRouteImport.update({
   id: '/caseload',
   path: '/caseload',
@@ -112,7 +106,6 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
   '/caseload': typeof CaseloadRoute
-  '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
   '/donate-thank-you': typeof DonateThankYouRoute
   '/donors-contributions': typeof DonorsContributionsRoute
@@ -130,7 +123,6 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
   '/caseload': typeof CaseloadRoute
-  '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
   '/donate-thank-you': typeof DonateThankYouRoute
   '/donors-contributions': typeof DonorsContributionsRoute
@@ -149,7 +141,6 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
   '/caseload': typeof CaseloadRoute
-  '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
   '/donate-thank-you': typeof DonateThankYouRoute
   '/donors-contributions': typeof DonorsContributionsRoute
@@ -169,7 +160,6 @@ export interface FileRouteTypes {
     | '/about'
     | '/admin'
     | '/caseload'
-    | '/contact'
     | '/dashboard'
     | '/donate-thank-you'
     | '/donors-contributions'
@@ -187,7 +177,6 @@ export interface FileRouteTypes {
     | '/about'
     | '/admin'
     | '/caseload'
-    | '/contact'
     | '/dashboard'
     | '/donate-thank-you'
     | '/donors-contributions'
@@ -205,7 +194,6 @@ export interface FileRouteTypes {
     | '/about'
     | '/admin'
     | '/caseload'
-    | '/contact'
     | '/dashboard'
     | '/donate-thank-you'
     | '/donors-contributions'
@@ -224,7 +212,6 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   AdminRoute: typeof AdminRoute
   CaseloadRoute: typeof CaseloadRoute
-  ContactRoute: typeof ContactRoute
   DashboardRoute: typeof DashboardRoute
   DonateThankYouRoute: typeof DonateThankYouRoute
   DonorsContributionsRoute: typeof DonorsContributionsRoute
@@ -309,13 +296,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/contact': {
-      id: '/contact'
-      path: '/contact'
-      fullPath: '/contact'
-      preLoaderRoute: typeof ContactRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/caseload': {
       id: '/caseload'
       path: '/caseload'
@@ -370,7 +350,6 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   AdminRoute: AdminRoute,
   CaseloadRoute: CaseloadRoute,
-  ContactRoute: ContactRoute,
   DashboardRoute: DashboardRoute,
   DonateThankYouRoute: DonateThankYouRoute,
   DonorsContributionsRoute: DonorsContributionsRoute,

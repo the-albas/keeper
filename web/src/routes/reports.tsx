@@ -19,31 +19,55 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import {
-  Users,
-  Heart,
-  BookOpen,
-  Home,
-  TrendingUp,
-  FileText,
+	BookOpen,
+	FileText,
+	Heart,
+	Home,
+	Loader2,
+	TrendingUp,
+	Users,
 } from "lucide-react";
+import { useRef, useState } from "react";
+import type { PieLabelRenderProps } from "recharts";
+import {
+	Area,
+	AreaChart,
+	Bar,
+	BarChart,
+	CartesianGrid,
+	Cell,
+	Legend,
+	Pie,
+	PieChart,
+	ResponsiveContainer,
+	Tooltip,
+	XAxis,
+	YAxis,
+} from "recharts";
+import AdminSidebar from "@/components/admin/AdminSidebar";
+import { useAuth } from "@/hooks/use-auth";
+import { requireRole } from "@/lib/auth";
 
 export const Route = createFileRoute("/reports")({
-  component: ReportsPage,
+	beforeLoad: async ({ context }) => {
+		await requireRole(context.queryClient, "Admin", "Staff");
+	},
+	component: ReportsPage,
 });
 
 // ─── Chart theme ──────────────────────────────────────────────────────────────
 
 const GRID_COLOR = "hsl(40,15%,88%)";
 const TICK_STYLE = {
-  fontSize: 11,
-  fontFamily: "Inter",
-  fill: "hsl(210,10%,45%)",
+	fontSize: 11,
+	fontFamily: "Inter",
+	fill: "hsl(210,10%,45%)",
 };
 const TOOLTIP_STYLE = {
-  borderRadius: "12px",
-  border: "1px solid hsl(40,15%,88%)",
-  fontFamily: "Inter",
-  fontSize: 12,
+	borderRadius: "12px",
+	border: "1px solid hsl(40,15%,88%)",
+	fontFamily: "Inter",
+	fontSize: 12,
 };
 
 const C_PRIMARY = "hsl(174, 62%, 28%)"; // teal
@@ -72,66 +96,59 @@ type ReportsSummary = {
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function formatPHP(v: number) {
-  if (v >= 1000000) return `₱${(v / 1000000).toFixed(1)}M`;
-  if (v >= 1000) return `₱${(v / 1000).toFixed(0)}k`;
-  return `₱${v}`;
+	if (v >= 1000000) return `₱${(v / 1000000).toFixed(1)}M`;
+	if (v >= 1000) return `₱${(v / 1000).toFixed(0)}k`;
+	return `₱${v}`;
 }
 
 function SectionHeader({
-  title,
-  subtitle,
+	title,
+	subtitle,
 }: {
-  title: string;
-  subtitle?: string;
+	title: string;
+	subtitle?: string;
 }) {
-  return (
-    <div className="mb-5">
-      <h2 className="font-heading text-xl font-bold text-foreground">
-        {title}
-      </h2>
-      {subtitle && (
-        <p className="font-body text-sm text-muted-foreground mt-0.5">
-          {subtitle}
-        </p>
-      )}
-    </div>
-  );
+	return (
+		<div className="mb-5">
+			<h2 className="font-heading text-xl font-bold text-foreground">
+				{title}
+			</h2>
+			{subtitle && (
+				<p className="font-body text-sm text-muted-foreground mt-0.5">
+					{subtitle}
+				</p>
+			)}
+		</div>
+	);
 }
 
 // ─── Custom Pie label ─────────────────────────────────────────────────────────
 
 function PieLabel({
-  cx,
-  cy,
-  midAngle,
-  innerRadius,
-  outerRadius,
-  percent,
-}: {
-  cx: number;
-  cy: number;
-  midAngle: number;
-  innerRadius: number;
-  outerRadius: number;
-  percent: number;
-}) {
-  const RADIAN = Math.PI / 180;
-  const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
-  const x = cx + radius * Math.cos(-midAngle * RADIAN);
-  const y = cy + radius * Math.sin(-midAngle * RADIAN);
-  if (percent < 0.07) return null;
-  return (
-    <text
-      x={x}
-      y={y}
-      fill="white"
-      textAnchor="middle"
-      dominantBaseline="central"
-      style={{ fontSize: 12, fontFamily: "Inter", fontWeight: 600 }}
-    >
-      {`${(percent * 100).toFixed(0)}%`}
-    </text>
-  );
+	cx = 0,
+	cy = 0,
+	midAngle = 0,
+	innerRadius = 0,
+	outerRadius = 0,
+	percent = 0,
+}: PieLabelRenderProps) {
+	const RADIAN = Math.PI / 180;
+	const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+	const x = cx + radius * Math.cos(-midAngle * RADIAN);
+	const y = cy + radius * Math.sin(-midAngle * RADIAN);
+	if (percent < 0.07) return null;
+	return (
+		<text
+			x={x}
+			y={y}
+			fill="white"
+			textAnchor="middle"
+			dominantBaseline="central"
+			style={{ fontSize: 12, fontFamily: "Inter", fontWeight: 600 }}
+		>
+			{`${(percent * 100).toFixed(0)}%`}
+		</text>
+	);
 }
 
 // ─── Main component ───────────────────────────────────────────────────────────

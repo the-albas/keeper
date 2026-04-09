@@ -7,7 +7,9 @@ namespace api.Services.Auth;
 public class PendingSignupChallengeStore(IDataProtectionProvider dataProtectionProvider)
 {
     private const string CookieName = "keeper.pending-signup";
-    private readonly IDataProtector _protector = dataProtectionProvider.CreateProtector("keeper.pending-signup");
+    private readonly IDataProtector _protector = dataProtectionProvider.CreateProtector(
+        "keeper.pending-signup"
+    );
 
     public void Write(HttpResponse response, string userId, string email, bool isDevelopment)
     {
@@ -19,7 +21,10 @@ public class PendingSignupChallengeStore(IDataProtectionProvider dataProtectionP
 
     public PendingSignupChallenge? Read(HttpRequest request)
     {
-        if (!request.Cookies.TryGetValue(CookieName, out var protectedPayload) || string.IsNullOrWhiteSpace(protectedPayload))
+        if (
+            !request.Cookies.TryGetValue(CookieName, out var protectedPayload)
+            || string.IsNullOrWhiteSpace(protectedPayload)
+        )
         {
             return null;
         }
@@ -40,14 +45,15 @@ public class PendingSignupChallengeStore(IDataProtectionProvider dataProtectionP
         response.Cookies.Delete(CookieName, BuildCookieOptions(isDevelopment));
     }
 
-    private static CookieOptions BuildCookieOptions(bool isDevelopment) => new()
-    {
-        HttpOnly = true,
-        IsEssential = true,
-        SameSite = isDevelopment ? SameSiteMode.Lax : SameSiteMode.None,
-        Secure = !isDevelopment,
-        MaxAge = TimeSpan.FromMinutes(10)
-    };
+    private static CookieOptions BuildCookieOptions(bool isDevelopment) =>
+        new()
+        {
+            HttpOnly = true,
+            IsEssential = true,
+            SameSite = isDevelopment ? SameSiteMode.Lax : SameSiteMode.None,
+            Secure = !isDevelopment,
+            MaxAge = TimeSpan.FromMinutes(10),
+        };
 }
 
 public record PendingSignupChallenge(string UserId, string Email);

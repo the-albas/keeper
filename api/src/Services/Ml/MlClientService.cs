@@ -24,7 +24,10 @@ public class MlClientService
         var resp = await _http.GetAsync("/health", ct);
         resp.EnsureSuccessStatusCode();
         return await JsonSerializer.DeserializeAsync<JsonElement>(
-            await resp.Content.ReadAsStreamAsync(ct), JsonOptions, ct);
+            await resp.Content.ReadAsStreamAsync(ct),
+            JsonOptions,
+            ct
+        );
     }
 
     public async Task<JsonElement> GetFeaturesAsync(string pipeline, CancellationToken ct = default)
@@ -32,14 +35,23 @@ public class MlClientService
         var resp = await _http.GetAsync($"/{pipeline}/features", ct);
         resp.EnsureSuccessStatusCode();
         return await JsonSerializer.DeserializeAsync<JsonElement>(
-            await resp.Content.ReadAsStreamAsync(ct), JsonOptions, ct);
+            await resp.Content.ReadAsStreamAsync(ct),
+            JsonOptions,
+            ct
+        );
     }
 
     public async Task<JsonElement> PredictAsync(
-        string pipeline, JsonElement body, CancellationToken ct = default)
+        string pipeline,
+        JsonElement body,
+        CancellationToken ct = default
+    )
     {
         var content = new StringContent(
-            body.GetRawText(), System.Text.Encoding.UTF8, "application/json");
+            body.GetRawText(),
+            System.Text.Encoding.UTF8,
+            "application/json"
+        );
 
         var resp = await _http.PostAsync($"/{pipeline}/predict", content, ct);
 
@@ -48,12 +60,18 @@ public class MlClientService
             var errorBody = await resp.Content.ReadAsStringAsync(ct);
             _logger.LogWarning(
                 "ML service returned {StatusCode} for {Pipeline}/predict: {Body}",
-                (int)resp.StatusCode, pipeline, errorBody);
+                (int)resp.StatusCode,
+                pipeline,
+                errorBody
+            );
             throw new MlServiceException((int)resp.StatusCode, errorBody);
         }
 
         return await JsonSerializer.DeserializeAsync<JsonElement>(
-            await resp.Content.ReadAsStreamAsync(ct), JsonOptions, ct);
+            await resp.Content.ReadAsStreamAsync(ct),
+            JsonOptions,
+            ct
+        );
     }
 }
 

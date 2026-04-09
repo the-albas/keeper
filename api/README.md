@@ -81,6 +81,8 @@ Planned environment variables:
 
 ## API Design (Initial)
 
+**Donations:** Monetary fields (`amount`, allocations, estimated values for gifts) are stored and returned as **Philippine pesos (PHP)** across all donation-related endpoints and UIs unless multi-currency support is introduced later.
+
 Current:
 
 - `GET /health` -> service health response

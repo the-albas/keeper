@@ -1,4 +1,3 @@
-import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import AdminSidebar from "@/components/admin/AdminSidebar";
@@ -7,144 +6,154 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
 } from "@/components/ui/table";
-import { Users, ShieldAlert, RefreshCw, Activity, Plus, X, Pencil } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+import { requireRole } from "@/lib/auth";
+import { apiGetJson, getApiBaseUrl } from "@/lib/api";
 
 export const Route = createFileRoute("/caseload")({
-  component: CaseloadPage,
+	beforeLoad: async ({ context }) => {
+		await requireRole(context.queryClient, "Admin", "Staff");
+	},
+	component: CaseloadPage,
 });
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 type CaseStatus =
-  | "Intake"
-  | "Assessment"
-  | "Active Care"
-  | "Reintegration"
-  | "Closed"
-  | "Graduated";
+	| "Intake"
+	| "Assessment"
+	| "Active Care"
+	| "Reintegration"
+	| "Closed"
+	| "Graduated"
+	| "Transferred";
 type RiskLevel = "Low" | "Medium" | "High" | "Critical";
 
 interface ResidentProfile {
-  id: string;
-  resident_code: string;
-  full_name: string;
-  date_of_birth: string;
-  sex: string;
-  civil_status: string;
-  nationality: string;
-  case_status: CaseStatus;
-  case_category: string;
-  case_subcategories: string[];
-  risk_level: RiskLevel;
-  has_disability: boolean;
-  disability_type: string;
-  is_4ps_beneficiary: boolean;
-  is_solo_parent: boolean;
-  is_indigenous: boolean;
-  is_informal_settler: boolean;
-  admission_date: string;
-  safehouse_id: string;
-  safehouse_name: string;
-  referred_by: string;
-  referral_source: string;
-  assigned_social_worker: string;
-  reintegration_plan: string;
-  reintegration_target_date: string;
-  reintegration_status: string;
+	id: string;
+	resident_code: string;
+	full_name: string;
+	date_of_birth: string;
+	sex: string;
+	civil_status: string;
+	nationality: string;
+	case_status: CaseStatus | string;
+	case_category: string;
+	case_subcategories: string[];
+	risk_level: RiskLevel | string;
+	has_disability: boolean;
+	disability_type: string;
+	is_4ps_beneficiary: boolean;
+	is_solo_parent: boolean;
+	is_indigenous: boolean;
+	is_informal_settler: boolean;
+	admission_date: string;
+	safehouse_id: string;
+	safehouse_name: string;
+	referred_by: string;
+	referral_source: string;
+	assigned_social_worker: string;
+	reintegration_plan: string;
+	reintegration_target_date: string;
+	reintegration_status: string;
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const CASE_STATUSES: CaseStatus[] = [
-  "Intake",
-  "Assessment",
-  "Active Care",
-  "Reintegration",
-  "Closed",
-  "Graduated",
+	"Intake",
+	"Assessment",
+	"Active Care",
+	"Reintegration",
+	"Transferred",
+	"Closed",
+	"Graduated",
 ];
 
 const RISK_LEVELS: RiskLevel[] = ["Low", "Medium", "High", "Critical"];
 
 const CASE_CATEGORIES = [
-  "Trafficked",
-  "Physical Abuse",
-  "Sexual Abuse",
-  "Psychological Abuse",
-  "Economic Abuse",
-  "Neglected",
-  "Abandoned",
+	"Trafficked",
+	"Physical Abuse",
+	"Sexual Abuse",
+	"Psychological Abuse",
+	"Economic Abuse",
+	"Neglected",
+	"Abandoned",
+	"Surrendered",
+	"Foundling",
 ];
 
 const SUBCATEGORIES: Record<string, string[]> = {
-  Trafficked: ["Labor Trafficking", "Sex Trafficking", "Domestic Servitude", "Debt Bondage"],
-  "Physical Abuse": [
-    "Intimate Partner Violence",
-    "Child Physical Abuse",
-    "Elder Abuse",
-    "Assault by Stranger",
-  ],
-  "Sexual Abuse": [
-    "Rape",
-    "Sexual Harassment",
-    "Child Sexual Abuse (CSAM)",
-    "Online Sexual Exploitation",
-  ],
-  "Psychological Abuse": [
-    "Emotional Manipulation",
-    "Coercion & Control",
-    "Isolation",
-    "Threats & Intimidation",
-  ],
-  "Economic Abuse": [
-    "Financial Control",
-    "Destruction of Property",
-    "Forced Economic Dependency",
-  ],
-  Neglected: ["Child Neglect", "Elder Neglect", "Medical Neglect"],
-  Abandoned: ["Child Abandonment", "Spousal Abandonment"],
+	Trafficked: [
+		"Labor Trafficking",
+		"Sex Trafficking",
+		"Domestic Servitude",
+		"Debt Bondage",
+	],
+	"Physical Abuse": [
+		"Intimate Partner Violence",
+		"Child Physical Abuse",
+		"Elder Abuse",
+		"Assault by Stranger",
+	],
+	"Sexual Abuse": [
+		"Rape",
+		"Sexual Harassment",
+		"Child Sexual Abuse (CSAM)",
+		"Online Sexual Exploitation",
+	],
+	"Psychological Abuse": [
+		"Emotional Manipulation",
+		"Coercion & Control",
+		"Isolation",
+		"Threats & Intimidation",
+	],
+	"Economic Abuse": [
+		"Financial Control",
+		"Destruction of Property",
+		"Forced Economic Dependency",
+	],
+	Neglected: ["Child Neglect", "Elder Neglect", "Medical Neglect"],
+	Abandoned: ["Child Abandonment", "Spousal Abandonment"],
 };
 
 const REFERRAL_SOURCES = [
-  "Government Agency (DSWD)",
-  "NGO / Civil Society",
-  "Hospital / Medical Facility",
-  "Police / Law Enforcement",
-  "Community / Barangay",
-  "Self-Referral",
-  "Family or Friend",
-  "Other",
-];
-
-const SAFEHOUSES = [
-  { id: "sh-001", name: "Tahanan ng Pag-asa" },
-  { id: "sh-002", name: "Bagong Simula Center" },
-  { id: "sh-003", name: "Kalayaan Shelter" },
+	"Government Agency (DSWD)",
+	"NGO / Civil Society",
+	"Hospital / Medical Facility",
+	"Police / Law Enforcement",
+	"Community / Barangay",
+	"Self-Referral",
+	"Family or Friend",
+	"Other",
 ];
 
 // ─── Badge color maps ─────────────────────────────────────────────────────────
 
 const STATUS_COLORS: Record<CaseStatus, string> = {
-  Intake: "bg-blue-50 text-blue-700 border-blue-200",
-  Assessment: "bg-yellow-50 text-yellow-700 border-yellow-200",
-  "Active Care": "bg-primary/10 text-primary border-primary/20",
-  Reintegration: "bg-purple-50 text-purple-700 border-purple-200",
-  Closed: "bg-muted text-muted-foreground border-border",
-  Graduated: "bg-green-50 text-green-700 border-green-200",
+	Intake: "bg-blue-50 text-blue-700 border-blue-200",
+	Assessment: "bg-yellow-50 text-yellow-700 border-yellow-200",
+	"Active Care": "bg-primary/10 text-primary border-primary/20",
+	Reintegration: "bg-purple-50 text-purple-700 border-purple-200",
+	Transferred: "bg-orange-50 text-orange-800 border-orange-200",
+	Closed: "bg-muted text-muted-foreground border-border",
+	Graduated: "bg-green-50 text-green-700 border-green-200",
 };
 
 const RISK_COLORS: Record<RiskLevel, string> = {
-  Low: "bg-chart-5/15 text-chart-5 border-chart-5/20",
-  Medium: "bg-amber-500/15 text-amber-600 border-amber-500/30 dark:text-amber-400",
-  High: "bg-chart-4/15 text-chart-4 border-chart-4/20",
-  Critical: "bg-destructive/15 text-destructive border-destructive/20",
+	Low: "bg-chart-5/15 text-chart-5 border-chart-5/20",
+	Medium:
+		"bg-amber-500/15 text-amber-600 border-amber-500/30 dark:text-amber-400",
+	High: "bg-chart-4/15 text-chart-4 border-chart-4/20",
+	Critical: "bg-destructive/15 text-destructive border-destructive/20",
 };
 
 // ─── Mock data ────────────────────────────────────────────────────────────────
@@ -165,65 +174,73 @@ type ResidentApi = {
 };
 
 const EMPTY_FORM: ResidentProfile = {
-  id: "",
-  resident_code: "",
-  full_name: "",
-  date_of_birth: "",
-  sex: "",
-  civil_status: "",
-  nationality: "Filipino",
-  case_status: "Intake",
-  case_category: "",
-  case_subcategories: [],
-  risk_level: "Medium",
-  has_disability: false,
-  disability_type: "",
-  is_4ps_beneficiary: false,
-  is_solo_parent: false,
-  is_indigenous: false,
-  is_informal_settler: false,
-  admission_date: "",
-  safehouse_id: "",
-  safehouse_name: "",
-  referred_by: "",
-  referral_source: "",
-  assigned_social_worker: "",
-  reintegration_plan: "",
-  reintegration_target_date: "",
-  reintegration_status: "",
+	id: "",
+	resident_code: "",
+	full_name: "",
+	date_of_birth: "",
+	sex: "",
+	civil_status: "",
+	nationality: "Filipino",
+	case_status: "Intake",
+	case_category: "",
+	case_subcategories: [],
+	risk_level: "Medium",
+	has_disability: false,
+	disability_type: "",
+	is_4ps_beneficiary: false,
+	is_solo_parent: false,
+	is_indigenous: false,
+	is_informal_settler: false,
+	admission_date: "",
+	safehouse_id: "",
+	safehouse_name: "",
+	referred_by: "",
+	referral_source: "",
+	assigned_social_worker: "",
+	reintegration_plan: "",
+	reintegration_target_date: "",
+	reintegration_status: "",
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function SectionDivider({ label }: { label: string }) {
-  return (
-    <div className="flex items-center gap-3 py-2">
-      <div className="h-px flex-1 bg-border" />
-      <span className="font-body text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
-        {label}
-      </span>
-      <div className="h-px flex-1 bg-border" />
-    </div>
-  );
+	return (
+		<div className="flex items-center gap-3 py-2">
+			<div className="h-px flex-1 bg-border" />
+			<span className="font-body text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+				{label}
+			</span>
+			<div className="h-px flex-1 bg-border" />
+		</div>
+	);
 }
 
-function ViewField({ label, value }: { label: string; value: React.ReactNode }) {
-  return (
-    <div>
-      <dt className="font-body text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-0.5">
-        {label}
-      </dt>
-      <dd className="font-body text-sm text-foreground">{value || <span className="text-muted-foreground">—</span>}</dd>
-    </div>
-  );
+function ViewField({
+	label,
+	value,
+}: {
+	label: string;
+	value: React.ReactNode;
+}) {
+	return (
+		<div>
+			<dt className="font-body text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-0.5">
+				{label}
+			</dt>
+			<dd className="font-body text-sm text-foreground">
+				{value || <span className="text-muted-foreground">—</span>}
+			</dd>
+		</div>
+	);
 }
 
 function selectClass() {
-  return "h-9 w-full rounded-3xl border border-transparent bg-input/50 px-3 text-sm font-body text-foreground transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30";
+	return "h-9 w-full rounded-3xl border border-transparent bg-input/50 px-3 text-sm font-body text-foreground transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30";
 }
 
 function textareaClass() {
-  return "w-full rounded-2xl border border-transparent bg-input/50 px-3 py-2 text-sm font-body text-foreground placeholder:text-muted-foreground transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30 resize-none";
+	return "w-full rounded-2xl border border-transparent bg-input/50 px-3 py-2 text-sm font-body text-foreground placeholder:text-muted-foreground transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30 resize-none";
 }
 
 // ─── Main component ───────────────────────────────────────────────────────────

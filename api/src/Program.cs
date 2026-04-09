@@ -1,29 +1,31 @@
 using System.Threading.RateLimiting;
+using api.Data;
+using api.Models;
+using api.Security;
+using api.Services.Auth;
+using api.Services.Ml;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Resend;
-using api.Data;
-using api.Services.Ml;
-using api.Models;
-using api.Security;
-using api.Services.Auth;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
+);
 
 builder.Services.AddHttpClient<MlClientService>(client =>
 {
-    var baseUrl = builder.Configuration["MLPipelines:BaseUrl"]
+    var baseUrl =
+        builder.Configuration["MLPipelines:BaseUrl"]
         ?? throw new InvalidOperationException("MLPipelines:BaseUrl is not configured.");
     client.BaseAddress = new Uri(baseUrl.TrimEnd('/') + "/");
     client.Timeout = TimeSpan.FromSeconds(120);
 });
 
-builder.Services
-    .AddIdentity<ApplicationUser, IdentityRole>(options =>
+builder
+    .Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
     {
         options.Password.RequiredLength = 8;
         options.Password.RequireDigit = true;
@@ -41,7 +43,9 @@ builder.Services
     .AddDefaultTokenProviders();
 
 builder.Services.AddOptions();
-builder.Services.Configure<AuthEmailOptions>(builder.Configuration.GetSection(AuthEmailOptions.SectionName));
+builder.Services.Configure<AuthEmailOptions>(
+    builder.Configuration.GetSection(AuthEmailOptions.SectionName)
+);
 builder.Services.AddHttpClient<ResendClient>();
 builder.Services.Configure<ResendClientOptions>(options =>
 {
@@ -88,12 +92,15 @@ builder.Services.AddAuthorization();
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
-    options.AddFixedWindowLimiter("auth", limiterOptions =>
-    {
-        limiterOptions.PermitLimit = 50;
-        limiterOptions.Window = TimeSpan.FromMinutes(1);
-        limiterOptions.QueueLimit = 0;
-    });
+    options.AddFixedWindowLimiter(
+        "auth",
+        limiterOptions =>
+        {
+            limiterOptions.PermitLimit = 50;
+            limiterOptions.Window = TimeSpan.FromMinutes(1);
+            limiterOptions.QueueLimit = 0;
+        }
+    );
     options.AddFixedWindowLimiter("public-donations", limiterOptions =>
     {
         limiterOptions.PermitLimit = 30;
@@ -105,7 +112,8 @@ builder.Services.AddRateLimiter(options =>
 builder.Services.AddControllers();
 const string FrontendCorsPolicy = "FrontendCorsPolicy";
 
-var configuredOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
+var configuredOrigins =
+    builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
 var allowedOrigins = configuredOrigins
     .Where(origin => !string.IsNullOrWhiteSpace(origin))
     .Select(origin => origin.Trim())
@@ -119,32 +127,32 @@ if (builder.Environment.IsDevelopment() && allowedOrigins.Length == 0)
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy(FrontendCorsPolicy, policy =>
-    {
-        if (allowedOrigins.Length > 0)
+    options.AddPolicy(
+        FrontendCorsPolicy,
+        policy =>
         {
-            policy.WithOrigins(allowedOrigins)
-                .AllowAnyHeader()
-                .AllowAnyMethod()
-                .AllowCredentials();
-            return;
-        }
+            if (allowedOrigins.Length > 0)
+            {
+                policy
+                    .WithOrigins(allowedOrigins)
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .AllowCredentials();
+                return;
+            }
 
-        // Keep development friction low without opening production CORS.
-        if (builder.Environment.IsDevelopment())
-        {
-            policy.AllowAnyOrigin()
-                .AllowAnyHeader()
-                .AllowAnyMethod();
-            return;
-        }
+            // Keep development friction low without opening production CORS.
+            if (builder.Environment.IsDevelopment())
+            {
+                policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
+                return;
+            }
 
-        // Production with no origins: allow app to run (e.g. /health, curl). Add
-        // Cors:AllowedOrigins in Azure App Settings before browser calls from Vercel.
-        policy.SetIsOriginAllowed(_ => false)
-            .AllowAnyHeader()
-            .AllowAnyMethod();
-    });
+            // Production with no origins: allow app to run (e.g. /health, curl). Add
+            // Cors:AllowedOrigins in Azure App Settings before browser calls from Vercel.
+            policy.SetIsOriginAllowed(_ => false).AllowAnyHeader().AllowAnyMethod();
+        }
+    );
 });
 
 var app = builder.Build();
@@ -161,26 +169,35 @@ if (!app.Environment.IsDevelopment())
 
     // Catch unhandled controller exceptions in production. Placed after UseCors
     // so CORS headers are already on the response when this writes the error body.
-    app.Use(async (context, next) =>
-    {
-        try
+    app.Use(
+        async (context, next) =>
         {
-            await next(context);
-        }
-        catch (Exception ex)
-        {
-            context.RequestServices
-                .GetRequiredService<ILogger<Program>>()
-                .LogError(ex, "Unhandled exception on {Method} {Path}", context.Request.Method, context.Request.Path);
-
-            if (!context.Response.HasStarted)
+            try
             {
-                context.Response.StatusCode = StatusCodes.Status500InternalServerError;
-                context.Response.ContentType = "application/json";
-                await context.Response.WriteAsJsonAsync(new { error = "An unexpected error occurred." });
+                await next(context);
+            }
+            catch (Exception ex)
+            {
+                context
+                    .RequestServices.GetRequiredService<ILogger<Program>>()
+                    .LogError(
+                        ex,
+                        "Unhandled exception on {Method} {Path}",
+                        context.Request.Method,
+                        context.Request.Path
+                    );
+
+                if (!context.Response.HasStarted)
+                {
+                    context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+                    context.Response.ContentType = "application/json";
+                    await context.Response.WriteAsJsonAsync(
+                        new { error = "An unexpected error occurred." }
+                    );
+                }
             }
         }
-    });
+    );
 }
 
 app.UseHttpsRedirection();
@@ -194,8 +211,50 @@ app.MapControllers();
 app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
 
 await SeedRolesAsync(app.Services);
+await SeedAdminUserAsync(app.Services, app.Configuration);
 
 app.Run();
+
+static async Task SeedAdminUserAsync(IServiceProvider services, IConfiguration config)
+{
+    var email = config["Seed:AdminEmail"];
+    var password = config["Seed:AdminPassword"];
+    var username = config["Seed:AdminUsername"] ?? "admin";
+
+    if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
+        return;
+
+    using var scope = services.CreateScope();
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+
+    var existing = await userManager.FindByEmailAsync(email);
+    if (existing is not null)
+        return;
+
+    var user = new ApplicationUser
+    {
+        UserName = username,
+        Email = email,
+        EmailConfirmed = true,
+        TwoFactorEnabled = true,
+    };
+
+    var createResult = await userManager.CreateAsync(user, password);
+    if (!createResult.Succeeded)
+    {
+        var errors = string.Join(", ", createResult.Errors.Select(e => e.Description));
+        throw new InvalidOperationException($"Failed to seed admin user: {errors}");
+    }
+
+    var roleResult = await userManager.AddToRoleAsync(user, AppRoles.Admin);
+    if (!roleResult.Succeeded)
+    {
+        var errors = string.Join(", ", roleResult.Errors.Select(e => e.Description));
+        throw new InvalidOperationException(
+            $"Failed to assign Admin role to seeded user: {errors}"
+        );
+    }
+}
 
 static async Task SeedRolesAsync(IServiceProvider services)
 {

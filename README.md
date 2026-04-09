@@ -2,6 +2,8 @@
 
 Keeper is a case management and donor intelligence platform for nonprofit/safehouse organizations. It helps staff track residents, manage donations, analyze donor behavior, and monitor social media impact — all in one place.
 
+**Money:** All donation amounts across the app and API are denominated in **Philippine pesos (PHP)** unless multi-currency is added explicitly later.
+
 ## What it does
 
 - **Resident management** — track resident profiles, health & wellbeing, education progress, incidents, interventions, and home visitations

@@ -45,7 +45,10 @@ public class AuthController : ControllerBase
     [EnableRateLimiting("auth")]
     [HttpPost("signup")]
     [HttpPost("register")]
-    public async Task<ActionResult<AuthChallengeResponse>> Register([FromBody] RegisterRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult<AuthChallengeResponse>> Register(
+        [FromBody] RegisterRequest request,
+        CancellationToken cancellationToken
+    )
     {
         var email = request.Email.Trim();
         if (string.IsNullOrWhiteSpace(email))
@@ -88,8 +91,10 @@ public class AuthController : ControllerBase
         catch (Exception)
         {
             await _userManager.DeleteAsync(user);
-            return StatusCode(StatusCodes.Status503ServiceUnavailable,
-                new { error = "Unable to send the verification email. Please try again later." });
+            return StatusCode(
+                StatusCodes.Status503ServiceUnavailable,
+                new { error = "Unable to send the verification email. Please try again later." }
+            );
         }
 
         var nextSupporterId = await _db.Supporters.AnyAsync(cancellationToken)
@@ -109,18 +114,24 @@ public class AuthController : ControllerBase
 
         _pendingSignupChallengeStore.Write(Response, user.Id, email, _environment.IsDevelopment());
 
-        return StatusCode(StatusCodes.Status201Created, new AuthChallengeResponse
-        {
-            RequiresCode = true,
-            Flow = "signup",
-            Email = email
-        });
+        return StatusCode(
+            StatusCodes.Status201Created,
+            new AuthChallengeResponse
+            {
+                RequiresCode = true,
+                Flow = "signup",
+                Email = email,
+            }
+        );
     }
 
     [AllowAnonymous]
     [EnableRateLimiting("auth")]
     [HttpPost("login")]
-    public async Task<ActionResult<AuthChallengeResponse>> Login([FromBody] LoginRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult<AuthChallengeResponse>> Login(
+        [FromBody] LoginRequest request,
+        CancellationToken cancellationToken
+    )
     {
         var email = request.Email.Trim();
         if (string.IsNullOrWhiteSpace(email))
@@ -129,7 +140,9 @@ public class AuthController : ControllerBase
             return ValidationProblem(ModelState);
         }
 
-        var user = await _userManager.FindByEmailAsync(email);
+        var user =
+            await _userManager.FindByEmailAsync(email)
+            ?? await _userManager.FindByNameAsync(email);
 
         if (user is null)
         {
@@ -140,7 +153,8 @@ public class AuthController : ControllerBase
             user,
             request.Password,
             isPersistent: false,
-            lockoutOnFailure: true);
+            lockoutOnFailure: true
+        );
 
         if (signInResult.IsNotAllowed)
         {
@@ -189,18 +203,26 @@ public class AuthController : ControllerBase
     [AllowAnonymous]
     [EnableRateLimiting("auth")]
     [HttpPost("signup/verify")]
-    public async Task<ActionResult<AuthUserResponse>> VerifySignup([FromBody] CodeVerificationRequest request)
+    public async Task<ActionResult<AuthUserResponse>> VerifySignup(
+        [FromBody] CodeVerificationRequest request
+    )
     {
         var user = await ResolvePendingSignupUserAsync(request.Email);
         if (user is null)
         {
-            return Unauthorized(new
-            {
-                error = "We couldn't find a pending signup for that email. Please sign up again."
-            });
+            return Unauthorized(
+                new
+                {
+                    error = "We couldn't find a pending signup for that email. Please sign up again.",
+                }
+            );
         }
 
-        var isValid = await _userManager.VerifyTwoFactorTokenAsync(user, TokenOptions.DefaultEmailProvider, request.Code.Trim());
+        var isValid = await _userManager.VerifyTwoFactorTokenAsync(
+            user,
+            TokenOptions.DefaultEmailProvider,
+            request.Code.Trim()
+        );
         if (!isValid)
         {
             return Unauthorized(new { error = "Invalid or expired code." });
@@ -224,15 +246,20 @@ public class AuthController : ControllerBase
     [AllowAnonymous]
     [EnableRateLimiting("auth")]
     [HttpPost("signup/resend")]
-    public async Task<IActionResult> ResendSignupCode([FromBody] SignupChallengeRequest? request, CancellationToken cancellationToken)
+    public async Task<IActionResult> ResendSignupCode(
+        [FromBody] SignupChallengeRequest? request,
+        CancellationToken cancellationToken
+    )
     {
         var user = await ResolvePendingSignupUserAsync(request?.Email);
         if (user is null)
         {
-            return Unauthorized(new
-            {
-                error = "We couldn't find a pending signup for that email. Please sign up again."
-            });
+            return Unauthorized(
+                new
+                {
+                    error = "We couldn't find a pending signup for that email. Please sign up again.",
+                }
+            );
         }
 
         await SendSignupCodeAsync(user, cancellationToken);
@@ -242,7 +269,9 @@ public class AuthController : ControllerBase
     [AllowAnonymous]
     [EnableRateLimiting("auth")]
     [HttpPost("login/verify")]
-    public async Task<ActionResult<AuthUserResponse>> VerifyLogin([FromBody] CodeVerificationRequest request)
+    public async Task<ActionResult<AuthUserResponse>> VerifyLogin(
+        [FromBody] CodeVerificationRequest request
+    )
     {
         var user = await ResolvePendingLoginUserAsync(request.Email);
         if (user is null)
@@ -368,16 +397,35 @@ public class AuthController : ControllerBase
         return ValidationProblem(ModelState);
     }
 
-    private async Task SendSignupCodeAsync(ApplicationUser user, CancellationToken cancellationToken)
+    private async Task SendSignupCodeAsync(
+        ApplicationUser user,
+        CancellationToken cancellationToken
+    )
     {
-        var code = await _userManager.GenerateTwoFactorTokenAsync(user, TokenOptions.DefaultEmailProvider);
-        await _authCodeSender.SendCodeAsync(user.Email ?? string.Empty, code, "signup", cancellationToken);
+        var code = await _userManager.GenerateTwoFactorTokenAsync(
+            user,
+            TokenOptions.DefaultEmailProvider
+        );
+        await _authCodeSender.SendCodeAsync(
+            user.Email ?? string.Empty,
+            code,
+            "signup",
+            cancellationToken
+        );
     }
 
     private async Task SendLoginCodeAsync(ApplicationUser user, CancellationToken cancellationToken)
     {
-        var code = await _userManager.GenerateTwoFactorTokenAsync(user, TokenOptions.DefaultEmailProvider);
-        await _authCodeSender.SendCodeAsync(user.Email ?? string.Empty, code, "login", cancellationToken);
+        var code = await _userManager.GenerateTwoFactorTokenAsync(
+            user,
+            TokenOptions.DefaultEmailProvider
+        );
+        await _authCodeSender.SendCodeAsync(
+            user.Email ?? string.Empty,
+            code,
+            "login",
+            cancellationToken
+        );
     }
 
     private async Task<ApplicationUser?> ResolvePendingSignupUserAsync(string? email)
@@ -395,9 +443,11 @@ public class AuthController : ControllerBase
         }
 
         var user = await _userManager.FindByIdAsync(challenge.UserId);
-        if (user is null
+        if (
+            user is null
             || user.EmailConfirmed
-            || !string.Equals(user.Email, challenge.Email, StringComparison.OrdinalIgnoreCase))
+            || !string.Equals(user.Email, challenge.Email, StringComparison.OrdinalIgnoreCase)
+        )
         {
             _pendingSignupChallengeStore.Clear(Response, _environment.IsDevelopment());
             return null;

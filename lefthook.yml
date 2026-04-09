@@ -1,0 +1,12 @@
+pre-commit:
+  parallel: true
+  jobs:
+    - name: biome
+      root: "web/"
+      glob: "src/**/*.{ts,tsx,js,jsx,json}"
+      run: node_modules/.bin/biome check --write {staged_files}
+
+    - name: csharpier
+      root: "api/"
+      glob: "**/*.cs"
+      run: dotnet csharpier format {staged_files}

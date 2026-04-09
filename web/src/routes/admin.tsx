@@ -1,18 +1,28 @@
-import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import AdminSidebar from "@/components/admin/AdminSidebar";
+import { createFileRoute } from "@tanstack/react-router";
+import type { Activity } from "@/components/admin/ActivityFeed";
+import ActivityFeed from "@/components/admin/ActivityFeed";
+import { apiGetJson, getApiBaseUrl } from "@/lib/api";
+import type {
+	Donation,
+	Resident,
+	Safehouse,
+} from "@/components/admin/AdminMetrics";
 import AdminMetrics from "@/components/admin/AdminMetrics";
+import AdminSidebar from "@/components/admin/AdminSidebar";
+import CasesTable from "@/components/admin/CasesTable";
 import DonationTrends from "@/components/admin/DonationTrends";
 import OccupancyList from "@/components/admin/OccupancyList";
-import CasesTable from "@/components/admin/CasesTable";
-import ActivityFeed from "@/components/admin/ActivityFeed";
 import QuickActions from "@/components/admin/QuickActions";
 import { apiGetJson, type AuthMeResponse } from "@/lib/api";
 import type { Resident, Donation, Safehouse } from "@/components/admin/AdminMetrics";
 import type { Activity } from "@/components/admin/ActivityFeed";
 
 export const Route = createFileRoute("/admin")({
-  component: AdminDashboard,
+	beforeLoad: async ({ context }) => {
+		await requireRole(context.queryClient, "Admin", "Staff");
+	},
+	component: AdminDashboard,
 });
 
 function AdminDashboard() {
@@ -47,46 +57,54 @@ function AdminDashboard() {
     queryFn: () => apiGetJson<Activity[]>("/api/admin-data/activities"),
   });
 
-  const loading = residentsLoading || donationsLoading || safehousesLoading || activitiesLoading;
+	const loading = residentsLoading || donationsLoading || safehousesLoading;
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
-      </div>
-    );
-  }
+	if (loading) {
+		return (
+			<div className="min-h-screen bg-background flex items-center justify-center">
+				<div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+			</div>
+		);
+	}
 
-  return (
-    <div className="min-h-screen bg-background font-body">
-      <AdminSidebar user={user ?? null} />
-      <main className="ml-64 p-8">
-        <div className="mb-8">
-          <h1 className="font-heading text-3xl font-bold text-foreground">Dashboard</h1>
-          <p className="font-body text-base text-muted-foreground mt-1">
-            Welcome back, {user?.full_name?.split(" ")[0] || "Admin"}. Here&apos;s today&apos;s overview.
-          </p>
-        </div>
+	return (
+		<div className="min-h-screen bg-background font-body">
+			<AdminSidebar user={user ?? null} />
+			<main className="ml-64 p-8">
+				<div className="mb-8">
+					<h1 className="font-heading text-3xl font-bold text-foreground">
+						Dashboard
+					</h1>
+					<p className="font-body text-base text-muted-foreground mt-1">
+						Welcome back,{" "}
+						{user?.email?.split("@")[0] || "Admin"}. Here&apos;s today&apos;s
+						overview.
+					</p>
+				</div>
 
-        <AdminMetrics residents={residents} donations={donations} safehouses={safehouses} />
+				<AdminMetrics
+					residents={residents}
+					donations={donations}
+					safehouses={safehouses}
+				/>
 
-        <div className="grid lg:grid-cols-3 gap-6 mt-8">
-          <div className="lg:col-span-2">
-            <DonationTrends donations={donations} />
-          </div>
-          <OccupancyList safehouses={safehouses} />
-        </div>
+				<div className="grid lg:grid-cols-3 gap-6 mt-8">
+					<div className="lg:col-span-2">
+						<DonationTrends donations={donations} />
+					</div>
+					<OccupancyList safehouses={safehouses} />
+				</div>
 
-        <div className="grid lg:grid-cols-3 gap-6 mt-6">
-          <div className="lg:col-span-2">
-            <CasesTable residents={residents} />
-          </div>
-          <div className="space-y-6">
-            <QuickActions />
-            <ActivityFeed activities={activities} />
-          </div>
-        </div>
-      </main>
-    </div>
-  );
+				<div className="grid lg:grid-cols-3 gap-6 mt-6">
+					<div className="lg:col-span-2">
+						<CasesTable residents={residents} />
+					</div>
+					<div className="space-y-6">
+						<QuickActions />
+						<ActivityFeed activities={activities} />
+					</div>
+				</div>
+			</main>
+		</div>
+	);
 }

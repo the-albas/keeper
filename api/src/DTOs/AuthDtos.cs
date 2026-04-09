@@ -35,9 +35,9 @@ public class SignupChallengeRequest
 
 public class LoginRequest
 {
+    /// <summary>Email address or Identity user name (e.g. seeded admin username).</summary>
     [Required]
-    [EmailAddress]
-    [MaxLength(254)]
+    [MaxLength(256)]
     public string Email { get; set; } = string.Empty;
 
     [Required]
@@ -60,4 +60,19 @@ public class AuthUserResponse
 
     /// <summary>Primary key in <c>supporters</c> when this account is linked to a donor row (matched by email).</summary>
     public int? SupporterId { get; set; }
+}
+
+public class UserListItemResponse
+{
+    public string Id { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string Username { get; set; } = string.Empty;
+    public string[] Roles { get; set; } = [];
+}
+
+public class AssignRoleRequest
+{
+    [Required]
+    [MaxLength(50)]
+    public string RoleName { get; set; } = string.Empty;
 }

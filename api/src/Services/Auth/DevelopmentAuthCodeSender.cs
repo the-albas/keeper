@@ -6,9 +6,18 @@ public class DevelopmentAuthCodeSender(ILogger<DevelopmentAuthCodeSender> logger
 {
     private readonly ILogger<DevelopmentAuthCodeSender> _logger = logger;
 
-    public Task SendCodeAsync(string email, string code, string flow, CancellationToken cancellationToken = default)
+    public Task SendCodeAsync(
+        string email,
+        string code,
+        string flow,
+        CancellationToken cancellationToken = default
+    )
     {
-        _logger.LogInformation("Auth code for {Email} ({Flow}): {Code}", email, flow, code);
+        if (_logger.IsEnabled(LogLevel.Information))
+        {
+            _logger.LogInformation("Auth code for {Email} ({Flow}): {Code}", email, flow, code);
+        }
+
         return Task.CompletedTask;
     }
 }

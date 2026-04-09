@@ -1,4 +1,3 @@
-import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import AdminSidebar from "@/components/admin/AdminSidebar";
@@ -7,174 +6,157 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
 } from "@/components/ui/table";
-import {
-  Users,
-  DollarSign,
-  Gift,
-  Heart,
-  Plus,
-  X,
-  Pencil,
-  TrendingUp,
-} from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+import { requireRole } from "@/lib/auth";
+import { apiGetJson, getApiBaseUrl } from "@/lib/api";
 
 export const Route = createFileRoute("/donors-contributions")({
-  component: DonorsPage,
+	beforeLoad: async ({ context }) => {
+		await requireRole(context.queryClient, "Admin", "Staff");
+	},
+	component: DonorsPage,
 });
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type SupporterType =
-  | "Monetary Donor"
-  | "Volunteer"
-  | "Skills Contributor"
-  | "In-Kind Donor"
-  | "Corporate Partner"
-  | "Social Media Advocate";
+	| "Monetary Donor"
+	| "Volunteer"
+	| "Skills Contributor"
+	| "In-Kind Donor"
+	| "Corporate Partner"
+	| "Social Media Advocate";
 
 type SupporterStatus = "Active" | "Inactive" | "Prospect";
 
 type ContributionType =
-  | "Monetary"
-  | "In-Kind"
-  | "Time / Volunteer"
-  | "Skills"
-  | "Social Media";
+	| "Monetary"
+	| "In-Kind"
+	| "Time / Volunteer"
+	| "Skills"
+	| "Social Media";
 
 interface Supporter {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  supporter_type: SupporterType;
-  status: SupporterStatus;
-  organization: string;
-  is_anonymous: boolean;
-  joined_date: string;
-  notes: string;
+	id: string;
+	name: string;
+	email: string;
+	phone: string;
+	supporter_type: SupporterType | string;
+	status: SupporterStatus | string;
+	organization: string;
+	is_anonymous: boolean;
+	joined_date: string;
+	notes: string;
+}
+
+/** API: GET /api/admin/lookups/donor-ui */
+interface DonorUiLookups {
+	safehouses: { id: string; name: string }[];
+	programs: string[];
+	campaigns: string[];
 }
 
 interface Contribution {
-  id: string;
-  supporter_id: string;
-  supporter_name: string;
-  contribution_type: ContributionType;
-  date: string;
-  // Monetary
-  amount: number;
-  currency: string;
-  payment_method: string;
-  campaign: string;
-  // In-Kind
-  item_description: string;
-  estimated_value: number;
-  // Time / Skills
-  hours: number;
-  skill_description: string;
-  // Social Media
-  platform: string;
-  reach: string;
-  // Allocation
-  allocation_safehouse: string;
-  allocation_program: string;
-  receipt_number: string;
-  notes: string;
+	id: string;
+	supporter_id: string;
+	supporter_name: string;
+	contribution_type: ContributionType | string;
+	date: string;
+	// Monetary
+	amount: number;
+	currency: string;
+	payment_method: string;
+	campaign: string;
+	// In-Kind
+	item_description: string;
+	estimated_value: number;
+	// Time / Skills
+	hours: number;
+	skill_description: string;
+	// Social Media
+	platform: string;
+	reach: string;
+	// Allocation
+	allocation_safehouse: string;
+	allocation_program: string;
+	receipt_number: string;
+	notes: string;
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const SUPPORTER_TYPES: SupporterType[] = [
-  "Monetary Donor",
-  "Volunteer",
-  "Skills Contributor",
-  "In-Kind Donor",
-  "Corporate Partner",
-  "Social Media Advocate",
+	"Monetary Donor",
+	"Volunteer",
+	"Skills Contributor",
+	"In-Kind Donor",
+	"Corporate Partner",
+	"Social Media Advocate",
 ];
 
-const SUPPORTER_STATUSES: SupporterStatus[] = ["Active", "Inactive", "Prospect"];
+const SUPPORTER_STATUSES: SupporterStatus[] = [
+	"Active",
+	"Inactive",
+	"Prospect",
+];
 
 const CONTRIBUTION_TYPES: ContributionType[] = [
-  "Monetary",
-  "In-Kind",
-  "Time / Volunteer",
-  "Skills",
-  "Social Media",
+	"Monetary",
+	"In-Kind",
+	"Time / Volunteer",
+	"Skills",
+	"Social Media",
 ];
 
 const PAYMENT_METHODS = [
-  "Bank Transfer",
-  "Credit / Debit Card",
-  "Cash",
-  "Check",
-  "GCash",
-  "PayMaya",
-  "Other",
-];
-
-const SAFEHOUSES = [
-  "Tahanan ng Pag-asa",
-  "Bagong Simula Center",
-  "Kalayaan Shelter",
-];
-
-const PROGRAMS = [
-  "General Operations",
-  "Legal Aid Program",
-  "Livelihood Program",
-  "Psychosocial Services",
-  "Community Outreach",
-  "Emergency Response",
-  "Educational Support",
-];
-
-const CAMPAIGNS = [
-  "Annual Giving",
-  "Year-End Campaign",
-  "Emergency Appeal",
-  "Livelihood Fund",
-  "General Fund",
+	"Bank Transfer",
+	"Credit / Debit Card",
+	"Cash",
+	"Check",
+	"GCash",
+	"PayMaya",
+	"Other",
 ];
 
 const SOCIAL_PLATFORMS = [
-  "Facebook",
-  "Instagram",
-  "Twitter / X",
-  "TikTok",
-  "LinkedIn",
-  "YouTube",
+	"Facebook",
+	"Instagram",
+	"Twitter / X",
+	"TikTok",
+	"LinkedIn",
+	"YouTube",
 ];
 
 // ─── Badge colors ─────────────────────────────────────────────────────────────
 
 const SUPPORTER_TYPE_COLORS: Record<SupporterType, string> = {
-  "Monetary Donor":       "bg-yellow-50 text-yellow-700 border-yellow-200",
-  Volunteer:              "bg-green-50 text-green-700 border-green-200",
-  "Skills Contributor":   "bg-blue-50 text-blue-700 border-blue-200",
-  "In-Kind Donor":        "bg-purple-50 text-purple-700 border-purple-200",
-  "Corporate Partner":    "bg-primary/10 text-primary border-primary/20",
-  "Social Media Advocate":"bg-pink-50 text-pink-700 border-pink-200",
+	"Monetary Donor": "bg-yellow-50 text-yellow-700 border-yellow-200",
+	Volunteer: "bg-green-50 text-green-700 border-green-200",
+	"Skills Contributor": "bg-blue-50 text-blue-700 border-blue-200",
+	"In-Kind Donor": "bg-purple-50 text-purple-700 border-purple-200",
+	"Corporate Partner": "bg-primary/10 text-primary border-primary/20",
+	"Social Media Advocate": "bg-pink-50 text-pink-700 border-pink-200",
 };
 
 const STATUS_COLORS: Record<SupporterStatus, string> = {
-  Active:   "bg-green-50 text-green-700 border-green-200",
-  Inactive: "bg-muted text-muted-foreground border-border",
-  Prospect: "bg-yellow-50 text-yellow-700 border-yellow-200",
+	Active: "bg-green-50 text-green-700 border-green-200",
+	Inactive: "bg-muted text-muted-foreground border-border",
+	Prospect: "bg-yellow-50 text-yellow-700 border-yellow-200",
 };
 
 const CONTRIBUTION_TYPE_COLORS: Record<ContributionType, string> = {
-  Monetary:          "bg-yellow-50 text-yellow-700 border-yellow-200",
-  "In-Kind":         "bg-purple-50 text-purple-700 border-purple-200",
-  "Time / Volunteer":"bg-green-50 text-green-700 border-green-200",
-  Skills:            "bg-blue-50 text-blue-700 border-blue-200",
-  "Social Media":    "bg-pink-50 text-pink-700 border-pink-200",
+	Monetary: "bg-yellow-50 text-yellow-700 border-yellow-200",
+	"In-Kind": "bg-purple-50 text-purple-700 border-purple-200",
+	"Time / Volunteer": "bg-green-50 text-green-700 border-green-200",
+	Skills: "bg-blue-50 text-blue-700 border-blue-200",
+	"Social Media": "bg-pink-50 text-pink-700 border-pink-200",
 };
 
 // ─── Mock data ────────────────────────────────────────────────────────────────
@@ -194,86 +176,92 @@ type DonationApi = {
 // ─── Empty forms ──────────────────────────────────────────────────────────────
 
 const EMPTY_SUPPORTER: Supporter = {
-  id: "",
-  name: "",
-  email: "",
-  phone: "",
-  supporter_type: "Monetary Donor",
-  status: "Active",
-  organization: "",
-  is_anonymous: false,
-  joined_date: "",
-  notes: "",
+	id: "",
+	name: "",
+	email: "",
+	phone: "",
+	supporter_type: "Monetary Donor",
+	status: "Active",
+	organization: "",
+	is_anonymous: false,
+	joined_date: "",
+	notes: "",
 };
 
 const EMPTY_CONTRIBUTION: Contribution = {
-  id: "",
-  supporter_id: "",
-  supporter_name: "",
-  contribution_type: "Monetary",
-  date: "",
-  amount: 0,
-  currency: "PHP",
-  payment_method: "",
-  campaign: "",
-  item_description: "",
-  estimated_value: 0,
-  hours: 0,
-  skill_description: "",
-  platform: "",
-  reach: "",
-  allocation_safehouse: "",
-  allocation_program: "",
-  receipt_number: "",
-  notes: "",
+	id: "",
+	supporter_id: "",
+	supporter_name: "",
+	contribution_type: "Monetary",
+	date: "",
+	amount: 0,
+	currency: "PHP",
+	payment_method: "",
+	campaign: "",
+	item_description: "",
+	estimated_value: 0,
+	hours: 0,
+	skill_description: "",
+	platform: "",
+	reach: "",
+	allocation_safehouse: "",
+	allocation_program: "",
+	receipt_number: "",
+	notes: "",
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function formatDate(d: string) {
-  if (!d) return "—";
-  return new Date(d + "T00:00:00").toLocaleDateString("en-PH", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
+	if (!d) return "—";
+	return new Date(`${d}T00:00:00`).toLocaleDateString("en-PH", {
+		year: "numeric",
+		month: "short",
+		day: "numeric",
+	});
 }
 
 function formatPHP(n: number) {
-  return "₱" + n.toLocaleString("en-PH");
+	return `₱${n.toLocaleString("en-PH")}`;
 }
 
 function selectClass() {
-  return "h-9 w-full rounded-3xl border border-transparent bg-input/50 px-3 text-sm font-body text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30";
+	return "h-9 w-full rounded-3xl border border-transparent bg-input/50 px-3 text-sm font-body text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30";
 }
 
 function textareaClass() {
-  return "w-full rounded-2xl border border-transparent bg-input/50 px-3 py-2 text-sm font-body text-foreground placeholder:text-muted-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30 resize-none";
+	return "w-full rounded-2xl border border-transparent bg-input/50 px-3 py-2 text-sm font-body text-foreground placeholder:text-muted-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30 resize-none";
 }
 
 function SectionDivider({ label }: { label: string }) {
-  return (
-    <div className="flex items-center gap-3 py-2">
-      <div className="h-px flex-1 bg-border" />
-      <span className="font-body text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
-        {label}
-      </span>
-      <div className="h-px flex-1 bg-border" />
-    </div>
-  );
+	return (
+		<div className="flex items-center gap-3 py-2">
+			<div className="h-px flex-1 bg-border" />
+			<span className="font-body text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+				{label}
+			</span>
+			<div className="h-px flex-1 bg-border" />
+		</div>
+	);
 }
 
-function ViewField({ label, value }: { label: string; value?: React.ReactNode }) {
-  return (
-    <div>
-      <dt className="font-body text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-0.5">
-        {label}
-      </dt>
-      <dd className="font-body text-sm text-foreground">
-        {value || <span className="text-muted-foreground">—</span>}
-      </dd>
-    </div>
-  );
+function ViewField({
+	label,
+	value,
+}: {
+	label: string;
+	value?: React.ReactNode;
+}) {
+	return (
+		<div>
+			<dt className="font-body text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-0.5">
+				{label}
+			</dt>
+			<dd className="font-body text-sm text-foreground">
+				{value || <span className="text-muted-foreground">—</span>}
+			</dd>
+		</div>
+	);
 }
 
 // ─── Main component ───────────────────────────────────────────────────────────

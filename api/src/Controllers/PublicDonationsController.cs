@@ -113,10 +113,24 @@ public class PublicDonationsController : ControllerBase
         await using var tx = await _db.Database.BeginTransactionAsync(cancellationToken);
         try
         {
+            // donations.donation_id is not identity; reserve the next key under lock.
+            donation.DonationId = await _db.Database
+                .SqlQuery<int>($"""
+                    SELECT ISNULL(MAX(donation_id), 0) + 1 AS [Value]
+                    FROM donations WITH (UPDLOCK, HOLDLOCK)
+                    """)
+                .SingleAsync(cancellationToken);
+
             _db.Donations.Add(donation);
             await _db.SaveChangesAsync(cancellationToken);
 
             allocation.DonationId = donation.DonationId;
+            allocation.AllocationId = await _db.Database
+                .SqlQuery<int>($"""
+                    SELECT ISNULL(MAX(allocation_id), 0) + 1 AS [Value]
+                    FROM donation_allocations WITH (UPDLOCK, HOLDLOCK)
+                    """)
+                .SingleAsync(cancellationToken);
             _db.DonationAllocations.Add(allocation);
             await _db.SaveChangesAsync(cancellationToken);
             await tx.CommitAsync(cancellationToken);

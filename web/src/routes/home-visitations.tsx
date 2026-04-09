@@ -6,61 +6,65 @@ import { apiGetJson, getApiBaseUrl, type AuthMeResponse } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Home, Plus, ChevronUp, Users, Clock } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+import { requireRole } from "@/lib/auth";
 
 export const Route = createFileRoute("/home-visitations")({
-  component: HomeVisitationsPage,
+	beforeLoad: async ({ context }) => {
+		await requireRole(context.queryClient, "Admin", "Staff");
+	},
+	component: HomeVisitationsPage,
 });
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type VisitType =
-  | "Initial Assessment"
-  | "Routine Follow-up"
-  | "Reintegration Assessment"
-  | "Post-Placement Monitoring"
-  | "Emergency";
+	| "Initial Assessment"
+	| "Routine Follow-up"
+	| "Reintegration Assessment"
+	| "Post-Placement Monitoring"
+	| "Emergency";
 
 type FamilyCooperation =
-  | "Cooperative"
-  | "Partially Cooperative"
-  | "Uncooperative"
-  | "Not Available";
+	| "Cooperative"
+	| "Partially Cooperative"
+	| "Uncooperative"
+	| "Not Available";
 
 type ConferenceType =
-  | "Initial Case Conference"
-  | "Progress Review"
-  | "Reintegration Planning"
-  | "Crisis Conference"
-  | "Discharge Planning";
+	| "Initial Case Conference"
+	| "Progress Review"
+	| "Reintegration Planning"
+	| "Crisis Conference"
+	| "Discharge Planning";
 
 interface Resident {
-  id: number;
-  name: string;
-  caseNumber: string;
+	id: number;
+	name: string;
+	caseNumber: string;
 }
 
 interface HomeVisit {
-  id: number;
-  residentId: number;
-  visitDate: string;
-  staffName: string;
-  visitType: VisitType;
-  homeEnvironmentObservations: string;
-  familyCooperation: FamilyCooperation;
-  safetyConcerns: string;
-  followUpActions: string;
+	id: number;
+	residentId: number;
+	visitDate: string;
+	staffName: string;
+	visitType: VisitType;
+	homeEnvironmentObservations: string;
+	familyCooperation: FamilyCooperation;
+	safetyConcerns: string;
+	followUpActions: string;
 }
 
 interface CaseConference {
-  id: number;
-  residentId: number;
-  conferenceDate: string;
-  conferenceType: ConferenceType;
-  attendees: string;
-  discussionSummary: string;
-  decisionsMade: string;
-  nextConferenceDate: string;
+	id: number;
+	residentId: number;
+	conferenceDate: string;
+	conferenceType: ConferenceType;
+	attendees: string;
+	discussionSummary: string;
+	decisionsMade: string;
+	nextConferenceDate: string;
 }
 
 type ResidentApi = {
@@ -84,167 +88,167 @@ type HomeVisitApi = {
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const VISIT_TYPES: VisitType[] = [
-  "Initial Assessment",
-  "Routine Follow-up",
-  "Reintegration Assessment",
-  "Post-Placement Monitoring",
-  "Emergency",
+	"Initial Assessment",
+	"Routine Follow-up",
+	"Reintegration Assessment",
+	"Post-Placement Monitoring",
+	"Emergency",
 ];
 
 const COOPERATION_LEVELS: FamilyCooperation[] = [
-  "Cooperative",
-  "Partially Cooperative",
-  "Uncooperative",
-  "Not Available",
+	"Cooperative",
+	"Partially Cooperative",
+	"Uncooperative",
+	"Not Available",
 ];
 
 const CONFERENCE_TYPES: ConferenceType[] = [
-  "Initial Case Conference",
-  "Progress Review",
-  "Reintegration Planning",
-  "Crisis Conference",
-  "Discharge Planning",
+	"Initial Case Conference",
+	"Progress Review",
+	"Reintegration Planning",
+	"Crisis Conference",
+	"Discharge Planning",
 ];
 
 // ─── Badge colors ─────────────────────────────────────────────────────────────
 
 const VISIT_TYPE_COLORS: Record<VisitType, string> = {
-  "Initial Assessment": "bg-blue-50 text-blue-700 border-blue-200",
-  "Routine Follow-up": "bg-primary/10 text-primary border-primary/20",
-  "Reintegration Assessment": "bg-purple-50 text-purple-700 border-purple-200",
-  "Post-Placement Monitoring": "bg-green-50 text-green-700 border-green-200",
-  Emergency: "bg-destructive/15 text-destructive border-destructive/20",
+	"Initial Assessment": "bg-blue-50 text-blue-700 border-blue-200",
+	"Routine Follow-up": "bg-primary/10 text-primary border-primary/20",
+	"Reintegration Assessment": "bg-purple-50 text-purple-700 border-purple-200",
+	"Post-Placement Monitoring": "bg-green-50 text-green-700 border-green-200",
+	Emergency: "bg-destructive/15 text-destructive border-destructive/20",
 };
 
 const COOPERATION_COLORS: Record<FamilyCooperation, string> = {
-  Cooperative: "bg-green-50 text-green-700 border-green-200",
-  "Partially Cooperative": "bg-yellow-50 text-yellow-700 border-yellow-200",
-  Uncooperative: "bg-red-50 text-red-700 border-red-200",
-  "Not Available": "bg-muted text-muted-foreground border-border",
+	Cooperative: "bg-green-50 text-green-700 border-green-200",
+	"Partially Cooperative": "bg-yellow-50 text-yellow-700 border-yellow-200",
+	Uncooperative: "bg-red-50 text-red-700 border-red-200",
+	"Not Available": "bg-muted text-muted-foreground border-border",
 };
 
 const CONFERENCE_TYPE_COLORS: Record<ConferenceType, string> = {
-  "Initial Case Conference": "bg-blue-50 text-blue-700 border-blue-200",
-  "Progress Review": "bg-primary/10 text-primary border-primary/20",
-  "Reintegration Planning": "bg-purple-50 text-purple-700 border-purple-200",
-  "Crisis Conference":
-    "bg-destructive/15 text-destructive border-destructive/20",
-  "Discharge Planning": "bg-green-50 text-green-700 border-green-200",
+	"Initial Case Conference": "bg-blue-50 text-blue-700 border-blue-200",
+	"Progress Review": "bg-primary/10 text-primary border-primary/20",
+	"Reintegration Planning": "bg-purple-50 text-purple-700 border-purple-200",
+	"Crisis Conference":
+		"bg-destructive/15 text-destructive border-destructive/20",
+	"Discharge Planning": "bg-green-50 text-green-700 border-green-200",
 };
 
 // ─── Empty forms ──────────────────────────────────────────────────────────────
 
 const EMPTY_VISIT = {
-  visitDate: "",
-  staffName: "",
-  visitType: "Routine Follow-up" as VisitType,
-  homeEnvironmentObservations: "",
-  familyCooperation: "Cooperative" as FamilyCooperation,
-  safetyConcerns: "",
-  followUpActions: "",
+	visitDate: "",
+	staffName: "",
+	visitType: "Routine Follow-up" as VisitType,
+	homeEnvironmentObservations: "",
+	familyCooperation: "Cooperative" as FamilyCooperation,
+	safetyConcerns: "",
+	followUpActions: "",
 };
 
 const EMPTY_CONFERENCE = {
-  conferenceDate: "",
-  conferenceType: "Progress Review" as ConferenceType,
-  attendees: "",
-  discussionSummary: "",
-  decisionsMade: "",
-  nextConferenceDate: "",
+	conferenceDate: "",
+	conferenceType: "Progress Review" as ConferenceType,
+	attendees: "",
+	discussionSummary: "",
+	decisionsMade: "",
+	nextConferenceDate: "",
 };
 
 // ─── Mock data ────────────────────────────────────────────────────────────────
 
 const MOCK_CONFERENCES: CaseConference[] = [
-  {
-    id: 1,
-    residentId: 1,
-    conferenceDate: "2025-01-25",
-    conferenceType: "Initial Case Conference",
-    attendees:
-      "Maria Santos (SW), Dr. Elena Cruz (Psychologist), Shelter Director, Resident",
-    discussionSummary:
-      "Initial conference to establish care plan. Discussed trauma history, immediate safety needs, and short-term goals. Resident expressed desire to return to school and reconnect with maternal aunt.",
-    decisionsMade:
-      "Enroll in psychosocial support sessions (twice weekly). Begin vocational assessment. Coordinate with DepEd for educational continuity.",
-    nextConferenceDate: "2025-04-25",
-  },
-  {
-    id: 2,
-    residentId: 1,
-    conferenceDate: "2025-04-25",
-    conferenceType: "Progress Review",
-    attendees: "Maria Santos (SW), Shelter Director, Resident, Maternal Aunt",
-    discussionSummary:
-      "Reviewed progress over the past three months. Resident has completed 10 psychosocial sessions and scored well on vocational aptitude tests. Family visit with maternal aunt was positive.",
-    decisionsMade:
-      "Transition to reintegration phase. Begin formal family reunification process with maternal aunt. Schedule home visit to aunt's residence.",
-    nextConferenceDate: "2025-07-25",
-  },
-  {
-    id: 3,
-    residentId: 1,
-    conferenceDate: "2025-07-25",
-    conferenceType: "Reintegration Planning",
-    attendees:
-      "Maria Santos (SW), Shelter Director, Resident, Maternal Aunt, DSWD Liaison",
-    discussionSummary:
-      "Planned reintegration timeline with all stakeholders. Maternal aunt confirmed readiness to receive resident. Housing conditions verified as suitable.",
-    decisionsMade:
-      "Target reintegration date: September 15, 2025. Monthly post-placement monitoring for 6 months. Livelihood grant application to be filed.",
-    nextConferenceDate: "",
-  },
-  {
-    id: 4,
-    residentId: 2,
-    conferenceDate: "2025-04-10",
-    conferenceType: "Crisis Conference",
-    attendees:
-      "Jose Reyes (SW), Shelter Director, PNP WCPD Officer, Psychologist",
-    discussionSummary:
-      "Emergency conference triggered by safety concerns identified during home visit. Perpetrator's proximity and family contact poses ongoing risk. Discussed escalation options.",
-    decisionsMade:
-      "Extend shelter stay. Petition for Barangay Protection Order. Psychologist to conduct trauma-focused assessment this week.",
-    nextConferenceDate: "2025-05-10",
-  },
-  {
-    id: 5,
-    residentId: 2,
-    conferenceDate: "2025-05-10",
-    conferenceType: "Progress Review",
-    attendees:
-      "Jose Reyes (SW), Shelter Director, Psychologist, Legal Aid Officer",
-    discussionSummary:
-      "Protection order has been granted. Resident's trauma assessment complete — PTSD indicators present. Legal proceedings underway.",
-    decisionsMade:
-      "Begin trauma-focused cognitive behavioral therapy (TF-CBT). Continue legal support. Home visit deferred until area safety is confirmed.",
-    nextConferenceDate: "2025-08-10",
-  },
+	{
+		id: 1,
+		residentId: 1,
+		conferenceDate: "2025-01-25",
+		conferenceType: "Initial Case Conference",
+		attendees:
+			"Maria Santos (SW), Dr. Elena Cruz (Psychologist), Shelter Director, Resident",
+		discussionSummary:
+			"Initial conference to establish care plan. Discussed trauma history, immediate safety needs, and short-term goals. Resident expressed desire to return to school and reconnect with maternal aunt.",
+		decisionsMade:
+			"Enroll in psychosocial support sessions (twice weekly). Begin vocational assessment. Coordinate with DepEd for educational continuity.",
+		nextConferenceDate: "2025-04-25",
+	},
+	{
+		id: 2,
+		residentId: 1,
+		conferenceDate: "2025-04-25",
+		conferenceType: "Progress Review",
+		attendees: "Maria Santos (SW), Shelter Director, Resident, Maternal Aunt",
+		discussionSummary:
+			"Reviewed progress over the past three months. Resident has completed 10 psychosocial sessions and scored well on vocational aptitude tests. Family visit with maternal aunt was positive.",
+		decisionsMade:
+			"Transition to reintegration phase. Begin formal family reunification process with maternal aunt. Schedule home visit to aunt's residence.",
+		nextConferenceDate: "2025-07-25",
+	},
+	{
+		id: 3,
+		residentId: 1,
+		conferenceDate: "2025-07-25",
+		conferenceType: "Reintegration Planning",
+		attendees:
+			"Maria Santos (SW), Shelter Director, Resident, Maternal Aunt, DSWD Liaison",
+		discussionSummary:
+			"Planned reintegration timeline with all stakeholders. Maternal aunt confirmed readiness to receive resident. Housing conditions verified as suitable.",
+		decisionsMade:
+			"Target reintegration date: September 15, 2025. Monthly post-placement monitoring for 6 months. Livelihood grant application to be filed.",
+		nextConferenceDate: "",
+	},
+	{
+		id: 4,
+		residentId: 2,
+		conferenceDate: "2025-04-10",
+		conferenceType: "Crisis Conference",
+		attendees:
+			"Jose Reyes (SW), Shelter Director, PNP WCPD Officer, Psychologist",
+		discussionSummary:
+			"Emergency conference triggered by safety concerns identified during home visit. Perpetrator's proximity and family contact poses ongoing risk. Discussed escalation options.",
+		decisionsMade:
+			"Extend shelter stay. Petition for Barangay Protection Order. Psychologist to conduct trauma-focused assessment this week.",
+		nextConferenceDate: "2025-05-10",
+	},
+	{
+		id: 5,
+		residentId: 2,
+		conferenceDate: "2025-05-10",
+		conferenceType: "Progress Review",
+		attendees:
+			"Jose Reyes (SW), Shelter Director, Psychologist, Legal Aid Officer",
+		discussionSummary:
+			"Protection order has been granted. Resident's trauma assessment complete — PTSD indicators present. Legal proceedings underway.",
+		decisionsMade:
+			"Begin trauma-focused cognitive behavioral therapy (TF-CBT). Continue legal support. Home visit deferred until area safety is confirmed.",
+		nextConferenceDate: "2025-08-10",
+	},
 ];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function formatDate(dateStr: string) {
-  if (!dateStr) return "—";
-  return new Date(dateStr + "T00:00:00").toLocaleDateString("en-PH", {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+	if (!dateStr) return "—";
+	return new Date(`${dateStr}T00:00:00`).toLocaleDateString("en-PH", {
+		weekday: "long",
+		year: "numeric",
+		month: "long",
+		day: "numeric",
+	});
 }
 
 function isUpcoming(dateStr: string) {
-  if (!dateStr) return false;
-  return new Date(dateStr + "T00:00:00") > new Date();
+	if (!dateStr) return false;
+	return new Date(`${dateStr}T00:00:00`) > new Date();
 }
 
 function textareaClass() {
-  return "w-full rounded-2xl border border-transparent bg-input/50 px-3 py-2 text-sm font-body text-foreground placeholder:text-muted-foreground transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30 resize-none";
+	return "w-full rounded-2xl border border-transparent bg-input/50 px-3 py-2 text-sm font-body text-foreground placeholder:text-muted-foreground transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30 resize-none";
 }
 
 function selectClass() {
-  return "h-9 w-full rounded-3xl border border-transparent bg-input/50 px-3 text-sm font-body text-foreground transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30";
+	return "h-9 w-full rounded-3xl border border-transparent bg-input/50 px-3 text-sm font-body text-foreground transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30";
 }
 
 // ─── Main component ───────────────────────────────────────────────────────────

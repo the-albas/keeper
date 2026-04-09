@@ -216,3 +216,22 @@ p {
 		@apply font-sans;
 	}
 }
+
+@media print {
+	/* Hide sidebar and any nav chrome */
+	aside,
+	nav,
+	[class*="AdminSidebar"] {
+		display: none !important;
+	}
+
+	/* Remove the left margin added for the sidebar */
+	main {
+		margin-left: 0 !important;
+	}
+
+	/* Avoid page breaks inside cards/charts */
+	.rounded-2xl {
+		break-inside: avoid;
+	}
+}
