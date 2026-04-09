@@ -97,20 +97,30 @@ public class AuthController : ControllerBase
             );
         }
 
-        var nextSupporterId = await _db.Supporters.AnyAsync(cancellationToken)
-            ? await _db.Supporters.MaxAsync(s => s.SupporterId, cancellationToken) + 1
-            : 1;
+        var normalizedEmail = email.Trim();
+        var existingSupporter = await _db
+            .Supporters.Where(s => s.Email != null)
+            .FirstOrDefaultAsync(s => s.Email!.Trim() == normalizedEmail, cancellationToken);
 
-        _db.Supporters.Add(new Supporter
+        if (existingSupporter is null)
         {
-            SupporterId = nextSupporterId,
-            Email = email,
-            SupporterType = "MonetaryDonor",
-            Status = "Active",
-            CreatedAt = DateTime.UtcNow,
-            AcquisitionChannel = "Website",
-        });
-        await _db.SaveChangesAsync(cancellationToken);
+            var nextSupporterId = await _db.Supporters.AnyAsync(cancellationToken)
+                ? await _db.Supporters.MaxAsync(s => s.SupporterId, cancellationToken) + 1
+                : 1;
+
+            _db.Supporters.Add(
+                new Supporter
+                {
+                    SupporterId = nextSupporterId,
+                    Email = email,
+                    SupporterType = "MonetaryDonor",
+                    Status = "Active",
+                    CreatedAt = DateTime.UtcNow,
+                    AcquisitionChannel = "Website",
+                }
+            );
+            await _db.SaveChangesAsync(cancellationToken);
+        }
 
         _pendingSignupChallengeStore.Write(Response, user.Id, email, _environment.IsDevelopment());
 

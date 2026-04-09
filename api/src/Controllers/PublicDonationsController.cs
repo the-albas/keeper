@@ -26,19 +26,16 @@ public class PublicDonationsController : ControllerBase
 
     private readonly AppDbContext _db;
     private readonly UserManager<ApplicationUser> _userManager;
-    private readonly IConfiguration _config;
     private readonly ILogger<PublicDonationsController> _logger;
 
     public PublicDonationsController(
         AppDbContext db,
         UserManager<ApplicationUser> userManager,
-        IConfiguration config,
         ILogger<PublicDonationsController> logger
     )
     {
         _db = db;
         _userManager = userManager;
-        _config = config;
         _logger = logger;
     }
 
@@ -58,23 +55,20 @@ public class PublicDonationsController : ControllerBase
             );
         }
 
-        var anonymousSupporterId = _config.GetValue("Donations:AnonymousSupporterId", 1);
-        var supporterId = anonymousSupporterId;
+        int? supporterId = null;
 
         if (User.Identity?.IsAuthenticated == true)
         {
             var user = await _userManager.GetUserAsync(User);
             if (user is not null && !string.IsNullOrWhiteSpace(user.Email))
             {
+                var normalizedEmail = user.Email.Trim();
                 var linked = await _db
                     .Supporters.AsNoTracking()
-                    .Where(s => s.Email == user.Email)
+                    .Where(s => s.Email != null && s.Email.Trim() == normalizedEmail)
                     .Select(s => (int?)s.SupporterId)
                     .FirstOrDefaultAsync(cancellationToken);
-                if (linked.HasValue)
-                {
-                    supporterId = linked.Value;
-                }
+                if (linked.HasValue) supporterId = linked.Value;
             }
         }
 
@@ -150,6 +144,16 @@ public class PublicDonationsController : ControllerBase
             _db.DonationAllocations.Add(allocation);
             await _db.SaveChangesAsync(cancellationToken);
             await tx.CommitAsync(cancellationToken);
+        }
+        catch (DbUpdateException ex)
+        {
+            await tx.RollbackAsync(cancellationToken);
+            _logger.LogError(ex, "Failed to persist public donation due to DB schema mismatch.");
+            return Problem(
+                title: "Donation failed",
+                detail: "Could not save your donation due to a database schema mismatch. Please apply the latest API migration and try again.",
+                statusCode: StatusCodes.Status500InternalServerError
+            );
         }
         catch (Exception ex)
         {

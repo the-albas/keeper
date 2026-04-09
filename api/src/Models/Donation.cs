@@ -3,7 +3,7 @@ namespace api.Models;
 public class Donation
 {
     public int DonationId { get; set; }
-    public int SupporterId { get; set; }
+    public int? SupporterId { get; set; }
     public string? DonationType { get; set; }
     public DateOnly DonationDate { get; set; }
     public bool IsRecurring { get; set; }

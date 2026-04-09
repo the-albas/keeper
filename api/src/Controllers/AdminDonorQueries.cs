@@ -45,7 +45,12 @@ internal static class AdminDonorQueries
             return Array.Empty<AdminContributionListDto>();
         }
 
-        var supporterIds = donationRows.Select(d => d.SupporterId).Distinct().ToArray();
+        var supporterIds = donationRows
+            .Select(d => d.SupporterId)
+            .Where(id => id.HasValue)
+            .Select(id => id!.Value)
+            .Distinct()
+            .ToArray();
         var supporters = await db
             .Supporters.AsNoTracking()
             .Where(s => supporterIds.Contains(s.SupporterId))
@@ -75,7 +80,10 @@ internal static class AdminDonorQueries
         var list = new List<AdminContributionListDto>(donationRows.Count);
         foreach (var d in donationRows)
         {
-            supporters.TryGetValue(d.SupporterId, out var supporter);
+            var supporter = d.SupporterId.HasValue
+                && supporters.TryGetValue(d.SupporterId.Value, out var matched)
+                ? matched
+                : null;
             firstAllocationByDonation.TryGetValue(d.DonationId, out var alloc);
 
             list.Add(MapContribution(d, supporter, alloc?.SafehouseName, alloc?.ProgramArea));
@@ -258,7 +266,9 @@ internal static class AdminDonorQueries
     {
         var supporterName = supporter is not null
             ? FormatSupporterDisplayName(supporter)
-            : $"Supporter {d.SupporterId}";
+            : d.SupporterId.HasValue
+                ? $"Supporter {d.SupporterId.Value}"
+                : "Guest donor";
 
         var uiType = MapDonationTypeToContributionUi(d.DonationType);
         var est = d.EstimatedValue ?? 0m;
@@ -268,7 +278,7 @@ internal static class AdminDonorQueries
         var dto = new AdminContributionListDto
         {
             Id = d.DonationId.ToString(CultureInfo.InvariantCulture),
-            SupporterId = d.SupporterId.ToString(CultureInfo.InvariantCulture),
+            SupporterId = d.SupporterId?.ToString(CultureInfo.InvariantCulture) ?? string.Empty,
             SupporterName = supporterName,
             ContributionType = uiType,
             Date = d.DonationDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),

@@ -104,7 +104,12 @@ public class AdminController : ControllerBase
             return Ok(Array.Empty<AdminDonationDto>());
         }
 
-        var supporterIds = donations.Select(d => d.SupporterId).Distinct().ToArray();
+        var supporterIds = donations
+            .Select(d => d.SupporterId)
+            .Where(id => id.HasValue)
+            .Select(id => id!.Value)
+            .Distinct()
+            .ToArray();
         var emails = await _db
             .Supporters.AsNoTracking()
             .Where(s => supporterIds.Contains(s.SupporterId))
@@ -128,7 +133,10 @@ public class AdminController : ControllerBase
         var result = new List<AdminDonationDto>(donations.Count);
         foreach (var d in donations)
         {
-            emails.TryGetValue(d.SupporterId, out var email);
+            var email = d.SupporterId.HasValue
+                && emails.TryGetValue(d.SupporterId.Value, out var matched)
+                ? matched
+                : null;
             firstAllocationByDonation.TryGetValue(d.DonationId, out var allocation);
 
             result.Add(

@@ -121,13 +121,16 @@ public class AdminDataController : ControllerBase
                     $"""
                     SELECT TOP 500
                         CAST(d.donation_id AS varchar(40)) AS id,
-                        CAST(d.supporter_id AS varchar(40)) AS supporter_id,
+                        ISNULL(CAST(d.supporter_id AS varchar(40)), '') AS supporter_id,
                         LTRIM(RTRIM(
                             COALESCE(
                                 NULLIF(s.display_name, ''),
                                 NULLIF(s.organization_name, ''),
                                 NULLIF(CONCAT(ISNULL(s.first_name, ''), ' ', ISNULL(s.last_name, '')), ''),
-                                CONCAT('Supporter #', CAST(d.supporter_id AS varchar(20)))
+                                CASE
+                                    WHEN d.supporter_id IS NULL THEN 'Guest donor'
+                                    ELSE CONCAT('Supporter #', CAST(d.supporter_id AS varchar(20)))
+                                END
                             )
                         )) AS supporter_name,
                         CAST(d.amount AS decimal(18,2)) AS amount,
