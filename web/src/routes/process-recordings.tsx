@@ -190,7 +190,7 @@ function ProcessRecordingsPage() {
     },
   });
 
-  const updateRecordingMutation = useMutation({
+  const _updateRecordingMutation = useMutation({
     mutationFn: async (payload: {
       id: number;
       session_date: string;
@@ -295,10 +295,16 @@ function ProcessRecordingsPage() {
       sessionDate: recording.sessionDate,
       socialWorker: recording.socialWorker,
       sessionType: recording.sessionType,
-      emotionalState: recording.emotionalState,
-      narrativeSummary: recording.narrativeSummary,
-      interventions: recording.interventions,
+      sessionDurationMinutes: recording.sessionDurationMinutes,
+      emotionalStateObserved: recording.emotionalStateObserved,
+      emotionalStateEnd: recording.emotionalStateEnd,
+      sessionNarrative: recording.sessionNarrative,
+      interventionsApplied: recording.interventionsApplied,
       followUpActions: recording.followUpActions,
+      progressNoted: recording.progressNoted,
+      concernsFlagged: recording.concernsFlagged,
+      referralMade: recording.referralMade,
+      notesRestricted: recording.notesRestricted,
     });
     setEditingRecordingId(recording.id);
     setShowForm(true);

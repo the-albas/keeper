@@ -351,29 +351,51 @@ function CaseloadPage() {
 			id: r.id,
 			resident_code: r.resident_code || `RES-${r.id}`,
 			full_name: r.full_name || `Resident ${r.id}`,
+			case_control_no: r.case_control_no || "",
+			internal_code: r.internal_code || "",
 			date_of_birth: r.date_of_birth || "",
 			sex: r.sex || "",
-			civil_status: r.civil_status || "",
-			nationality: r.nationality || "Filipino",
+			birth_status: r.birth_status || "",
+			place_of_birth: r.place_of_birth || "",
+			religion: r.religion || "",
 			case_status: r.case_status || "Active Care",
 			case_category: r.case_category || "",
-			case_subcategories: r.case_subcategories ?? [],
-			risk_level: r.risk_level || "Medium",
-			has_disability: r.has_disability ?? false,
-			disability_type: r.disability_type || "",
-			is_4ps_beneficiary: r.is_4ps_beneficiary ?? false,
-			is_solo_parent: r.is_solo_parent ?? false,
-			is_indigenous: r.is_indigenous ?? false,
-			is_informal_settler: r.is_informal_settler ?? false,
-			admission_date: r.admission_date || "",
+			sub_cat_orphaned: false,
+			sub_cat_trafficked: false,
+			sub_cat_child_labor: false,
+			sub_cat_physical_abuse: false,
+			sub_cat_sexual_abuse: false,
+			sub_cat_osaec: false,
+			sub_cat_cicl: false,
+			sub_cat_at_risk: false,
+			sub_cat_street_child: false,
+			sub_cat_child_with_hiv: false,
+			is_pwd: false,
+			pwd_type: "",
+			has_special_needs: false,
+			special_needs_diagnosis: "",
+			family_is_4ps: false,
+			family_solo_parent: false,
+			family_indigenous: false,
+			family_parent_pwd: false,
+			family_informal_settler: false,
+			date_of_admission: r.date_of_admission || "",
 			safehouse_id: r.safehouse_id || "",
 			safehouse_name: r.safehouse_name || "",
-			referred_by: r.referred_by || "",
 			referral_source: r.referral_source || "",
+			referring_agency_person: r.referring_agency_person || "",
+			date_colb_registered: "",
+			date_colb_obtained: "",
 			assigned_social_worker: r.assigned_social_worker || "",
-			reintegration_plan: r.reintegration_plan || "",
-			reintegration_target_date: r.reintegration_target_date || "",
+			initial_case_assessment: "",
+			date_case_study_prepared: "",
+			initial_risk_level: r.initial_risk_level || "Medium",
+			current_risk_level: r.current_risk_level || "Medium",
+			reintegration_type: r.reintegration_type || "",
 			reintegration_status: r.reintegration_status || "",
+			date_enrolled: r.date_enrolled || "",
+			date_closed: r.date_closed || "",
+			notes_restricted: "",
 		})),
 	[residentsFromApi]
   );
@@ -383,26 +405,32 @@ function CaseloadPage() {
 		const body = {
 			full_name: payload.data.full_name,
 			resident_code: payload.data.resident_code,
+			case_control_no: payload.data.case_control_no,
+			internal_code: payload.data.internal_code,
 			date_of_birth: payload.data.date_of_birth,
 			sex: payload.data.sex,
-			civil_status: payload.data.civil_status,
+			birth_status: payload.data.birth_status,
+			place_of_birth: payload.data.place_of_birth,
+			religion: payload.data.religion,
 			case_status: payload.data.case_status,
 			case_category: payload.data.case_category,
-			case_subcategories: payload.data.case_subcategories,
-			risk_level: payload.data.risk_level,
-			has_disability: payload.data.has_disability,
-			disability_type: payload.data.disability_type,
-			is_4ps_beneficiary: payload.data.is_4ps_beneficiary,
-			is_solo_parent: payload.data.is_solo_parent,
-			is_indigenous: payload.data.is_indigenous,
-			is_informal_settler: payload.data.is_informal_settler,
-			admission_date: payload.data.admission_date,
+			is_pwd: payload.data.is_pwd,
+			pwd_type: payload.data.pwd_type,
+			has_special_needs: payload.data.has_special_needs,
+			special_needs_diagnosis: payload.data.special_needs_diagnosis,
+			family_is_4ps: payload.data.family_is_4ps,
+			family_solo_parent: payload.data.family_solo_parent,
+			family_indigenous: payload.data.family_indigenous,
+			family_parent_pwd: payload.data.family_parent_pwd,
+			family_informal_settler: payload.data.family_informal_settler,
+			date_of_admission: payload.data.date_of_admission,
 			safehouse_id: payload.data.safehouse_id,
-			referred_by: payload.data.referred_by,
 			referral_source: payload.data.referral_source,
+			referring_agency_person: payload.data.referring_agency_person,
 			assigned_social_worker: payload.data.assigned_social_worker,
-			reintegration_plan: payload.data.reintegration_plan,
-			reintegration_target_date: payload.data.reintegration_target_date,
+			initial_risk_level: payload.data.initial_risk_level,
+			current_risk_level: payload.data.current_risk_level,
+			reintegration_type: payload.data.reintegration_type,
 			reintegration_status: payload.data.reintegration_status,
 		};
 
@@ -426,78 +454,7 @@ function CaseloadPage() {
 		await queryClient.invalidateQueries({ queryKey: ["admin", "caseload", "residents"] });
 	},
   });
-  const SAFEHOUSES = lookupsData?.safehouses ?? [];
 
-  useEffect(() => {
-    const normalizeCaseStatus = (value?: string): CaseStatus => {
-      const v = (value ?? "").toLowerCase();
-      if (v === "intake") return "Intake";
-      if (v === "assessment") return "Assessment";
-      if (v === "reintegration") return "Reintegration";
-      if (v === "closed") return "Closed";
-      if (v === "graduated") return "Graduated";
-      return "Active Care";
-    };
-    const normalizeRisk = (value?: string): RiskLevel => {
-      const v = (value ?? "").toLowerCase();
-      if (v === "low") return "Low";
-      if (v === "high") return "High";
-      if (v === "critical") return "Critical";
-      return "Medium";
-    };
-    setResidents(
-      residentsFromApi.map((r) => ({
-        id: r.id,
-        resident_code: r.resident_code || `RES-${r.id}`,
-        full_name: r.full_name || `Resident ${r.id}`,
-        case_control_no: r.case_control_no || "",
-        internal_code: r.internal_code || "",
-        date_of_birth: r.date_of_birth || "",
-        sex: r.sex || "",
-        birth_status: r.birth_status || "",
-        place_of_birth: r.place_of_birth || "",
-        religion: r.religion || "",
-        case_status: normalizeCaseStatus(r.case_status),
-        case_category: r.case_category || "",
-        sub_cat_orphaned: false,
-        sub_cat_trafficked: false,
-        sub_cat_child_labor: false,
-        sub_cat_physical_abuse: false,
-        sub_cat_sexual_abuse: false,
-        sub_cat_osaec: false,
-        sub_cat_cicl: false,
-        sub_cat_at_risk: false,
-        sub_cat_street_child: false,
-        sub_cat_child_with_hiv: false,
-        is_pwd: false,
-        pwd_type: "",
-        has_special_needs: false,
-        special_needs_diagnosis: "",
-        family_is_4ps: false,
-        family_solo_parent: false,
-        family_indigenous: false,
-        family_parent_pwd: false,
-        family_informal_settler: false,
-        date_of_admission: r.date_of_admission || "",
-        safehouse_id: r.safehouse_id || "",
-        safehouse_name: r.safehouse_name || "",
-        referral_source: r.referral_source || "",
-        referring_agency_person: r.referring_agency_person || "",
-        date_colb_registered: "",
-        date_colb_obtained: "",
-        assigned_social_worker: r.assigned_social_worker || "",
-        initial_case_assessment: "",
-        date_case_study_prepared: "",
-        initial_risk_level: normalizeRisk(r.initial_risk_level),
-        current_risk_level: normalizeRisk(r.current_risk_level),
-        reintegration_type: r.reintegration_type || "",
-        reintegration_status: r.reintegration_status || "",
-        date_enrolled: r.date_enrolled || "",
-        date_closed: r.date_closed || "",
-        notes_restricted: "",
-      }))
-    );
-  }, [residentsFromApi]);
 
   // ── Filtering ──────────────────────────────────────────────────────────────
 
@@ -567,23 +524,18 @@ function CaseloadPage() {
     });
   }
 
-  function handleSave(e: React.FormEvent) {
+  async function handleSave(e: React.FormEvent) {
     e.preventDefault();
-    if (panelMode === "add") {
-      const newResident: ResidentProfile = {
-        ...formData,
-        id: `r-${Date.now()}`,
-        resident_code: formData.resident_code || `KPR-${new Date().getFullYear()}-${String(residents.length + 1).padStart(3, "0")}`,
-      };
-      // TODO: POST to your C# API endpoint
-      setResidents((prev) => [newResident, ...prev]);
-    } else if (panelMode === "edit") {
-      // TODO: PUT to your C# API endpoint
-      setResidents((prev) => prev.map((r) => (r.id === formData.id ? formData : r)));
-      setPanelResident(formData);
-      setPanelMode("view");
-      return;
-    }
+    if (panelMode !== "add" && panelMode !== "edit") return;
+    await saveMutation.mutateAsync({ mode: panelMode, data: formData });
+    closePanel();
+  }
+
+  async function handleDelete() {
+    if (!panelResident) return;
+    const ok = window.confirm(`Delete resident ${panelResident.full_name}? This cannot be undone.`);
+    if (!ok) return;
+    await deleteMutation.mutateAsync(panelResident.id);
     closePanel();
   }
 
