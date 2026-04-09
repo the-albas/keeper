@@ -7,7 +7,6 @@ import {
 } from "@tanstack/react-router";
 import { type FormEvent, useState } from "react";
 import girlsBg from "@/assets/girls_login_page.png";
-import logoImg from "@/assets/logo.png";
 import { CodeChallengeForm } from "@/components/auth/code-challenge-form";
 import Navbar from "@/components/landing/Navbar";
 import { Button } from "@/components/ui/button";
@@ -155,11 +154,6 @@ function Login() {
 				<div className="flex w-full flex-col items-center justify-center bg-slate-100 px-8 lg:w-[55%]">
 					<div className="w-full max-w-sm rounded-2xl border border-border bg-background p-8 shadow-sm">
 						<Link to="/" className="mb-6 flex items-center gap-2.5">
-							<img
-								src={logoImg}
-								alt="Keeper"
-								className="h-8 w-8 rounded-lg object-cover"
-							/>
 							<span className="font-heading text-lg font-semibold text-foreground">
 								Keeper
 							</span>

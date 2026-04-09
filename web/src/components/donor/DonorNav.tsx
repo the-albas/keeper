@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { LogOut } from "lucide-react";
-import logoImg from "@/assets/logo.png";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { logout } from "@/lib/api";
@@ -32,11 +31,6 @@ export default function DonorNav({ user }: { user: User | null }) {
 		<nav className="sticky top-0 z-50 border-b border-border bg-white/90 backdrop-blur-md">
 			<div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
 				<Link to="/" className="flex items-center gap-3">
-					<img
-						src={logoImg}
-						alt="Keeper"
-						className="h-9 w-9 rounded-lg object-cover"
-					/>
 					<span className="font-heading text-xl font-semibold tracking-tight text-foreground">
 						Keeper
 					</span>
@@ -63,9 +57,9 @@ export default function DonorNav({ user }: { user: User | null }) {
 						size="icon"
 						onClick={() => signOut()}
 						className="text-muted-foreground hover:text-foreground"
-						title="Sign out"
+						aria-label="Sign out"
 					>
-						<LogOut className="h-4 w-4" />
+						<LogOut className="h-4 w-4" aria-hidden="true" />
 					</Button>
 				</div>
 			</div>

@@ -2,18 +2,14 @@ import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import type { Activity } from "@/components/admin/ActivityFeed";
 import ActivityFeed from "@/components/admin/ActivityFeed";
-import { apiGetJson, type AuthMeResponse } from "@/lib/api";
-import type {
-	Donation,
-	Resident,
-	Safehouse,
-} from "@/components/admin/AdminMetrics";
+import type { Donation, Resident, Safehouse } from "@/components/admin/AdminMetrics";
 import AdminMetrics from "@/components/admin/AdminMetrics";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import CasesTable from "@/components/admin/CasesTable";
 import DonationTrends from "@/components/admin/DonationTrends";
 import OccupancyList from "@/components/admin/OccupancyList";
 import QuickActions from "@/components/admin/QuickActions";
+import { apiGetJson, type AuthMeResponse } from "@/lib/api";
 import { requireRole } from "@/lib/auth";
 
 export const Route = createFileRoute("/admin")({
@@ -50,7 +46,7 @@ function AdminDashboard() {
     queryFn: () => apiGetJson<Safehouse[]>("/api/admin-data/safehouses"),
   });
 
-  const { data: activities = [], isLoading: activitiesLoading } = useQuery<Activity[]>({
+  const { data: activities = [] } = useQuery<Activity[]>({
     queryKey: ["activities"],
     queryFn: () => apiGetJson<Activity[]>("/api/admin-data/activities"),
   });

@@ -10,7 +10,6 @@ import {
 	LogOut,
 	Users,
 } from "lucide-react";
-import logoImg from "@/assets/logo.png";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { logout } from "@/lib/api";
 
@@ -63,7 +62,6 @@ export default function AdminSidebar({ user }: { user: User | null }) {
 				to="/"
 				className="flex items-center gap-3 border-b border-sidebar-border p-5 transition-opacity hover:opacity-80"
 			>
-				<img src={logoImg} alt="Keeper" className="h-9 w-9 rounded-lg" />
 				<span className="font-heading text-lg font-semibold text-sidebar-foreground">
 					Keeper
 				</span>
@@ -112,9 +110,9 @@ export default function AdminSidebar({ user }: { user: User | null }) {
 						type="button"
 						onClick={() => handleLogout()}
 						className="rounded-lg p-1.5 text-sidebar-foreground/50 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground"
-						title="Sign out"
+						aria-label="Sign out"
 					>
-						<LogOut className="h-4 w-4" />
+						<LogOut className="h-4 w-4" aria-hidden="true" />
 					</button>
 				</div>
 			</div>
