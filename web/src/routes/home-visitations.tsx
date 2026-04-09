@@ -1202,7 +1202,7 @@ function HomeVisitationsPage() {
     <div className="min-h-screen bg-background font-body">
       <AdminSidebar user={user ?? null} />
 
-      <main className="md:ml-64 p-4 md:p-8">
+      <main className="md:ml-64 p-4 md:p-8 pt-16 md:pt-8">
         {/* Page header */}
         <div className="mb-8">
           <h1 className="font-heading text-3xl font-bold text-foreground">
