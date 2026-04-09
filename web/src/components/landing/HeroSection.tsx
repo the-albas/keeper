@@ -53,7 +53,7 @@ export default function HeroSection() {
 								variant="ghost"
 								className="font-body text-base gap-2 border-2 border-white/50 text-white hover:bg-white/10 hover:text-white px-8 h-12 rounded-lg hover:scale-105 transition-all duration-300"
 							>
-								Get Involved
+								Learn More
 								<ArrowRight className="h-5 w-5" />
 							</Button>
 						</Link>
