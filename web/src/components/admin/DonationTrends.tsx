@@ -15,16 +15,23 @@ export default function DonationTrends({ donations }: { donations: Donation[] })
 	const monthly: Record<string, number> = {};
 	for (const d of donations) {
 		try {
-			const key = format(parseISO(d.created_date), "MMM yy");
-			monthly[key] = (monthly[key] || 0) + (d.amount || 0);
+			const date = parseISO(d.created_date);
+			const monthKey = format(date, "yyyy-MM");
+			monthly[monthKey] = (monthly[monthKey] || 0) + (d.amount || 0);
 		} catch {
 			/* skip bad dates */
 		}
 	}
 
 	const data = Object.entries(monthly)
-		.map(([name, amount]) => ({ name, amount }))
-		.slice(-12);
+		.map(([monthKey, amount]) => ({
+			monthKey,
+			name: format(parseISO(`${monthKey}-01`), "MMM yy"),
+			amount,
+		}))
+		.sort((a, b) => a.monthKey.localeCompare(b.monthKey))
+		.slice(-12)
+		.map(({ name, amount }) => ({ name, amount }));
 
 	return (
 		<div className="bg-card rounded-2xl border border-border p-6">
