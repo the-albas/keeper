@@ -555,7 +555,7 @@ function DonorsPage() {
             <Label className="font-body text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Supporter Type <span className="text-red-500">*</span>
             </Label>
-            <select required value={supporterForm.supporter_type} onChange={(e) => handleSupporterField("supporter_type", e.target.value as SupporterType)} className={selectClass()}>
+            <select required aria-label="Supporter type" value={supporterForm.supporter_type} onChange={(e) => handleSupporterField("supporter_type", e.target.value as SupporterType)} className={selectClass()}>
               {SUPPORTER_TYPES.map((t) => <option key={t}>{t}</option>)}
             </select>
           </div>
@@ -563,7 +563,7 @@ function DonorsPage() {
             <Label className="font-body text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Status <span className="text-red-500">*</span>
             </Label>
-            <select required value={supporterForm.status} onChange={(e) => handleSupporterField("status", e.target.value as SupporterStatus)} className={selectClass()}>
+            <select required aria-label="Status" value={supporterForm.status} onChange={(e) => handleSupporterField("status", e.target.value as SupporterStatus)} className={selectClass()}>
               {SUPPORTER_STATUSES.map((s) => <option key={s}>{s}</option>)}
             </select>
           </div>
@@ -599,7 +599,7 @@ function DonorsPage() {
             </div>
             <div className="space-y-1.5">
               <Label className="font-body text-sm font-medium text-foreground">Contribution Type <span className="text-red-500">*</span></Label>
-              <select required value={contribForm.contribution_type} onChange={(e) => handleContribField("contribution_type", e.target.value as ContributionType)} className={selectClass()}>
+              <select required aria-label="Contribution type" value={contribForm.contribution_type} onChange={(e) => handleContribField("contribution_type", e.target.value as ContributionType)} className={selectClass()}>
                 {CONTRIBUTION_TYPES.map((t) => <option key={t}>{t}</option>)}
               </select>
             </div>
@@ -608,7 +608,7 @@ function DonorsPage() {
           <div className="grid sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <Label className="font-body text-sm font-medium text-foreground">Supporter <span className="text-red-500">*</span></Label>
-              <select required value={contribForm.supporter_id} onChange={(e) => {
+              <select required aria-label="Supporter" value={contribForm.supporter_id} onChange={(e) => {
                 const s = supporters.find((x) => x.id === e.target.value);
                 setContribForm((f) => ({ ...f, supporter_id: e.target.value, supporter_name: s?.name ?? "" }));
               }} className={selectClass()}>
@@ -640,14 +640,14 @@ function DonorsPage() {
             <div className="grid sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label className="font-body text-sm font-medium text-foreground">Payment Method</Label>
-                <select value={contribForm.payment_method} onChange={(e) => handleContribField("payment_method", e.target.value)} className={selectClass()}>
+                <select aria-label="Payment method" value={contribForm.payment_method} onChange={(e) => handleContribField("payment_method", e.target.value)} className={selectClass()}>
                   <option value="">Select…</option>
                   {PAYMENT_METHODS.map((m) => <option key={m}>{m}</option>)}
                 </select>
               </div>
               <div className="space-y-1.5">
                 <Label className="font-body text-sm font-medium text-foreground">Campaign</Label>
-                <select value={contribForm.campaign} onChange={(e) => handleContribField("campaign", e.target.value)} className={selectClass()}>
+                <select aria-label="Campaign" value={contribForm.campaign} onChange={(e) => handleContribField("campaign", e.target.value)} className={selectClass()}>
                   <option value="">Select…</option>
                   {CAMPAIGNS.map((c) => <option key={c}>{c}</option>)}
                 </select>
@@ -673,7 +673,7 @@ function DonorsPage() {
             <div className="grid sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label className="font-body text-sm font-medium text-foreground">Platform <span className="text-red-500">*</span></Label>
-                <select required value={contribForm.platform} onChange={(e) => handleContribField("platform", e.target.value)} className={selectClass()}>
+                <select required aria-label="Social media platform" value={contribForm.platform} onChange={(e) => handleContribField("platform", e.target.value)} className={selectClass()}>
                   <option value="">Select…</option>
                   {SOCIAL_PLATFORMS.map((p) => <option key={p}>{p}</option>)}
                 </select>
@@ -688,14 +688,14 @@ function DonorsPage() {
           <div className="grid sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <Label className="font-body text-sm font-medium text-foreground">Allocation — Safehouse</Label>
-              <select value={contribForm.allocation_safehouse} onChange={(e) => handleContribField("allocation_safehouse", e.target.value)} className={selectClass()}>
+              <select aria-label="Allocation safehouse" value={contribForm.allocation_safehouse} onChange={(e) => handleContribField("allocation_safehouse", e.target.value)} className={selectClass()}>
                 <option value="">None / General</option>
                 {SAFEHOUSES.map((s) => <option key={s}>{s}</option>)}
               </select>
             </div>
             <div className="space-y-1.5">
               <Label className="font-body text-sm font-medium text-foreground">Allocation — Program</Label>
-              <select value={contribForm.allocation_program} onChange={(e) => handleContribField("allocation_program", e.target.value)} className={selectClass()}>
+              <select aria-label="Allocation program" value={contribForm.allocation_program} onChange={(e) => handleContribField("allocation_program", e.target.value)} className={selectClass()}>
                 <option value="">None / General</option>
                 {PROGRAMS.map((p) => <option key={p}>{p}</option>)}
               </select>
@@ -799,7 +799,7 @@ function DonorsPage() {
                   <Input placeholder="Search name, email, or organization…" value={supporterFilters.search} onChange={(e) => setSupporterFilters((f) => ({ ...f, search: e.target.value }))} />
                 </div>
                 {([["type", "All Types", SUPPORTER_TYPES], ["status", "All Statuses", SUPPORTER_STATUSES]] as [keyof typeof supporterFilters, string, readonly string[]][]).map(([key, placeholder, opts]) => (
-                  <select key={key} value={supporterFilters[key]} onChange={(e) => setSupporterFilters((f) => ({ ...f, [key]: e.target.value }))} className="h-9 rounded-3xl border border-transparent bg-input/50 px-3 text-sm font-body text-foreground outline-none focus-visible:border-ring min-w-[150px]">
+                  <select key={key} aria-label={placeholder} value={supporterFilters[key]} onChange={(e) => setSupporterFilters((f) => ({ ...f, [key]: e.target.value }))} className="h-9 rounded-3xl border border-transparent bg-input/50 px-3 text-sm font-body text-foreground outline-none focus-visible:border-ring min-w-[150px]">
                     <option value="">{placeholder}</option>
                     {opts.map((o) => <option key={o}>{o}</option>)}
                   </select>
@@ -900,15 +900,15 @@ function DonorsPage() {
                 <div className="flex-1 min-w-[180px]">
                   <Input placeholder="Search by supporter name…" value={contribFilters.search} onChange={(e) => setContribFilters((f) => ({ ...f, search: e.target.value }))} />
                 </div>
-                <select value={contribFilters.type} onChange={(e) => setContribFilters((f) => ({ ...f, type: e.target.value }))} className="h-9 rounded-3xl border border-transparent bg-input/50 px-3 text-sm font-body text-foreground outline-none focus-visible:border-ring min-w-[160px]">
+                <select aria-label="Filter by contribution type" value={contribFilters.type} onChange={(e) => setContribFilters((f) => ({ ...f, type: e.target.value }))} className="h-9 rounded-3xl border border-transparent bg-input/50 px-3 text-sm font-body text-foreground outline-none focus-visible:border-ring min-w-[160px]">
                   <option value="">All Types</option>
                   {CONTRIBUTION_TYPES.map((t) => <option key={t}>{t}</option>)}
                 </select>
-                <select value={contribFilters.safehouse} onChange={(e) => setContribFilters((f) => ({ ...f, safehouse: e.target.value }))} className="h-9 rounded-3xl border border-transparent bg-input/50 px-3 text-sm font-body text-foreground outline-none focus-visible:border-ring min-w-[160px]">
+                <select aria-label="Filter by safehouse" value={contribFilters.safehouse} onChange={(e) => setContribFilters((f) => ({ ...f, safehouse: e.target.value }))} className="h-9 rounded-3xl border border-transparent bg-input/50 px-3 text-sm font-body text-foreground outline-none focus-visible:border-ring min-w-[160px]">
                   <option value="">All Safehouses</option>
                   {SAFEHOUSES.map((s) => <option key={s}>{s}</option>)}
                 </select>
-                <select value={contribFilters.program} onChange={(e) => setContribFilters((f) => ({ ...f, program: e.target.value }))} className="h-9 rounded-3xl border border-transparent bg-input/50 px-3 text-sm font-body text-foreground outline-none focus-visible:border-ring min-w-[160px]">
+                <select aria-label="Filter by program" value={contribFilters.program} onChange={(e) => setContribFilters((f) => ({ ...f, program: e.target.value }))} className="h-9 rounded-3xl border border-transparent bg-input/50 px-3 text-sm font-body text-foreground outline-none focus-visible:border-ring min-w-[160px]">
                   <option value="">All Programs</option>
                   {PROGRAMS.map((p) => <option key={p}>{p}</option>)}
                 </select>
@@ -974,8 +974,8 @@ function DonorsPage() {
                   </span>
                 )}
               </div>
-              <button onClick={closePanel} className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors mt-1">
-                <X className="h-5 w-5" />
+              <button onClick={closePanel} aria-label="Close panel" className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors mt-1">
+                <X className="h-5 w-5" aria-hidden="true" />
               </button>
             </div>
 
@@ -988,7 +988,7 @@ function DonorsPage() {
                 <>
                   <Button variant="outline" onClick={closePanel} className="font-body px-5 h-9 rounded-xl">Close</Button>
                   <Button onClick={() => openEdit(panelSupporter!)} className="font-body gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-5 h-9 rounded-xl">
-                    <Pencil className="h-4 w-4" /> Edit
+                    <Pencil className="h-4 w-4" aria-hidden="true" /> Edit
                   </Button>
                 </>
               ) : (

@@ -57,9 +57,9 @@ export default function DonorNav({ user }: { user: User | null }) {
 						size="icon"
 						onClick={() => signOut()}
 						className="text-muted-foreground hover:text-foreground"
-						title="Sign out"
+						aria-label="Sign out"
 					>
-						<LogOut className="h-4 w-4" />
+						<LogOut className="h-4 w-4" aria-hidden="true" />
 					</Button>
 				</div>
 			</div>

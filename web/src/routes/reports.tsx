@@ -367,6 +367,7 @@ function ReportsPage() {
           </div>
           <div className="flex items-center gap-3 mt-1">
             <select
+              aria-label="Report year"
               value={reportYear}
               onChange={(e) => setReportYear(Number(e.target.value))}
               className="h-9 rounded-3xl border border-transparent bg-input/50 px-4 text-sm font-body text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30"

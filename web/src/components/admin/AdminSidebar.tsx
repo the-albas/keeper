@@ -110,9 +110,9 @@ export default function AdminSidebar({ user }: { user: User | null }) {
 						type="button"
 						onClick={() => handleLogout()}
 						className="rounded-lg p-1.5 text-sidebar-foreground/50 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground"
-						title="Sign out"
+						aria-label="Sign out"
 					>
-						<LogOut className="h-4 w-4" />
+						<LogOut className="h-4 w-4" aria-hidden="true" />
 					</button>
 				</div>
 			</div>

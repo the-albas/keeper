@@ -44,27 +44,31 @@ export default function MoneyFlow() {
 					) : null}
 
 					{/* Horizontal Stacked Bar */}
-					<div className="mb-6 flex h-4 w-full overflow-hidden rounded-full shadow-inner md:h-6">
+					<div
+						className="mb-6 flex h-4 w-full overflow-hidden rounded-full shadow-inner md:h-6"
+						role="img"
+						aria-label={`Donation allocation: ${programsLabel}, ${operationsLabel}, ${administrationLabel}`}
+					>
 						<motion.div
 							initial={{ width: 0 }}
 							whileInView={{ width: `${moneyFlow.programsPct}%` }}
 							transition={{ duration: 1, delay: 0.2, ease: "easeOut" }}
 							className="h-full bg-primary"
-							title={programsLabel}
+							aria-hidden="true"
 						/>
 						<motion.div
 							initial={{ width: 0 }}
 							whileInView={{ width: `${moneyFlow.operationsPct}%` }}
 							transition={{ duration: 1, delay: 0.4, ease: "easeOut" }}
 							className="h-full bg-yellow-500"
-							title={operationsLabel}
+							aria-hidden="true"
 						/>
 						<motion.div
 							initial={{ width: 0 }}
 							whileInView={{ width: `${moneyFlow.administrationPct}%` }}
 							transition={{ duration: 1, delay: 0.6, ease: "easeOut" }}
 							className="h-full bg-muted-foreground/30"
-							title={administrationLabel}
+							aria-hidden="true"
 						/>
 					</div>
 
