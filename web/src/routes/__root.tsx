@@ -3,18 +3,48 @@ import {
 	createRootRouteWithContext,
 	Link,
 	Outlet,
+	useRouterState,
 } from "@tanstack/react-router";
+import { useEffect } from "react";
 import LandingFooter from "@/components/landing/LandingFooter";
 import Navbar from "@/components/landing/Navbar";
 import { Button } from "@/components/ui/button";
 import CookieBanner from "@/components/ui/cookie-banner";
 
-const RootLayout = () => (
-	<div className="min-h-screen bg-background text-foreground">
-		<Outlet />
-		<CookieBanner />
-	</div>
-);
+const PAGE_TITLES: Record<string, string> = {
+	"/": "Keeper",
+	"/about": "About | Keeper",
+	"/login": "Login | Keeper",
+	"/signup": "Sign Up | Keeper",
+	"/dashboard": "Dashboard | Keeper",
+	"/admin": "Admin | Keeper",
+	"/reports": "Reports | Keeper",
+	"/caseload": "Caseload | Keeper",
+	"/work": "Work | Keeper",
+	"/account": "Account | Keeper",
+	"/home-visitations": "Home Visitations | Keeper",
+	"/donors-contributions": "Donor Contributions | Keeper",
+	"/process-recordings": "Process Recordings | Keeper",
+	"/privacy-policy": "Privacy Policy | Keeper",
+	"/donate-thank-you": "Thank You | Keeper",
+};
+
+const RootLayout = () => {
+	const pathname = useRouterState({
+		select: (s) => s.location.pathname,
+	});
+
+	useEffect(() => {
+		document.title = PAGE_TITLES[pathname] ?? "Keeper";
+	}, [pathname]);
+
+	return (
+		<div className="min-h-screen bg-background text-foreground">
+			<Outlet />
+			<CookieBanner />
+		</div>
+	);
+};
 
 function NotFound() {
 	return (
