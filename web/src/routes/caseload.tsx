@@ -188,26 +188,28 @@ type ResidentApi = {
   id: string;
   resident_code?: string;
   full_name?: string;
-  case_control_no?: string;
-  internal_code?: string;
   date_of_birth?: string;
   sex?: string;
-  birth_status?: string;
-  place_of_birth?: string;
-  religion?: string;
+  civil_status?: string;
   case_status?: string;
   case_category?: string;
-  current_risk_level?: string;
-  initial_risk_level?: string;
+  case_subcategories?: string[];
+  risk_level?: string;
+  has_disability?: boolean;
+  disability_type?: string;
+  is_4ps_beneficiary?: boolean;
+  is_solo_parent?: boolean;
+  is_indigenous?: boolean;
+  is_informal_settler?: boolean;
+  family_parent_pwd?: boolean;
+  admission_date?: string;
   safehouse_id?: string;
   safehouse_name?: string;
-  assigned_social_worker?: string;
-  date_of_admission?: string;
+  referred_by?: string;
   referral_source?: string;
-  referring_agency_person?: string;
-  reintegration_type?: string;
+  assigned_social_worker?: string;
   reintegration_status?: string;
-  date_enrolled?: string;
+  reintegration_type?: string;
   date_closed?: string;
 };
 
@@ -356,49 +358,49 @@ function CaseloadPage() {
 			id: r.id,
 			resident_code: r.resident_code || `RES-${r.id}`,
 			full_name: r.full_name || `Resident ${r.id}`,
-			case_control_no: r.case_control_no || "",
-			internal_code: r.internal_code || "",
+			case_control_no: "",
+			internal_code: "",
 			date_of_birth: r.date_of_birth || "",
 			sex: r.sex || "",
-			birth_status: r.birth_status || "",
-			place_of_birth: r.place_of_birth || "",
-			religion: r.religion || "",
+			birth_status: r.civil_status || "",
+			place_of_birth: "",
+			religion: "",
 			case_status: r.case_status || "Active Care",
 			case_category: r.case_category || "",
-			sub_cat_orphaned: false,
-			sub_cat_trafficked: false,
-			sub_cat_child_labor: false,
-			sub_cat_physical_abuse: false,
-			sub_cat_sexual_abuse: false,
-			sub_cat_osaec: false,
-			sub_cat_cicl: false,
-			sub_cat_at_risk: false,
-			sub_cat_street_child: false,
-			sub_cat_child_with_hiv: false,
-			is_pwd: false,
-			pwd_type: "",
+			sub_cat_orphaned: r.case_subcategories?.includes("Orphaned") ?? false,
+			sub_cat_trafficked: r.case_subcategories?.includes("Trafficked") ?? false,
+			sub_cat_child_labor: r.case_subcategories?.includes("Child Labor") ?? false,
+			sub_cat_physical_abuse: r.case_subcategories?.includes("Physical Abuse") ?? false,
+			sub_cat_sexual_abuse: r.case_subcategories?.includes("Sexual Abuse") ?? false,
+			sub_cat_osaec: r.case_subcategories?.includes("OSAEC") ?? false,
+			sub_cat_cicl: r.case_subcategories?.includes("CICL") ?? false,
+			sub_cat_at_risk: r.case_subcategories?.includes("At Risk") ?? false,
+			sub_cat_street_child: r.case_subcategories?.includes("Street Child") ?? false,
+			sub_cat_child_with_hiv: r.case_subcategories?.includes("Child with HIV") ?? false,
+			is_pwd: r.has_disability ?? false,
+			pwd_type: r.disability_type || "",
 			has_special_needs: false,
 			special_needs_diagnosis: "",
-			family_is_4ps: false,
-			family_solo_parent: false,
-			family_indigenous: false,
-			family_parent_pwd: false,
-			family_informal_settler: false,
-			date_of_admission: r.date_of_admission || "",
+			family_is_4ps: r.is_4ps_beneficiary ?? false,
+			family_solo_parent: r.is_solo_parent ?? false,
+			family_indigenous: r.is_indigenous ?? false,
+			family_parent_pwd: r.family_parent_pwd ?? false,
+			family_informal_settler: r.is_informal_settler ?? false,
+			date_of_admission: r.admission_date || "",
 			safehouse_id: r.safehouse_id || "",
 			safehouse_name: r.safehouse_name || "",
 			referral_source: r.referral_source || "",
-			referring_agency_person: r.referring_agency_person || "",
+			referring_agency_person: r.referred_by || "",
 			date_colb_registered: "",
 			date_colb_obtained: "",
 			assigned_social_worker: r.assigned_social_worker || "",
 			initial_case_assessment: "",
 			date_case_study_prepared: "",
-			initial_risk_level: r.initial_risk_level || "Medium",
-			current_risk_level: r.current_risk_level || "Medium",
+			initial_risk_level: r.risk_level || "Medium",
+			current_risk_level: r.risk_level || "Medium",
 			reintegration_type: r.reintegration_type || "",
 			reintegration_status: r.reintegration_status || "",
-			date_enrolled: r.date_enrolled || "",
+			date_enrolled: "",
 			date_closed: r.date_closed || "",
 			notes_restricted: "",
 		})),

@@ -299,6 +299,7 @@ function HomeVisitationsPage() {
 
   const { data: residents = [] } = useQuery<Resident[]>({
     queryKey: ["residents"],
+    staleTime: 60_000,
     queryFn: async () => {
       const rows = await apiGetJson<ResidentApi[]>("/api/admin-data/residents");
       return rows.map((r) => ({

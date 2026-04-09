@@ -56,6 +56,9 @@ public class AdminCaseloadResidentDto
     [JsonPropertyName("is_informal_settler")]
     public bool IsInformalSettler { get; set; }
 
+    [JsonPropertyName("family_parent_pwd")]
+    public bool FamilyParentPwd { get; set; }
+
     [JsonPropertyName("admission_date")]
     public string AdmissionDate { get; set; } = string.Empty;
 

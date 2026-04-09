@@ -179,25 +179,27 @@ public class AdminController : ControllerBase
         CancellationToken cancellationToken
     )
     {
-        // Fetch entities first; BuildLocation() can't be translated to SQL so projection runs in memory.
-        var entities = await _db
-            .Safehouses.AsNoTracking()
-            .OrderBy(s => s.SafehouseId)
+        var rows = await _db
+            .Database.SqlQuery<AdminSafehouseDto>(
+                $"""
+                SELECT
+                    CAST(safehouse_id AS nvarchar(40)) AS Id,
+                    ISNULL(name, CONCAT('Safehouse ', CAST(safehouse_id AS nvarchar(20)))) AS Name,
+                    LTRIM(RTRIM(CONCAT(
+                        ISNULL(city, ''),
+                        CASE WHEN city IS NOT NULL AND province IS NOT NULL THEN ', ' ELSE '' END,
+                        ISNULL(province, '')
+                    ))) AS Location,
+                    ISNULL(status, 'Active') AS Status,
+                    ISNULL(capacity_girls, 0) AS Capacity,
+                    ISNULL(current_occupancy, 0) AS CurrentOccupancy
+                FROM dbo.safehouses
+                ORDER BY safehouse_id ASC
+                """
+            )
             .ToListAsync(cancellationToken);
 
-        var list = entities
-            .Select(s => new AdminSafehouseDto
-            {
-                Id = s.SafehouseId.ToString(CultureInfo.InvariantCulture),
-                Name = s.Name,
-                Location = BuildLocation(s.City, s.Region, s.Province, s.Country),
-                Status = s.Status,
-                Capacity = s.CapacityGirls ?? 0,
-                CurrentOccupancy = s.CurrentOccupancy ?? 0,
-            })
-            .ToList();
-
-        return Ok(list);
+        return Ok(rows);
     }
 
     /// <summary>All supporters for Donors & Contributions (read-only Phase 1).</summary>
