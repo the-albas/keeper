@@ -119,3 +119,52 @@ public class AdminLookupSafehouseDto
     [JsonPropertyName("name")]
     public string Name { get; set; } = string.Empty;
 }
+
+/// <summary>
+/// Per-donor feature payload used by retention and growth ML endpoints.
+/// Field names intentionally match Python schema keys.
+/// </summary>
+public class AdminDonorMlFeaturesDto
+{
+    [JsonPropertyName("supporter_id")]
+    public string SupporterId { get; set; } = string.Empty;
+
+    [JsonPropertyName("supporter_name")]
+    public string SupporterName { get; set; } = string.Empty;
+
+    [JsonPropertyName("frequency")]
+    public float Frequency { get; set; }
+
+    [JsonPropertyName("avg_monetary_value")]
+    public float? AvgMonetaryValue { get; set; }
+
+    [JsonPropertyName("social_referral_count")]
+    public float SocialReferralCount { get; set; }
+
+    [JsonPropertyName("is_recurring_donor")]
+    public int IsRecurringDonor { get; set; }
+
+    [JsonPropertyName("top_program_interest")]
+    public string? TopProgramInterest { get; set; }
+
+    [JsonPropertyName("recency_days")]
+    public float? RecencyDays { get; set; }
+
+    [JsonPropertyName("donor_tenure_days")]
+    public float DonorTenureDays { get; set; }
+
+    [JsonPropertyName("supporter_type")]
+    public string? SupporterType { get; set; }
+
+    [JsonPropertyName("relationship_type")]
+    public string? RelationshipType { get; set; }
+
+    [JsonPropertyName("region")]
+    public string? Region { get; set; }
+
+    [JsonPropertyName("acquisition_channel")]
+    public string? AcquisitionChannel { get; set; }
+
+    [JsonPropertyName("status")]
+    public string? Status { get; set; }
+}
