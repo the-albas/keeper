@@ -63,10 +63,10 @@ export default function AdminMetrics({
 		},
 		{
 			icon: DollarSign,
-			value: `$${recentDonations.toLocaleString()}`,
+			value: `₱${recentDonations.toLocaleString("en-PH")}`,
 			label: "Recent Donations",
 			sub: "Last 30 entries",
-			color: "bg-accent/15 text-accent",
+			color: "bg-emerald-100 text-emerald-600",
 		},
 		{
 			icon: Calendar,

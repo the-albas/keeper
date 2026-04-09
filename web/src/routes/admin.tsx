@@ -1,7 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import type { Activity } from "@/components/admin/ActivityFeed";
-import ActivityFeed from "@/components/admin/ActivityFeed";
 import type { Donation, Resident, Safehouse } from "@/components/admin/AdminMetrics";
 import AdminMetrics from "@/components/admin/AdminMetrics";
 import AdminSidebar from "@/components/admin/AdminSidebar";
@@ -46,12 +44,7 @@ function AdminDashboard() {
     queryFn: () => apiGetJson<Safehouse[]>("/api/admin-data/safehouses"),
   });
 
-  const { data: activities = [], isLoading: activitiesLoading } = useQuery<Activity[]>({
-    queryKey: ["activities"],
-    queryFn: () => apiGetJson<Activity[]>("/api/admin-data/activities"),
-  });
-
-	const loading = residentsLoading || donationsLoading || safehousesLoading || activitiesLoading;
+	const loading = residentsLoading || donationsLoading || safehousesLoading;
 
 	if (loading) {
 		return (
@@ -84,19 +77,18 @@ function AdminDashboard() {
 
 				<div className="grid lg:grid-cols-3 gap-6 mt-8">
 					<div className="lg:col-span-2">
-						<DonationTrends donations={donations} />
-					</div>
-					<OccupancyList safehouses={safehouses} />
-				</div>
-
-				<div className="grid lg:grid-cols-3 gap-6 mt-6">
-					<div className="lg:col-span-2">
 						<CasesTable residents={residents} />
 					</div>
 					<div className="space-y-6">
 						<QuickActions />
-						<ActivityFeed activities={activities} />
 					</div>
+				</div>
+
+				<div className="grid lg:grid-cols-3 gap-6 mt-6">
+					<div className="lg:col-span-2">
+						<DonationTrends donations={donations} />
+					</div>
+					<OccupancyList safehouses={safehouses} />
 				</div>
 			</main>
 		</div>

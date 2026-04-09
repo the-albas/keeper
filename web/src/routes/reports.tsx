@@ -298,7 +298,8 @@ function ReportsPage() {
             </select>
             <button
               onClick={() => window.print()}
-              className="inline-flex items-center gap-2 h-9 px-4 rounded-3xl border border-border bg-card text-sm font-body text-muted-foreground hover:text-foreground hover:border-primary/40 transition-colors"
+              disabled={retentionLoading || growthLoading || progressLoading || trajectoryLoading || socialEngagementLoading || socialCausalLoading}
+              className="inline-flex items-center gap-2 h-9 px-4 rounded-3xl border border-border bg-card text-sm font-body text-muted-foreground hover:text-foreground hover:border-primary/40 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <FileText className="h-4 w-4" />
               Export PDF
