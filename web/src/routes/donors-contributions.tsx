@@ -3,7 +3,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { DollarSign, Gift, Heart, Pencil, Plus, TrendingUp, Users, X } from "lucide-react";
 import AdminSidebar from "@/components/admin/AdminSidebar";
-import { DollarSign, Gift, Heart, Pencil, Plus, TrendingUp, Users, X } from "lucide-react";
 import { apiGetJson, type AuthMeResponse } from "@/lib/api";
 import { requireRole } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
@@ -128,9 +127,12 @@ const SOCIAL_PLATFORMS = [
 	"YouTube",
 ];
 
-const CAMPAIGNS = ["Website", "Year-End Giving", "Emergency Relief", "General Support"];
-const SAFEHOUSES = ["Tahanan ng Pag-asa", "Bagong Simula Center", "Kalayaan Shelter"];
-const PROGRAMS = ["Education", "Wellbeing", "Outreach", "Operations", "Maintenance", "Transport"];
+/** API: GET /api/admin/lookups/donor-ui */
+interface DonorUiLookups {
+	safehouses: { id: string; name: string }[];
+	programs: string[];
+	campaigns: string[];
+}
 
 // ─── Badge colors ─────────────────────────────────────────────────────────────
 

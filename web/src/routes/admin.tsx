@@ -46,7 +46,7 @@ function AdminDashboard() {
     queryFn: () => apiGetJson<Safehouse[]>("/api/admin-data/safehouses"),
   });
 
-  const { data: activities = [] } = useQuery<Activity[]>({
+  const { data: activities = [], isLoading: activitiesLoading } = useQuery<Activity[]>({
     queryKey: ["activities"],
     queryFn: () => apiGetJson<Activity[]>("/api/admin-data/activities"),
   });

@@ -11,7 +11,6 @@ import {
 	X,
 } from "lucide-react";
 import AdminSidebar from "@/components/admin/AdminSidebar";
-import { Activity, Pencil, Plus, RefreshCw, ShieldAlert, Users, X } from "lucide-react";
 import { apiGetJson, type AuthMeResponse } from "@/lib/api";
 import { requireRole } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
@@ -145,11 +144,7 @@ const REFERRAL_SOURCES = [
 	"Other",
 ];
 
-const SAFEHOUSES = [
-	{ id: "SH-001", name: "Tahanan ng Pag-asa" },
-	{ id: "SH-002", name: "Bagong Simula Center" },
-	{ id: "SH-003", name: "Kalayaan Shelter" },
-];
+// Safehouses are loaded from the API via the residents data
 
 // ─── Badge color maps ─────────────────────────────────────────────────────────
 

@@ -7,7 +7,6 @@ import { apiGetJson, getApiBaseUrl, type AuthMeResponse } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CalendarDays, ChevronUp, Plus, User, Users } from "lucide-react";
 import { requireRole } from "@/lib/auth";
 
 export const Route = createFileRoute("/process-recordings")({
