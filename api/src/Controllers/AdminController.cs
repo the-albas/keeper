@@ -400,7 +400,9 @@ public class AdminController : ControllerBase
     }
 
     private async Task<List<AdminDonorMlFeaturesDto>> FetchDonorMlFeaturesAsync(
-        int take, CancellationToken ct)
+        int take,
+        CancellationToken ct
+    )
     {
         var supporters = await _db
             .Supporters.AsNoTracking()
@@ -538,7 +540,9 @@ public class AdminController : ControllerBase
     }
 
     private async Task<List<AdminResidentMlFeaturesDto>> FetchResidentMlFeaturesAsync(
-        int take, CancellationToken ct)
+        int take,
+        CancellationToken ct
+    )
     {
         var rows = await _db
             .Database.SqlQuery<ResidentMlRow>(
@@ -823,7 +827,9 @@ public class AdminController : ControllerBase
 
     /// <summary>Aggregated ML predictions for the reports dashboard (single round-trip).</summary>
     [HttpGet("ml/reports-aggregate")]
-    public async Task<ActionResult<ReportsMlAggregateDto>> GetMlReportsAggregate(CancellationToken ct)
+    public async Task<ActionResult<ReportsMlAggregateDto>> GetMlReportsAggregate(
+        CancellationToken ct
+    )
     {
         const int maxRows = 2000;
 
@@ -854,31 +860,35 @@ public class AdminController : ControllerBase
             if (donors.Count > 0)
             {
                 var retentionBody = JsonSerializer.SerializeToElement(
-                    donors.Select(d => new
-                    {
-                        frequency = d.Frequency,
-                        avg_monetary_value = d.AvgMonetaryValue,
-                        social_referral_count = d.SocialReferralCount,
-                        is_recurring_donor = d.IsRecurringDonor,
-                        top_program_interest = d.TopProgramInterest,
-                    }).ToArray(),
+                    donors
+                        .Select(d => new
+                        {
+                            frequency = d.Frequency,
+                            avg_monetary_value = d.AvgMonetaryValue,
+                            social_referral_count = d.SocialReferralCount,
+                            is_recurring_donor = d.IsRecurringDonor,
+                            top_program_interest = d.TopProgramInterest,
+                        })
+                        .ToArray(),
                     MlJsonOptions
                 );
                 var growthBody = JsonSerializer.SerializeToElement(
-                    donors.Select(d => new
-                    {
-                        recency_days = d.RecencyDays,
-                        frequency = d.Frequency,
-                        social_referral_count = d.SocialReferralCount,
-                        is_recurring_donor = d.IsRecurringDonor,
-                        donor_tenure_days = d.DonorTenureDays,
-                        top_program_interest = d.TopProgramInterest,
-                        supporter_type = d.SupporterType,
-                        relationship_type = d.RelationshipType,
-                        region = d.Region,
-                        acquisition_channel = d.AcquisitionChannel,
-                        status = d.Status,
-                    }).ToArray(),
+                    donors
+                        .Select(d => new
+                        {
+                            recency_days = d.RecencyDays,
+                            frequency = d.Frequency,
+                            social_referral_count = d.SocialReferralCount,
+                            is_recurring_donor = d.IsRecurringDonor,
+                            donor_tenure_days = d.DonorTenureDays,
+                            top_program_interest = d.TopProgramInterest,
+                            supporter_type = d.SupporterType,
+                            relationship_type = d.RelationshipType,
+                            region = d.Region,
+                            acquisition_channel = d.AcquisitionChannel,
+                            status = d.Status,
+                        })
+                        .ToArray(),
                     MlJsonOptions
                 );
                 retentionTask = _ml.BatchPredictAsync("retention", retentionBody, ct);
@@ -890,41 +900,43 @@ public class AdminController : ControllerBase
                 // girls-progress uses [JsonPropertyName] attributes on the DTO
                 var progressBody = JsonSerializer.SerializeToElement(residents.ToArray());
                 var trajectoryBody = JsonSerializer.SerializeToElement(
-                    residents.Select(r => new
-                    {
-                        current_progress = r.CurrentProgress,
-                        days_since_admission = r.DaysSinceAdmission,
-                        present_age_years = r.PresentAgeYears,
-                        age_upon_admission_years = r.AgeUponAdmissionYears,
-                        has_special_needs = r.HasSpecialNeeds,
-                        family_parent_pwd = r.FamilyParentPwd,
-                        hw_mean_nutrition_score = r.HwMeanNutritionScore,
-                        hw_mean_energy_level_score = r.HwMeanEnergyLevelScore,
-                        hw_mean_sleep_quality_score = r.HwMeanSleepQualityScore,
-                        hw_mean_general_health_score = r.HwMeanGeneralHealthScore,
-                        hw_mean_bmi = r.HwMeanBmi,
-                        hw_rate_psychological_checkup_done = r.HwRatePsychologicalCheckupDone,
-                        n_incidents = r.NIncidents,
-                        incident_high_rate = r.IncidentHighRate,
-                        incident_unresolved_rate = r.IncidentUnresolvedRate,
-                        n_home_visitations = r.NHomeVisitations,
-                        safety_concern_rate = r.SafetyConcernRate,
-                        followup_needed_rate = r.FollowupNeededRate,
-                        n_process_sessions = r.NProcessSessions,
-                        concerns_flagged_rate = r.ConcernsFlaggedRate,
-                        referral_made_rate = r.ReferralMadeRate,
-                        n_intervention_plans = r.NInterventionPlans,
-                        occupancy_ratio = r.OccupancyRatio,
-                        case_status = r.CaseStatus,
-                        case_category = r.CaseCategory,
-                        initial_risk_level = r.InitialRiskLevel,
-                        current_risk_level = r.CurrentRiskLevel,
-                        referral_source = r.ReferralSource,
-                        reintegration_status = r.ReintegrationStatus,
-                        edu_education_level = r.EduEducationLevel,
-                        region = r.Region,
-                        province = r.Province,
-                    }).ToArray(),
+                    residents
+                        .Select(r => new
+                        {
+                            current_progress = r.CurrentProgress,
+                            days_since_admission = r.DaysSinceAdmission,
+                            present_age_years = r.PresentAgeYears,
+                            age_upon_admission_years = r.AgeUponAdmissionYears,
+                            has_special_needs = r.HasSpecialNeeds,
+                            family_parent_pwd = r.FamilyParentPwd,
+                            hw_mean_nutrition_score = r.HwMeanNutritionScore,
+                            hw_mean_energy_level_score = r.HwMeanEnergyLevelScore,
+                            hw_mean_sleep_quality_score = r.HwMeanSleepQualityScore,
+                            hw_mean_general_health_score = r.HwMeanGeneralHealthScore,
+                            hw_mean_bmi = r.HwMeanBmi,
+                            hw_rate_psychological_checkup_done = r.HwRatePsychologicalCheckupDone,
+                            n_incidents = r.NIncidents,
+                            incident_high_rate = r.IncidentHighRate,
+                            incident_unresolved_rate = r.IncidentUnresolvedRate,
+                            n_home_visitations = r.NHomeVisitations,
+                            safety_concern_rate = r.SafetyConcernRate,
+                            followup_needed_rate = r.FollowupNeededRate,
+                            n_process_sessions = r.NProcessSessions,
+                            concerns_flagged_rate = r.ConcernsFlaggedRate,
+                            referral_made_rate = r.ReferralMadeRate,
+                            n_intervention_plans = r.NInterventionPlans,
+                            occupancy_ratio = r.OccupancyRatio,
+                            case_status = r.CaseStatus,
+                            case_category = r.CaseCategory,
+                            initial_risk_level = r.InitialRiskLevel,
+                            current_risk_level = r.CurrentRiskLevel,
+                            referral_source = r.ReferralSource,
+                            reintegration_status = r.ReintegrationStatus,
+                            edu_education_level = r.EduEducationLevel,
+                            region = r.Region,
+                            province = r.Province,
+                        })
+                        .ToArray(),
                     MlJsonOptions
                 );
                 progressTask = _ml.BatchPredictAsync("girls-progress", progressBody, ct);
@@ -942,7 +954,8 @@ public class AdminController : ControllerBase
             if (retentionTask is not null)
             {
                 var retentionResults = await retentionTask;
-                var lapseCount = retentionResults.EnumerateArray()
+                var lapseCount = retentionResults
+                    .EnumerateArray()
                     .Count(p => p.GetProperty("predicted_class").GetInt32() == 0);
                 agg.DonorLapsePct = donors.Count > 0 ? (double)lapseCount / donors.Count * 100 : 0;
             }
@@ -950,7 +963,8 @@ public class AdminController : ControllerBase
             if (growthTask is not null)
             {
                 var growthResults = await growthTask;
-                var totalGiving = growthResults.EnumerateArray()
+                var totalGiving = growthResults
+                    .EnumerateArray()
                     .Sum(p => p.GetProperty("predicted_total_monetary_value").GetDouble());
                 agg.DonorAvgPredictedGiving = donors.Count > 0 ? totalGiving / donors.Count : 0;
             }
@@ -959,7 +973,8 @@ public class AdminController : ControllerBase
             if (progressTask is not null)
             {
                 var progressResults = await progressTask;
-                var totalProgress = progressResults.EnumerateArray()
+                var totalProgress = progressResults
+                    .EnumerateArray()
                     .Sum(p => p.GetProperty("predicted_mean_progress").GetDouble());
                 agg.ResidentAvgProgress = residents.Count > 0 ? totalProgress / residents.Count : 0;
             }
@@ -967,11 +982,13 @@ public class AdminController : ControllerBase
             if (trajectoryTask is not null)
             {
                 var trajectoryResults = await trajectoryTask;
-                agg.ResidentAtRiskCount = trajectoryResults.EnumerateArray()
+                agg.ResidentAtRiskCount = trajectoryResults
+                    .EnumerateArray()
                     .Count(p =>
                         p.TryGetProperty("risk_label", out var lbl)
                         && lbl.ValueKind == JsonValueKind.String
-                        && lbl.GetString() == "At Risk");
+                        && lbl.GetString() == "At Risk"
+                    );
             }
 
             agg.MlOffline = false;
@@ -983,8 +1000,11 @@ public class AdminController : ControllerBase
         }
         catch (MlServiceException ex)
         {
-            _logger.LogWarning("ML service error {Status} during reports aggregate: {Body}",
-                ex.StatusCode, ex.ResponseBody);
+            _logger.LogWarning(
+                "ML service error {Status} during reports aggregate: {Body}",
+                ex.StatusCode,
+                ex.ResponseBody
+            );
             agg.MlOffline = true;
         }
 

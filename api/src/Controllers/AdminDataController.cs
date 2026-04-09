@@ -174,9 +174,11 @@ public class AdminDataController : ControllerBase
 
             await using var tx = await _db.Database.BeginTransactionAsync(ct);
 
-            var newId = await _db.Database.SqlQuery<int>(
-                $"""SELECT ISNULL(MAX(donation_id), 0) + 1 AS [Value] FROM donations WITH (UPDLOCK, HOLDLOCK)"""
-            ).SingleAsync(ct);
+            var newId = await _db
+                .Database.SqlQuery<int>(
+                    $"""SELECT ISNULL(MAX(donation_id), 0) + 1 AS [Value] FROM donations WITH (UPDLOCK, HOLDLOCK)"""
+                )
+                .SingleAsync(ct);
 
             await _db.Database.ExecuteSqlInterpolatedAsync(
                 $"""
@@ -192,9 +194,11 @@ public class AdminDataController : ControllerBase
 
             if (!string.IsNullOrWhiteSpace(body.allocation_program))
             {
-                var allocId = await _db.Database.SqlQuery<int>(
-                    $"""SELECT ISNULL(MAX(allocation_id), 0) + 1 AS [Value] FROM donation_allocations WITH (UPDLOCK, HOLDLOCK)"""
-                ).SingleAsync(ct);
+                var allocId = await _db
+                    .Database.SqlQuery<int>(
+                        $"""SELECT ISNULL(MAX(allocation_id), 0) + 1 AS [Value] FROM donation_allocations WITH (UPDLOCK, HOLDLOCK)"""
+                    )
+                    .SingleAsync(ct);
 
                 await _db.Database.ExecuteSqlInterpolatedAsync(
                     $"""
