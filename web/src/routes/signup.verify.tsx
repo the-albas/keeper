@@ -129,11 +129,11 @@ function SignupVerify() {
 						<Link to="/" className="mb-6 flex items-center gap-2.5">
 							<img
 								src={logoImg}
-								alt="Haven Shield"
+								alt="Keeper"
 								className="h-8 w-8 rounded-lg object-cover"
 							/>
 							<span className="font-heading text-lg font-semibold text-foreground">
-								Haven Shield
+								Keeper
 							</span>
 						</Link>
 
