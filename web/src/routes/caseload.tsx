@@ -23,7 +23,6 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
-import { requireRole } from "@/lib/auth";
 
 export const Route = createFileRoute("/caseload")({
 	beforeLoad: async ({ context }) => {
@@ -515,7 +514,7 @@ function CaseloadPage() {
           <ViewField
             label="Case Status"
             value={
-              <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-body font-medium border ${STATUS_COLORS[r.case_status as CaseStatus] ?? STATUS_COLORS.Intake}`}>
+              <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-body font-medium border ${STATUS_COLORS[r.case_status as CaseStatus]}`}>
                 {r.case_status}
               </span>
             }
@@ -523,7 +522,7 @@ function CaseloadPage() {
           <ViewField
             label="Risk Level"
             value={
-              <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-body font-medium border ${RISK_COLORS[r.risk_level as RiskLevel] ?? RISK_COLORS.Medium}`}>
+              <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-body font-medium border ${RISK_COLORS[r.risk_level as RiskLevel]}`}>
                 {r.risk_level}
               </span>
             }
@@ -617,14 +616,14 @@ function CaseloadPage() {
           </div>
           <div className="space-y-1.5">
             <Label className="font-body text-xs font-semibold uppercase tracking-wide text-muted-foreground">Sex</Label>
-            <select value={formData.sex} onChange={(e) => handleField("sex", e.target.value)} className={selectClass()}>
+            <select aria-label="Sex" value={formData.sex} onChange={(e) => handleField("sex", e.target.value)} className={selectClass()}>
               <option value="">Select…</option>
               {["Female", "Male", "Intersex", "Prefer not to say"].map((s) => <option key={s}>{s}</option>)}
             </select>
           </div>
           <div className="space-y-1.5">
             <Label className="font-body text-xs font-semibold uppercase tracking-wide text-muted-foreground">Civil Status</Label>
-            <select value={formData.civil_status} onChange={(e) => handleField("civil_status", e.target.value)} className={selectClass()}>
+            <select aria-label="Civil status" value={formData.civil_status} onChange={(e) => handleField("civil_status", e.target.value)} className={selectClass()}>
               <option value="">Select…</option>
               {["Single", "Married", "Separated", "Widowed", "Cohabiting"].map((s) => <option key={s}>{s}</option>)}
             </select>
@@ -639,19 +638,19 @@ function CaseloadPage() {
         <div className="grid grid-cols-2 gap-x-4 gap-y-3 pt-1 pb-3">
           <div className="space-y-1.5">
             <Label className="font-body text-xs font-semibold uppercase tracking-wide text-muted-foreground">Case Status <span className="text-red-500">*</span></Label>
-            <select required value={formData.case_status} onChange={(e) => handleField("case_status", e.target.value as CaseStatus)} className={selectClass()}>
+            <select required aria-label="Case status" value={formData.case_status} onChange={(e) => handleField("case_status", e.target.value as CaseStatus)} className={selectClass()}>
               {CASE_STATUSES.map((s) => <option key={s}>{s}</option>)}
             </select>
           </div>
           <div className="space-y-1.5">
             <Label className="font-body text-xs font-semibold uppercase tracking-wide text-muted-foreground">Risk Level <span className="text-red-500">*</span></Label>
-            <select required value={formData.risk_level} onChange={(e) => handleField("risk_level", e.target.value as RiskLevel)} className={selectClass()}>
+            <select required aria-label="Risk level" value={formData.risk_level} onChange={(e) => handleField("risk_level", e.target.value as RiskLevel)} className={selectClass()}>
               {RISK_LEVELS.map((s) => <option key={s}>{s}</option>)}
             </select>
           </div>
           <div className="col-span-2 space-y-1.5">
             <Label className="font-body text-xs font-semibold uppercase tracking-wide text-muted-foreground">Case Category <span className="text-red-500">*</span></Label>
-            <select required value={formData.case_category} onChange={(e) => handleField("case_category", e.target.value)} className={selectClass()}>
+            <select required aria-label="Case category" value={formData.case_category} onChange={(e) => handleField("case_category", e.target.value)} className={selectClass()}>
               <option value="">Select category…</option>
               {CASE_CATEGORIES.map((c) => <option key={c}>{c}</option>)}
             </select>
@@ -737,7 +736,7 @@ function CaseloadPage() {
           </div>
           <div className="space-y-1.5">
             <Label className="font-body text-xs font-semibold uppercase tracking-wide text-muted-foreground">Safehouse <span className="text-red-500">*</span></Label>
-            <select required value={formData.safehouse_id} onChange={(e) => handleField("safehouse_id", e.target.value)} className={selectClass()}>
+            <select required aria-label="Safehouse" value={formData.safehouse_id} onChange={(e) => handleField("safehouse_id", e.target.value)} className={selectClass()}>
               <option value="">Select safehouse…</option>
               {safehouses.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
             </select>
@@ -752,7 +751,7 @@ function CaseloadPage() {
           </div>
           <div className="space-y-1.5">
             <Label className="font-body text-xs font-semibold uppercase tracking-wide text-muted-foreground">Referral Source</Label>
-            <select value={formData.referral_source} onChange={(e) => handleField("referral_source", e.target.value)} className={selectClass()}>
+            <select aria-label="Referral source" value={formData.referral_source} onChange={(e) => handleField("referral_source", e.target.value)} className={selectClass()}>
               <option value="">Select source…</option>
               {REFERRAL_SOURCES.map((s) => <option key={s}>{s}</option>)}
             </select>
@@ -769,7 +768,7 @@ function CaseloadPage() {
         <div className="grid grid-cols-2 gap-x-4 gap-y-3 pt-1 pb-3">
           <div className="space-y-1.5">
             <Label className="font-body text-xs font-semibold uppercase tracking-wide text-muted-foreground">Reintegration Status</Label>
-            <select value={formData.reintegration_status} onChange={(e) => handleField("reintegration_status", e.target.value)} className={selectClass()}>
+            <select aria-label="Reintegration status" value={formData.reintegration_status} onChange={(e) => handleField("reintegration_status", e.target.value)} className={selectClass()}>
               <option value="">Select…</option>
               {["Not Started", "In Progress", "On Track", "Delayed", "Completed"].map((s) => <option key={s}>{s}</option>)}
             </select>
@@ -855,6 +854,7 @@ function CaseloadPage() {
             ).map(([key, placeholder, options]) => (
               <select
                 key={key}
+                aria-label={placeholder}
                 value={filters[key]}
                 onChange={(e) => setFilters((f) => ({ ...f, [key]: e.target.value }))}
                 className="h-9 rounded-3xl border border-transparent bg-input/50 px-3 text-sm font-body text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30 min-w-[150px]"
@@ -864,6 +864,7 @@ function CaseloadPage() {
               </select>
             ))}
             <select
+              aria-label="Filter by safehouse"
               value={filters.safehouse}
               onChange={(e) => setFilters((f) => ({ ...f, safehouse: e.target.value }))}
               className="h-9 rounded-3xl border border-transparent bg-input/50 px-3 text-sm font-body text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30 min-w-[150px]"
@@ -932,12 +933,12 @@ function CaseloadPage() {
                       {r.case_category}
                     </TableCell>
                     <TableCell>
-                      <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-body font-medium border ${STATUS_COLORS[r.case_status as CaseStatus] ?? STATUS_COLORS.Intake}`}>
+                      <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-body font-medium border ${STATUS_COLORS[r.case_status as CaseStatus]}`}>
                         {r.case_status}
                       </span>
                     </TableCell>
                     <TableCell>
-                      <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-body font-medium border ${RISK_COLORS[r.risk_level as RiskLevel] ?? RISK_COLORS.Medium}`}>
+                      <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-body font-medium border ${RISK_COLORS[r.risk_level as RiskLevel]}`}>
                         {r.risk_level}
                       </span>
                     </TableCell>
@@ -1001,9 +1002,10 @@ function CaseloadPage() {
               </div>
               <button
                 onClick={closePanel}
+                aria-label="Close panel"
                 className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors mt-1"
               >
-                <X className="h-5 w-5" />
+                <X className="h-5 w-5" aria-hidden="true" />
               </button>
             </div>
 

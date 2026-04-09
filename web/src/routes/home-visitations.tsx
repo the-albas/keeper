@@ -474,6 +474,7 @@ function HomeVisitationsPage() {
               </Label>
               <select
                 required
+                aria-label="Visit type"
                 value={visitForm.visitType}
                 onChange={(e) =>
                   setVisitForm((f) => ({
@@ -494,6 +495,7 @@ function HomeVisitationsPage() {
               </Label>
               <select
                 required
+                aria-label="Family cooperation level"
                 value={visitForm.familyCooperation}
                 onChange={(e) =>
                   setVisitForm((f) => ({
@@ -701,6 +703,7 @@ function HomeVisitationsPage() {
               </Label>
               <select
                 required
+                aria-label="Conference type"
                 value={conferenceForm.conferenceType}
                 onChange={(e) =>
                   setConferenceForm((f) => ({

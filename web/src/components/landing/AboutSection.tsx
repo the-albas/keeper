@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import type { LucideIcon } from "lucide-react";
 import { GraduationCap, Handshake, Heart, Shield } from "lucide-react";
 
-import aboutImg from "@/assets/about-img.png";
+import logoImg from "@/assets/logo.png";
 
 interface Pillar {
 	icon: LucideIcon;
@@ -93,11 +93,11 @@ export default function AboutSection() {
 						className="relative"
 					>
 						<img
-							src={aboutImg}
-							alt="Hands holding a small house representing shelter and safety"
-							className="rounded-2xl shadow-2xl w-full object-cover aspect-[4/3]"
+							src={logoImg}
+							alt="Keeper logo"
+							className="w-full object-contain mix-blend-multiply"
 						/>
-						<div className="absolute -bottom-6 -left-6 bg-primary text-primary-foreground rounded-2xl p-6 shadow-xl">
+						<div className="absolute bottom-20 left-8 bg-primary text-primary-foreground rounded-2xl p-6 shadow-xl">
 							<div className="font-heading text-3xl font-bold">100%</div>
 							<div className="font-body text-sm opacity-90">
 								Donation Funded

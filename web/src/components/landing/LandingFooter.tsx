@@ -1,6 +1,5 @@
 import { Link } from "@tanstack/react-router";
 
-import logoImg from "@/assets/logo.png";
 
 export default function LandingFooter() {
 	return (
@@ -9,8 +8,7 @@ export default function LandingFooter() {
 				<div className="grid md:grid-cols-3 gap-10">
 					<div className="md:col-span-1">
 						<div className="flex items-center gap-3 mb-4">
-							<img src={logoImg} alt="Keeper" className="h-8 w-8 rounded-lg" />
-							<span className="font-heading text-lg font-semibold text-white">
+	<span className="font-heading text-lg font-semibold text-white">
 								Keeper
 							</span>
 						</div>
