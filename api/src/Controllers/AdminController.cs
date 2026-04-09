@@ -851,7 +851,7 @@ public class AdminController : ControllerBase
     /// <summary>Aggregated ML predictions for the reports dashboard (single round-trip).</summary>
     [HttpGet("ml/reports-aggregate")]
     public async Task<ActionResult<ReportsMlAggregateDto>> GetMlReportsAggregate(
-        [FromServices] MlClientService _ml,
+        [FromServices] MlClientService ml,
         CancellationToken ct
     )
     {
@@ -929,8 +929,8 @@ public class AdminController : ControllerBase
                         .ToArray(),
                     MlJsonOptions
                 );
-                retentionTask = _ml.BatchPredictAsync("retention", retentionBody, ct);
-                growthTask = _ml.BatchPredictAsync("growth", growthBody, ct);
+                retentionTask = ml.BatchPredictAsync("retention", retentionBody, ct);
+                growthTask = ml.BatchPredictAsync("growth", growthBody, ct);
             }
 
             if (residents.Count > 0)
@@ -977,8 +977,8 @@ public class AdminController : ControllerBase
                         .ToArray(),
                     MlJsonOptions
                 );
-                progressTask = _ml.BatchPredictAsync("girls-progress", progressBody, ct);
-                trajectoryTask = _ml.BatchPredictAsync("girls-trajectory", trajectoryBody, ct);
+                progressTask = ml.BatchPredictAsync("girls-progress", progressBody, ct);
+                trajectoryTask = ml.BatchPredictAsync("girls-trajectory", trajectoryBody, ct);
             }
 
             await Task.WhenAll(
