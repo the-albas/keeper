@@ -561,7 +561,7 @@ function ReportsPage() {
               subtitle="Residents admitted, active, and graduated per safehouse"
             />
             <div className="bg-card rounded-2xl border border-border shadow-sm p-6">
-              <ResponsiveContainer width="100%" height={240}>
+              <ResponsiveContainer width="100%" height={280}>
                 <BarChart data={safehousePerformance} barCategoryGap="30%">
                   <CartesianGrid strokeDasharray="3 3" stroke={GRID_COLOR} />
                   <XAxis
@@ -654,7 +654,7 @@ function ReportsPage() {
               subtitle="Caring, Healing, and Teaching service counts per quarter"
             />
             <div className="bg-card rounded-2xl border border-border shadow-sm p-6">
-              <ResponsiveContainer width="100%" height={240}>
+              <ResponsiveContainer width="100%" height={280}>
                 <BarChart data={servicesByQuarter} barCategoryGap="28%">
                   <CartesianGrid strokeDasharray="3 3" stroke={GRID_COLOR} />
                   <XAxis
