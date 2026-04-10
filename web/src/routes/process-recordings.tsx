@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { CalendarDays, ChevronUp, Pencil, Plus, Trash2, User, Users } from "lucide-react";
 import AdminSidebar from "@/components/admin/AdminSidebar";
-import { apiGetJson, getApiBaseUrl, type AuthMeResponse } from "@/lib/api";
+import { apiGetJson, resolveApiUrl, type AuthMeResponse } from "@/lib/api";
 import {
 	caseloadResidentsQueryOptions,
 	mapCaseloadRowToPicker,
@@ -165,9 +165,7 @@ function ProcessRecordingsPage() {
       referral_made: boolean;
       notes_restricted: string;
     }) => {
-      const apiBaseUrl = getApiBaseUrl();
-      if (!apiBaseUrl) throw new Error("API base URL not configured");
-      const response = await fetch(`${apiBaseUrl}/api/admin-data/process-recordings`, {
+      const response = await fetch(resolveApiUrl("/api/admin-data/process-recordings"), {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -184,12 +182,13 @@ function ProcessRecordingsPage() {
 
   const deleteRecordingMutation = useMutation({
     mutationFn: async (id: number) => {
-      const apiBaseUrl = getApiBaseUrl();
-      if (!apiBaseUrl) throw new Error("API base URL not configured");
-      const response = await fetch(`${apiBaseUrl}/api/admin-data/process-recordings/${id}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
+      const response = await fetch(
+        resolveApiUrl(`/api/admin-data/process-recordings/${id}`),
+        {
+          method: "DELETE",
+          credentials: "include",
+        },
+      );
       if (!response.ok) throw new Error("Failed to delete recording");
     },
     onSuccess: async () => {

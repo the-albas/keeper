@@ -9,7 +9,7 @@ import type { DonorMetricsData } from "@/components/donor/DonorMetrics";
 import DonorMetrics from "@/components/donor/DonorMetrics";
 import DonorNav from "@/components/donor/DonorNav";
 import { Button } from "@/components/ui/button";
-import { type AuthMeResponse, getApiBaseUrl } from "@/lib/api";
+import { type AuthMeResponse, resolveApiUrl } from "@/lib/api";
 import { requireRole } from "@/lib/auth";
 
 export const Route = createFileRoute("/dashboard")({
@@ -40,9 +40,7 @@ function mapDonorDonationApi(row: DonorDonationApi): Donation {
 }
 
 async function fetchMyDonations(): Promise<Donation[]> {
-	const apiBaseUrl = getApiBaseUrl();
-	if (!apiBaseUrl) return [];
-	const res = await fetch(`${apiBaseUrl}/api/donor/donations`, {
+	const res = await fetch(resolveApiUrl("/api/donor/donations"), {
 		credentials: "include",
 	});
 	if (res.status === 401) return [];
@@ -55,9 +53,7 @@ async function fetchMyDonations(): Promise<Donation[]> {
 }
 
 async function fetchCurrentUser() {
-	const apiBaseUrl = getApiBaseUrl();
-	if (!apiBaseUrl) return null;
-	const res = await fetch(`${apiBaseUrl}/api/auth/me`, {
+	const res = await fetch(resolveApiUrl("/api/auth/me"), {
 		credentials: "include",
 	});
 	if (!res.ok) return null;

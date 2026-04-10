@@ -12,6 +12,7 @@ import Navbar from "@/components/landing/Navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { resolveApiUrl } from "@/lib/api";
 import { meQueryOptions } from "@/lib/auth";
 
 type AuthChallengeResponse = {
@@ -26,12 +27,6 @@ type AuthUserResponse = {
 	supporterId: number | null;
 };
 
-const apiBaseUrl = (() => {
-	const url = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.trim();
-	if (!url) throw new Error("VITE_API_BASE_URL is not set.");
-	return url;
-})();
-
 const unverifiedAccountError = "Please verify your email before signing in.";
 
 /** Surfaces clearer text when the browser raises TypeError: Failed to fetch (CORS, wrong URL, API down). */
@@ -44,7 +39,7 @@ async function authFetch(
 	} catch (e) {
 		if (e instanceof TypeError) {
 			throw new Error(
-				"Cannot reach the API. Check VITE_API_BASE_URL, add this site to Cors:AllowedOrigins on the server, and that the API is running.",
+				"Cannot reach the API. For local dev run the API (e.g. port 5216) and use same-origin /api (empty VITE_API_BASE_URL) with the Vite proxy, or set VITE_API_BASE_URL. On Vercel, clear VITE_API_BASE_URL so /api is proxied to the backend.",
 			);
 		}
 		throw e;
@@ -263,11 +258,13 @@ function resolveRedirectPath(
 	user: AuthUserResponse | null | undefined,
 ): "/admin" | "/dashboard" {
 	const roles = Array.isArray(user?.roles) ? user.roles : [];
-	return roles.includes("Admin") ? "/admin" : "/dashboard";
+	return roles.includes("Admin") || roles.includes("Staff")
+		? "/admin"
+		: "/dashboard";
 }
 
 async function fetchMe(): Promise<AuthUserResponse | null> {
-	const response = await fetch(`${apiBaseUrl}/api/auth/me`, {
+	const response = await fetch(resolveApiUrl("/api/auth/me"), {
 		credentials: "include",
 	});
 	if (!response.ok) {
@@ -286,7 +283,7 @@ async function submitLogin(input: {
 	email: string;
 	password: string;
 }): Promise<AuthChallengeResponse> {
-	const response = await authFetch(`${apiBaseUrl}/api/auth/login`, {
+	const response = await authFetch(resolveApiUrl("/api/auth/login"), {
 		method: "POST",
 		credentials: "include",
 		headers: {
@@ -306,7 +303,7 @@ async function verifyLoginCode(
 	code: string,
 	emailForChallenge: string,
 ): Promise<AuthUserResponse> {
-	const response = await authFetch(`${apiBaseUrl}/api/auth/login/verify`, {
+	const response = await authFetch(resolveApiUrl("/api/auth/login/verify"), {
 		method: "POST",
 		credentials: "include",
 		headers: {
@@ -323,7 +320,7 @@ async function verifyLoginCode(
 }
 
 async function resendLoginCode(emailForChallenge: string): Promise<void> {
-	const response = await authFetch(`${apiBaseUrl}/api/auth/login/resend`, {
+	const response = await authFetch(resolveApiUrl("/api/auth/login/resend"), {
 		method: "POST",
 		credentials: "include",
 		headers: {

@@ -11,6 +11,7 @@ import { CodeChallengeForm } from "@/components/auth/code-challenge-form";
 import Navbar from "@/components/landing/Navbar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { resolveApiUrl } from "@/lib/api";
 import { meQueryOptions } from "@/lib/auth";
 
 type AuthUserResponse = {
@@ -18,12 +19,6 @@ type AuthUserResponse = {
 	roles: string[];
 	supporterId: number | null;
 };
-
-const apiBaseUrl = (() => {
-	const url = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.trim();
-	if (!url) throw new Error("VITE_API_BASE_URL is not set.");
-	return url;
-})();
 
 export const Route = createFileRoute("/signup/verify")({
 	beforeLoad: async ({ context }) => {
@@ -190,7 +185,7 @@ async function verifySignupCode(
 	code: string,
 	email: string,
 ): Promise<AuthUserResponse> {
-	const response = await fetch(`${apiBaseUrl}/api/auth/signup/verify`, {
+	const response = await fetch(resolveApiUrl("/api/auth/signup/verify"), {
 		method: "POST",
 		credentials: "include",
 		headers: {
@@ -207,7 +202,7 @@ async function verifySignupCode(
 }
 
 async function resendSignupCode(email: string): Promise<void> {
-	const response = await fetch(`${apiBaseUrl}/api/auth/signup/resend`, {
+	const response = await fetch(resolveApiUrl("/api/auth/signup/resend"), {
 		method: "POST",
 		credentials: "include",
 		headers: {

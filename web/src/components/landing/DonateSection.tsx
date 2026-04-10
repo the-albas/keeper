@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Heart } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { apiPostJson, getApiBaseUrl } from "@/lib/api";
+import { apiPostJson } from "@/lib/api";
 
 const amounts = [5, 10, 25, 50, 100, 250, 500];
 
@@ -44,12 +44,6 @@ export default function DonateSection() {
 
 	async function confirmDonate() {
 		if (!resolvedAmount || resolvedAmount <= 0) return;
-		if (!getApiBaseUrl()) {
-			setSubmitError(
-				"Donations are temporarily unavailable (API not configured).",
-			);
-			return;
-		}
 		setSubmitError(null);
 		setSubmitting(true);
 		try {

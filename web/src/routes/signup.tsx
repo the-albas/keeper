@@ -13,6 +13,7 @@ import Navbar from "@/components/landing/Navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { resolveApiUrl } from "@/lib/api";
 import { meQueryOptions } from "@/lib/auth";
 
 type AuthChallengeResponse = {
@@ -20,12 +21,6 @@ type AuthChallengeResponse = {
 	flow: "login" | "signup";
 	email: string;
 };
-
-const apiBaseUrl = (() => {
-	const url = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.trim();
-	if (!url) throw new Error("VITE_API_BASE_URL is not set.");
-	return url;
-})();
 
 export const Route = createFileRoute("/signup")({
 	beforeLoad: async ({ context }) => {
@@ -184,7 +179,7 @@ async function submitSignup(input: {
 	email: string;
 	password: string;
 }): Promise<AuthChallengeResponse> {
-	const response = await fetch(`${apiBaseUrl}/api/auth/signup`, {
+	const response = await fetch(resolveApiUrl("/api/auth/signup"), {
 		method: "POST",
 		credentials: "include",
 		headers: {

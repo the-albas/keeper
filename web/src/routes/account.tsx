@@ -4,7 +4,7 @@ import { useState } from "react";
 import DonorFooter from "@/components/donor/DonorFooter";
 import DonorNav from "@/components/donor/DonorNav";
 import { Button } from "@/components/ui/button";
-import { type AuthMeResponse, getApiBaseUrl } from "@/lib/api";
+import { type AuthMeResponse, resolveApiUrl } from "@/lib/api";
 import { requireAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/account")({
@@ -15,9 +15,7 @@ export const Route = createFileRoute("/account")({
 });
 
 async function fetchCurrentUser() {
-	const apiBaseUrl = getApiBaseUrl();
-	if (!apiBaseUrl) return null;
-	const res = await fetch(`${apiBaseUrl}/api/auth/me`, {
+	const res = await fetch(resolveApiUrl("/api/auth/me"), {
 		credentials: "include",
 	});
 	if (!res.ok) return null;
@@ -31,9 +29,7 @@ async function fetchCurrentUser() {
 }
 
 async function deleteAccount() {
-	const apiBaseUrl = getApiBaseUrl();
-	if (!apiBaseUrl) throw new Error("API base URL is not configured.");
-	const res = await fetch(`${apiBaseUrl}/api/auth/account`, {
+	const res = await fetch(resolveApiUrl("/api/auth/account"), {
 		method: "DELETE",
 		credentials: "include",
 	});

@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { ChevronUp, Clock, Home, Pencil, Plus, Trash2, Users } from "lucide-react";
 import AdminSidebar from "@/components/admin/AdminSidebar";
-import { apiGetJson, getApiBaseUrl, type AuthMeResponse } from "@/lib/api";
+import { apiGetJson, resolveApiUrl, type AuthMeResponse } from "@/lib/api";
 import {
 	caseloadResidentsQueryOptions,
 	mapCaseloadRowToPicker,
@@ -356,9 +356,7 @@ function HomeVisitationsPage() {
       follow_up_notes: string;
       visit_outcome: string;
     }) => {
-      const apiBaseUrl = getApiBaseUrl();
-      if (!apiBaseUrl) throw new Error("API base URL not configured");
-      const response = await fetch(`${apiBaseUrl}/api/admin-data/home-visitations`, {
+      const response = await fetch(resolveApiUrl("/api/admin-data/home-visitations"), {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -375,27 +373,28 @@ function HomeVisitationsPage() {
 
   const updateVisitMutation = useMutation({
     mutationFn: async ({ id, payload }: { id: number; payload: typeof EMPTY_VISIT }) => {
-      const apiBaseUrl = getApiBaseUrl();
-      if (!apiBaseUrl) throw new Error("API base URL not configured");
-      const response = await fetch(`${apiBaseUrl}/api/admin-data/home-visitations/${id}`, {
-        method: "PUT",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          visit_date: payload.visitDate,
-          social_worker: payload.socialWorker,
-          visit_type: payload.visitType,
-          location_visited: payload.locationVisited,
-          family_members_present: payload.familyMembersPresent,
-          purpose: payload.purpose,
-          observations: payload.observations,
-          family_cooperation_level: payload.familyCooperationLevel,
-          safety_concerns_noted: payload.safetyConcernsNoted,
-          follow_up_needed: payload.followUpNeeded,
-          follow_up_notes: payload.followUpNotes,
-          visit_outcome: payload.visitOutcome,
-        }),
-      });
+      const response = await fetch(
+        resolveApiUrl(`/api/admin-data/home-visitations/${id}`),
+        {
+          method: "PUT",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            visit_date: payload.visitDate,
+            social_worker: payload.socialWorker,
+            visit_type: payload.visitType,
+            location_visited: payload.locationVisited,
+            family_members_present: payload.familyMembersPresent,
+            purpose: payload.purpose,
+            observations: payload.observations,
+            family_cooperation_level: payload.familyCooperationLevel,
+            safety_concerns_noted: payload.safetyConcernsNoted,
+            follow_up_needed: payload.followUpNeeded,
+            follow_up_notes: payload.followUpNotes,
+            visit_outcome: payload.visitOutcome,
+          }),
+        },
+      );
       if (!response.ok) throw new Error("Failed to update visit");
     },
     onSuccess: async () => {
@@ -409,12 +408,13 @@ function HomeVisitationsPage() {
 
   const deleteVisitMutation = useMutation({
     mutationFn: async (id: number) => {
-      const apiBaseUrl = getApiBaseUrl();
-      if (!apiBaseUrl) throw new Error("API base URL not configured");
-      const response = await fetch(`${apiBaseUrl}/api/admin-data/home-visitations/${id}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
+      const response = await fetch(
+        resolveApiUrl(`/api/admin-data/home-visitations/${id}`),
+        {
+          method: "DELETE",
+          credentials: "include",
+        },
+      );
       if (!response.ok) throw new Error("Failed to delete visit");
     },
     onSuccess: async () => {
