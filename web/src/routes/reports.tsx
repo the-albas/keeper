@@ -344,7 +344,7 @@ function ReportsPage() {
                 {totalResidents}
               </div>
               <div className="font-body text-sm font-semibold text-foreground mt-0.5">
-                Total Beneficiaries
+                New Beneficiaries
               </div>
               <div className="font-body text-xs text-muted-foreground">
                 Residents admitted this year
