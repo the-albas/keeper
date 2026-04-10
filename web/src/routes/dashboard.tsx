@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { motion } from "framer-motion";
 import { Heart } from "lucide-react";
 import type { Donation } from "@/components/admin/AdminMetrics";
 import AllocationChart from "@/components/donor/AllocationChart";
@@ -120,13 +119,14 @@ function DonorDashboard() {
 				<div className="mb-8 flex flex-col items-start justify-between gap-6 rounded-2xl border-t-4 border-t-yellow-500 bg-[#FDFBF7] p-8 shadow-sm md:flex-row md:items-center">
 					<div>
 						<h1 className="font-heading text-3xl font-bold text-foreground">
-							{metrics.girlsSupported > 0
-								? `You Changed ${metrics.girlsSupported} Girls' Lives`
+							{donations.length === 0
+								? "Make a Difference Today"
 								: "You're Changing Girls' Lives"}
 						</h1>
 						<p className="font-body mt-2 text-base text-muted-foreground">
-							See how your generosity is making a difference in the lives of
-							survivors.
+							{donations.length === 0
+								? "Your first donation could change a girl's life."
+								: "See how your generosity is making a difference in the lives of survivors."}
 						</p>
 					</div>
 					<Link to="/" hash="donate">
@@ -139,56 +139,7 @@ function DonorDashboard() {
 
 				<DonorMetrics metrics={metrics} />
 
-				<div className="mt-8 grid gap-6 lg:grid-cols-2">
-					<div className="flex flex-col justify-center rounded-2xl border border-border bg-card p-8 shadow-sm">
-						<h3 className="mb-6 text-center font-heading text-xl font-bold text-foreground">
-							Where Your Money Goes
-						</h3>
-						<div className="mx-auto mb-8 flex h-6 w-full max-w-lg overflow-hidden rounded-full shadow-inner">
-							<motion.div
-								initial={{ width: 0 }}
-								whileInView={{ width: "85%" }}
-								transition={{ duration: 1, delay: 0.2, ease: "easeOut" }}
-								className="h-full bg-primary"
-								title="85% Programs & Services"
-							/>
-							<motion.div
-								initial={{ width: 0 }}
-								whileInView={{ width: "10%" }}
-								transition={{ duration: 1, delay: 0.4, ease: "easeOut" }}
-								className="h-full bg-yellow-500"
-								title="10% Operations"
-							/>
-							<motion.div
-								initial={{ width: 0 }}
-								whileInView={{ width: "5%" }}
-								transition={{ duration: 1, delay: 0.6, ease: "easeOut" }}
-								className="h-full bg-muted-foreground/30"
-								title="5% Administration"
-							/>
-						</div>
-						<div className="flex flex-wrap justify-center gap-x-6 gap-y-3">
-							<div className="flex items-center gap-2">
-								<div className="h-3 w-3 rounded-full bg-primary" />
-								<span className="font-body text-sm font-medium text-foreground">
-									85% Programs & Services
-								</span>
-							</div>
-							<div className="flex items-center gap-2">
-								<div className="h-3 w-3 rounded-full bg-yellow-500" />
-								<span className="font-body text-sm font-medium text-foreground">
-									10% Operations
-								</span>
-							</div>
-							<div className="flex items-center gap-2">
-								<div className="h-3 w-3 rounded-full bg-muted-foreground/30" />
-								<span className="font-body text-sm font-medium text-foreground">
-									5% Admin
-								</span>
-							</div>
-						</div>
-					</div>
-
+				<div className="mt-8">
 					<AllocationChart donations={donations} />
 				</div>
 
