@@ -53,10 +53,9 @@ export function mapCaseloadRowToPicker(
 	r: CaseloadResidentApiRow
 ): ResidentPickerItem {
 	const id = Number(r.id);
-	const resolvedId = Number.isFinite(id) ? id : 0;
 	return {
-		id: resolvedId,
+		id: Number.isFinite(id) ? id : 0,
 		name: r.full_name?.trim() || `Resident ${r.id}`,
-		caseNumber: String(resolvedId || r.id),
+		caseNumber: r.resident_code?.trim() || `RES-${r.id}`,
 	};
 }
