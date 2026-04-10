@@ -28,6 +28,8 @@ export type CaseloadResidentApiRow = {
 	referred_by?: string;
 	referral_source?: string;
 	assigned_social_worker?: string;
+	reintegration_plan?: string;
+	reintegration_target_date?: string;
 	reintegration_status?: string;
 	reintegration_type?: string;
 	date_closed?: string;
