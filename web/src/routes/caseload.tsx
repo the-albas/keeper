@@ -287,6 +287,39 @@ function textareaClass() {
 	return "w-full rounded-2xl border border-transparent bg-input/50 px-3 py-2 text-sm font-body text-foreground placeholder:text-muted-foreground transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30 resize-none";
 }
 
+/** Matches API `CaseloadResidentUpsertRequest` (snake_case JSON). */
+function buildCaseloadUpsertBody(data: ResidentProfile) {
+	const case_subcategories = SUB_CAT_FIELDS.filter(
+		({ key }) => Boolean(data[key]),
+	).map(({ label }) => label);
+
+	return {
+		full_name: data.full_name,
+		resident_code: data.resident_code,
+		date_of_birth: data.date_of_birth,
+		sex: data.sex,
+		civil_status: data.birth_status,
+		case_status: data.case_status,
+		case_category: data.case_category,
+		case_subcategories,
+		risk_level: data.current_risk_level,
+		has_disability: data.is_pwd,
+		disability_type: data.pwd_type,
+		is_4ps_beneficiary: data.family_is_4ps,
+		is_solo_parent: data.family_solo_parent,
+		is_indigenous: data.family_indigenous,
+		is_informal_settler: data.family_informal_settler,
+		admission_date: data.date_of_admission,
+		safehouse_id: data.safehouse_id,
+		referred_by: data.referring_agency_person,
+		referral_source: data.referral_source,
+		assigned_social_worker: data.assigned_social_worker,
+		reintegration_plan: data.initial_case_assessment,
+		reintegration_target_date: data.date_case_study_prepared,
+		reintegration_status: data.reintegration_status,
+	};
+}
+
 // ─── Main component ───────────────────────────────────────────────────────────
 
 function CaseloadPage() {
@@ -369,8 +402,8 @@ function CaseloadPage() {
 			date_colb_registered: "",
 			date_colb_obtained: "",
 			assigned_social_worker: r.assigned_social_worker || "",
-			initial_case_assessment: "",
-			date_case_study_prepared: "",
+			initial_case_assessment: r.reintegration_plan || "",
+			date_case_study_prepared: r.reintegration_target_date || "",
 			initial_risk_level: r.risk_level || "Medium",
 			current_risk_level: r.risk_level || "Medium",
 			reintegration_type: r.reintegration_type || "",
@@ -384,43 +417,18 @@ function CaseloadPage() {
 
   const saveMutation = useMutation({
 	mutationFn: async (payload: { mode: "add" | "edit"; data: ResidentProfile }) => {
-		const body = {
-			full_name: payload.data.full_name,
-			resident_code: payload.data.resident_code,
-			case_control_no: payload.data.case_control_no,
-			internal_code: payload.data.internal_code,
-			date_of_birth: payload.data.date_of_birth,
-			sex: payload.data.sex,
-			birth_status: payload.data.birth_status,
-			place_of_birth: payload.data.place_of_birth,
-			religion: payload.data.religion,
-			case_status: payload.data.case_status,
-			case_category: payload.data.case_category,
-			is_pwd: payload.data.is_pwd,
-			pwd_type: payload.data.pwd_type,
-			has_special_needs: payload.data.has_special_needs,
-			special_needs_diagnosis: payload.data.special_needs_diagnosis,
-			family_is_4ps: payload.data.family_is_4ps,
-			family_solo_parent: payload.data.family_solo_parent,
-			family_indigenous: payload.data.family_indigenous,
-			family_parent_pwd: payload.data.family_parent_pwd,
-			family_informal_settler: payload.data.family_informal_settler,
-			admission_date: payload.data.date_of_admission,
-			safehouse_id: payload.data.safehouse_id,
-			referral_source: payload.data.referral_source,
-			referring_agency_person: payload.data.referring_agency_person,
-			assigned_social_worker: payload.data.assigned_social_worker,
-			risk_level: payload.data.current_risk_level,
-			reintegration_type: payload.data.reintegration_type,
-			reintegration_status: payload.data.reintegration_status,
-		};
+		const body = buildCaseloadUpsertBody(payload.data);
 
 		if (payload.mode === "add") {
 			await apiPostJson("/api/admin/caseload/residents", body);
 			return;
 		}
 
-		await apiPutJson(`/api/admin/caseload/residents/${payload.data.id}`, body);
+		const id = String(payload.data.id).trim();
+		if (!id) {
+			throw new Error("Missing resident id.");
+		}
+		await apiPutJson(`/api/admin/caseload/residents/${id}`, body);
 	},
 	onSuccess: async () => {
 		await queryClient.invalidateQueries({ queryKey: ["admin", "caseload", "residents"] });
