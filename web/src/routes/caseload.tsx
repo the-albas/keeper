@@ -539,7 +539,6 @@ function CaseloadPage() {
       <div className="space-y-1 pb-6">
         <SectionDivider label="Identity & Demographics" />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3 pt-1 pb-3">
-          <ViewField label="Full Name" value={r.full_name} />
           <ViewField label="Date of Birth" value={fmtDate(r.date_of_birth)} />
           <ViewField label="Sex" value={r.sex} />
           <ViewField label="Birth Status" value={r.birth_status} />
