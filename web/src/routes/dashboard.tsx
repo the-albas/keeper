@@ -128,7 +128,7 @@ function DonorDashboard() {
 					<Link to="/" hash="donate">
 						<Button className="h-11 gap-2 rounded-xl bg-yellow-500 px-6 font-body text-black shadow-md transition-all hover:bg-yellow-600">
 							<Heart className="h-4 w-4" />
-							Donate Again
+							{donations.length === 0 ? "Donate Now" : "Donate Again"}
 						</Button>
 					</Link>
 				</div>

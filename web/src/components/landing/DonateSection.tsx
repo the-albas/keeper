@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "framer-motion";
 import { Heart } from "lucide-react";
@@ -16,6 +17,7 @@ function formatAmount(value: number) {
 
 export default function DonateSection() {
 	const navigate = useNavigate();
+	const queryClient = useQueryClient();
 	const [selectedAmount, setSelectedAmount] = useState<
 		number | "custom" | null
 	>(50);
@@ -50,6 +52,7 @@ export default function DonateSection() {
 			await apiPostJson<{ donationId: number }>("/api/public/donations", {
 				amount: resolvedAmount,
 			});
+			await queryClient.invalidateQueries({ queryKey: ["donor", "donations"] });
 			setShowConfirm(false);
 			navigate({
 				to: "/donate-thank-you",
